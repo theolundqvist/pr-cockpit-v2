@@ -27,6 +27,9 @@ use crate::mutations::{
     NetState, OptimismLevel, Patch, PendingMutationView, PendingOverlay, SubmitPayload,
     SubmittedMutation,
 };
+use crate::notify::{
+    self, dedup, rules, DebugNotificationInput, NotificationEngine, NotificationEventPayload,
+};
 use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
 
@@ -48,6 +51,13 @@ impl IpcError {
         Self {
             code: "MutationFailure".to_string(),
             message: error.to_string(),
+        }
+    }
+
+    fn invalid_input(code: &str, message: impl Into<String>) -> Self {
+        Self {
+            code: code.to_string(),
+            message: message.into(),
         }
     }
 }
@@ -523,6 +533,15 @@ impl tauri_specta::Event for NotificationsChangedEventPayload {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SyncReconciledEventPayload {
+    pub account_id: String,
+}
+
+impl tauri_specta::Event for SyncReconciledEventPayload {
+    const NAME: &'static str = "sync:<account_id> reconciled";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct NetworkChangedEventPayload {
     pub account_id: String,
     pub state: NetState,
@@ -922,6 +941,10 @@ pub fn notifications_changed_event_name(account_id: &str) -> String {
     format!("notifications:account:{account_id} changed")
 }
 
+pub fn sync_reconciled_event_name(account_id: &str) -> String {
+    format!("sync:{account_id} reconciled")
+}
+
 pub fn network_changed_event_name(account_id: &str) -> String {
     format!("network:{account_id} changed")
 }
@@ -1160,6 +1183,28 @@ impl<R: tauri::Runtime> CacheInvalidationEmitter for TauriCacheInvalidationEmitt
         );
         let _ = self.app.emit(
             <NotificationsChangedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    fn emit_sync_reconciled(&self, account_id: &str) {
+        let payload = SyncReconciledEventPayload {
+            account_id: account_id.to_string(),
+        };
+        let _ = self
+            .app
+            .emit(&sync_reconciled_event_name(account_id), payload.clone());
+        let _ = self.app.emit(
+            <SyncReconciledEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+}
+
+impl<R: tauri::Runtime> notify::NotificationEventEmitter for TauriCacheInvalidationEmitter<R> {
+    fn emit_notification_event(&self, payload: NotificationEventPayload) {
+        let _ = self.app.emit(
+            <NotificationEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
     }
@@ -1748,6 +1793,15 @@ pub async fn list_worktrees_impl(
         .map_err(IpcError::db)
 }
 
+pub async fn list_notification_rules_impl(
+    db: &Db,
+    account_id: String,
+) -> Result<Vec<rules::NotificationRule>, IpcError> {
+    rules::list_rules(db, &account_id)
+        .await
+        .map_err(IpcError::db)
+}
+
 pub async fn set_worktree_manual_override_impl(
     worktree_service: &WorktreeService,
     worktree_id: String,
@@ -1755,6 +1809,21 @@ pub async fn set_worktree_manual_override_impl(
 ) -> Result<(), IpcError> {
     worktree_service
         .set_worktree_manual_override(&worktree_id, pr_id.as_deref())
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn set_notification_rule_impl(
+    db: &Db,
+    account_id: String,
+    kind: String,
+    enabled: bool,
+    config_json: String,
+) -> Result<(), IpcError> {
+    let kind = kind
+        .parse::<notify::triggers::NotificationKind>()
+        .map_err(|error| IpcError::invalid_input("InvalidNotificationKind", error.to_string()))?;
+    rules::set_rule(db, &account_id, kind, enabled, &config_json)
         .await
         .map_err(IpcError::db)
 }
@@ -1769,6 +1838,20 @@ pub async fn set_worktree_roots_impl(
         .map_err(IpcError::db)
 }
 
+pub async fn set_quiet_hours_impl(
+    db: &Db,
+    account_id: String,
+    json: Option<String>,
+) -> Result<(), IpcError> {
+    if let Some(raw) = json.as_deref() {
+        serde_json::from_str::<rules::QuietHoursConfig>(raw)
+            .map_err(|error| IpcError::invalid_input("InvalidQuietHours", error.to_string()))?;
+    }
+    rules::set_quiet_hours(db, &account_id, json.as_deref())
+        .await
+        .map_err(IpcError::db)
+}
+
 pub async fn list_worktree_roots_impl(
     worktree_service: &WorktreeService,
 ) -> Result<Vec<String>, IpcError> {
@@ -1778,11 +1861,82 @@ pub async fn list_worktree_roots_impl(
         .map_err(IpcError::db)
 }
 
+pub async fn set_focus_mode_impl(db: &Db, account_id: String, on: bool) -> Result<(), IpcError> {
+    rules::set_focus_mode(db, &account_id, on)
+        .await
+        .map_err(IpcError::db)
+}
+
 pub async fn rediscover_worktrees_impl(
     worktree_service: &WorktreeService,
 ) -> Result<RediscoverSummary, IpcError> {
     worktree_service
         .rediscover_worktrees()
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn cleanup_worktree_impl(
+    worktree_service: &WorktreeService,
+    worktree_id: String,
+    force: bool,
+) -> Result<CleanupOutcome, CleanupError> {
+    worktree_service.cleanup_worktree(&worktree_id, force).await
+}
+
+pub async fn set_per_repo_filters_impl(
+    db: &Db,
+    account_id: String,
+    allow: Vec<String>,
+    deny: Vec<String>,
+) -> Result<(), IpcError> {
+    rules::set_per_repo_filters(db, &account_id, &allow, &deny)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn list_notification_events_impl(
+    db: &Db,
+    account_id: String,
+    limit: Option<i64>,
+    offset: Option<i64>,
+    since: Option<i64>,
+) -> Result<Vec<dedup::NotificationEventRow>, IpcError> {
+    dedup::list_events(
+        db,
+        dedup::EventPageInput {
+            account_id,
+            limit,
+            offset,
+            since,
+        },
+    )
+    .await
+    .map_err(IpcError::db)
+}
+
+pub async fn mark_notification_event_seen_impl(db: &Db, event_id: String) -> Result<(), IpcError> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| IpcError::invalid_input("InvalidSystemClock", error.to_string()))?;
+    let now = i64::try_from(now.as_secs())
+        .map_err(|error| IpcError::invalid_input("TimestampOverflow", error.to_string()))?;
+    dedup::mark_seen(db, &event_id, now)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn notif_debug_simulate_event_impl(
+    notifications: &NotificationEngine,
+    account_id: String,
+    payload_json: String,
+) -> Result<Option<NotificationEventPayload>, IpcError> {
+    let payload =
+        serde_json::from_str::<DebugNotificationInput>(&payload_json).map_err(|error| {
+            IpcError::invalid_input("InvalidNotificationPayload", error.to_string())
+        })?;
+    notifications
+        .simulate_event(&account_id, payload)
         .await
         .map_err(IpcError::db)
 }
@@ -2020,12 +2174,33 @@ pub async fn list_worktrees(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_notification_rules(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+) -> Result<Vec<rules::NotificationRule>, IpcError> {
+    list_notification_rules_impl(db.inner(), account_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn set_worktree_manual_override(
     worktree_service: tauri::State<'_, Arc<WorktreeService>>,
     worktree_id: String,
     pr_id: Option<String>,
 ) -> Result<(), IpcError> {
     set_worktree_manual_override_impl(worktree_service.inner(), worktree_id, pr_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_notification_rule(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    kind: String,
+    enabled: bool,
+    config_json: String,
+) -> Result<(), IpcError> {
+    set_notification_rule_impl(db.inner(), account_id, kind, enabled, config_json).await
 }
 
 #[tauri::command]
@@ -2039,10 +2214,30 @@ pub async fn set_worktree_roots(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn set_quiet_hours(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    json: Option<String>,
+) -> Result<(), IpcError> {
+    set_quiet_hours_impl(db.inner(), account_id, json).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn list_worktree_roots(
     worktree_service: tauri::State<'_, Arc<WorktreeService>>,
 ) -> Result<Vec<String>, IpcError> {
     list_worktree_roots_impl(worktree_service.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_focus_mode(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    on: bool,
+) -> Result<(), IpcError> {
+    set_focus_mode_impl(db.inner(), account_id, on).await
 }
 
 #[tauri::command]
@@ -2055,12 +2250,55 @@ pub async fn rediscover_worktrees(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn set_per_repo_filters(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    allow: Vec<String>,
+    deny: Vec<String>,
+) -> Result<(), IpcError> {
+    set_per_repo_filters_impl(db.inner(), account_id, allow, deny).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn cleanup_worktree(
     worktree_service: tauri::State<'_, Arc<WorktreeService>>,
     worktree_id: String,
     force: bool,
 ) -> Result<CleanupOutcome, CleanupError> {
-    worktree_service.cleanup_worktree(&worktree_id, force).await
+    cleanup_worktree_impl(worktree_service.inner(), worktree_id, force).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_notification_events(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    limit: Option<i64>,
+    offset: Option<i64>,
+    since: Option<i64>,
+) -> Result<Vec<dedup::NotificationEventRow>, IpcError> {
+    list_notification_events_impl(db.inner(), account_id, limit, offset, since).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn mark_notification_event_seen(
+    db: tauri::State<'_, Arc<Db>>,
+    event_id: String,
+) -> Result<(), IpcError> {
+    mark_notification_event_seen_impl(db.inner(), event_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+#[allow(non_snake_case)]
+pub async fn __notif_debug__simulate_event(
+    notifications: tauri::State<'_, Arc<NotificationEngine>>,
+    account_id: String,
+    payload_json: String,
+) -> Result<Option<NotificationEventPayload>, IpcError> {
+    notif_debug_simulate_event_impl(notifications.inner(), account_id, payload_json).await
 }
 
 pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
@@ -2097,13 +2335,22 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             set_worktree_roots,
             list_worktree_roots,
             rediscover_worktrees,
-            cleanup_worktree
+            cleanup_worktree,
+            list_notification_rules,
+            set_notification_rule,
+            set_quiet_hours,
+            set_focus_mode,
+            set_per_repo_filters,
+            list_notification_events,
+            mark_notification_event_seen,
+            __notif_debug__simulate_event
         ])
         .events(tauri_specta::collect_events![
             PrChangedEventPayload,
             InboxChangedEventPayload,
             RateLimitChangedEventPayload,
             NotificationsChangedEventPayload,
+            SyncReconciledEventPayload,
             NetworkChangedEventPayload,
             MutationHardConflictEventPayload,
             MutationSubmittedEventPayload,
@@ -2112,7 +2359,8 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             MutationFailedEventPayload,
             MutationRolledBackEventPayload,
             WorktreeChangedEventPayload,
-            WorktreeDiscoveryCompletedEventPayload
+            WorktreeDiscoveryCompletedEventPayload,
+            NotificationEventPayload
         ])
 }
 
@@ -2167,5 +2415,13 @@ pub fn command_names() -> &'static [&'static str] {
         "list_worktree_roots",
         "rediscover_worktrees",
         "cleanup_worktree",
+        "list_notification_rules",
+        "set_notification_rule",
+        "set_quiet_hours",
+        "set_focus_mode",
+        "set_per_repo_filters",
+        "list_notification_events",
+        "mark_notification_event_seen",
+        "__notif_debug__simulate_event",
     ]
 }

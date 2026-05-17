@@ -59,6 +59,7 @@ sqlx = { workspace = true }
 tauri = { workspace = true, features = ["protocol-asset"] }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-fs = { workspace = true }
+tauri-plugin-notification = { workspace = true }
 tauri-plugin-os = { workspace = true }
 tauri-specta = { workspace = true }
 tokio = { workspace = true }
@@ -82,6 +83,7 @@ regex = "1.12.2"
 kuchiki = "0.8.1"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
 toml = "1.1.2"
+chrono-tz = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.8.2"

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -10,6 +12,8 @@ use desktop_lib::auth::{
 };
 use desktop_lib::db::Db;
 use desktop_lib::sync::RateLimitBudgeter;
+
+pub mod notifications;
 
 #[allow(dead_code)]
 pub struct TestHarness {

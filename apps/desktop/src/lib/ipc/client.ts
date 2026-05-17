@@ -8,6 +8,9 @@ import {
   type InitInboxResponse,
   type IpcError,
   type ListDraftsInput,
+  type NotificationEventPayload,
+  type NotificationEventRow,
+  type NotificationRule,
   type MutationFailedEventPayload,
   type MutationHardConflictEventPayload,
   type MutationKind,
@@ -51,6 +54,18 @@ const mockDrafts = new Map<string, Draft>();
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
+const mockNotificationRules = new Map<string, NotificationRule[]>();
+const mockNotificationEvents = new Map<string, NotificationEventRow[]>();
+const mockNotificationSettings = new Map<
+  string,
+  {
+    quiet_hours_json: string | null;
+    focus_mode: boolean;
+    allow: string[];
+    deny: string[];
+  }
+>();
+const mockNotificationInvocations: Array<{ command: string; payload: unknown }> = [];
 
 const cautiousKinds = new Set<MutationKind>([
   'submit_review',
@@ -95,6 +110,75 @@ export function toAccountId(locator: Pick<AccountLocator, 'host' | 'login'>): st
 
 function nowEpoch(): number {
   return Math.floor(Date.now() / 1000);
+}
+
+const notificationKinds = [
+  'review_requested',
+  'changes_requested',
+  'approved',
+  'mention',
+  'ci_fail',
+  'ci_recover',
+  'merge_conflict',
+  'mutation_failure'
+] as const;
+
+function ensureMockNotificationRules(accountId: string): NotificationRule[] {
+  const existing = mockNotificationRules.get(accountId);
+  if (existing) {
+    return existing;
+  }
+  const generated = notificationKinds.map((kind) => ({
+    id: `${accountId}:${kind}`,
+    account_id: accountId,
+    kind,
+    enabled: true,
+    config_json: '{}',
+    updated_at: nowEpoch()
+  }));
+  mockNotificationRules.set(accountId, generated);
+  return generated;
+}
+
+function ensureMockNotificationSettings(accountId: string): {
+  quiet_hours_json: string | null;
+  focus_mode: boolean;
+  allow: string[];
+  deny: string[];
+} {
+  const existing = mockNotificationSettings.get(accountId);
+  if (existing) {
+    return existing;
+  }
+  const generated = {
+    quiet_hours_json: null,
+    focus_mode: false,
+    allow: [] as string[],
+    deny: [] as string[]
+  };
+  mockNotificationSettings.set(accountId, generated);
+  return generated;
+}
+
+function pushMockNotificationInvocation(command: string, payload: unknown): void {
+  mockNotificationInvocations.push({ command, payload });
+}
+
+function eventRowFromPayload(payload: NotificationEventPayload): NotificationEventRow {
+  return {
+    id: payload.event_id,
+    account_id: payload.account_id,
+    repo_id: payload.repo_id,
+    pr_id: payload.pr_id,
+    event_type: payload.event_type,
+    actor_id: payload.actor_id,
+    server_event_id: payload.server_event_id,
+    title: payload.title,
+    body: payload.body,
+    fired_at: payload.fired_at,
+    deduped: payload.deduped,
+    seen: false
+  };
 }
 
 function optimismForKind(kind: MutationKind): 'full' | 'cautious' | 'none' {
@@ -421,6 +505,143 @@ export async function renderPreview(body: string, repo: string | null) {
   return renderCommentHtml(body, repo);
 }
 
+export async function listNotificationRules(accountId: string): Promise<NotificationRule[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listNotificationRules(accountId));
+  }
+  return ensureMockNotificationRules(accountId);
+}
+
+export async function setNotificationRule(
+  accountId: string,
+  kind: string,
+  enabled: boolean,
+  configJson: string
+): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setNotificationRule(accountId, kind, enabled, configJson));
+    return;
+  }
+  pushMockNotificationInvocation('set_notification_rule', {
+    account_id: accountId,
+    kind,
+    enabled,
+    config_json: configJson
+  });
+  const rules = ensureMockNotificationRules(accountId);
+  const next = rules.map((rule) =>
+    rule.kind === kind
+      ? { ...rule, enabled, config_json: configJson, updated_at: nowEpoch() }
+      : rule
+  );
+  mockNotificationRules.set(accountId, next);
+}
+
+export async function setQuietHours(accountId: string, json: string | null): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setQuietHours(accountId, json));
+    return;
+  }
+  pushMockNotificationInvocation('set_quiet_hours', { account_id: accountId, json });
+  const settings = ensureMockNotificationSettings(accountId);
+  settings.quiet_hours_json = json;
+}
+
+export async function setFocusMode(accountId: string, on: boolean): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setFocusMode(accountId, on));
+    return;
+  }
+  pushMockNotificationInvocation('set_focus_mode', { account_id: accountId, on });
+  const settings = ensureMockNotificationSettings(accountId);
+  settings.focus_mode = on;
+}
+
+export async function setPerRepoFilters(
+  accountId: string,
+  allow: string[],
+  deny: string[]
+): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setPerRepoFilters(accountId, allow, deny));
+    return;
+  }
+  pushMockNotificationInvocation('set_per_repo_filters', {
+    account_id: accountId,
+    allow,
+    deny
+  });
+  const settings = ensureMockNotificationSettings(accountId);
+  settings.allow = [...allow];
+  settings.deny = [...deny];
+}
+
+export async function listNotificationEvents(
+  accountId: string,
+  limit: number | null = null,
+  offset: number | null = null,
+  since: number | null = null
+): Promise<NotificationEventRow[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listNotificationEvents(accountId, limit, offset, since));
+  }
+  const events = mockNotificationEvents.get(accountId) ?? [];
+  return events
+    .filter((event) => (since == null ? true : event.fired_at >= since))
+    .slice(offset ?? 0, (offset ?? 0) + (limit ?? 50));
+}
+
+export async function markNotificationEventSeen(eventId: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.markNotificationEventSeen(eventId));
+    return;
+  }
+  pushMockNotificationInvocation('mark_notification_event_seen', { event_id: eventId });
+  for (const [accountId, events] of mockNotificationEvents.entries()) {
+    const next = events.map((event) => (event.id === eventId ? { ...event, seen: true } : event));
+    mockNotificationEvents.set(accountId, next);
+  }
+}
+
+export async function notifDebugSimulateEvent(
+  accountId: string,
+  payload: {
+    kind: string;
+    repo_id?: string | null;
+    repo_full_name?: string | null;
+    pr_id?: string | null;
+    actor_id?: string | null;
+    server_event_id?: string | null;
+    title: string;
+    body: string;
+  }
+): Promise<NotificationEventPayload | null> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.notifDebugSimulateEvent(accountId, JSON.stringify(payload)));
+  }
+  pushMockNotificationInvocation('__notif_debug__simulate_event', {
+    account_id: accountId,
+    payload
+  });
+  const event: NotificationEventPayload = {
+    event_id: payload.server_event_id ?? `mock-notif-${Date.now()}`,
+    account_id: accountId,
+    repo_id: payload.repo_id ?? null,
+    pr_id: payload.pr_id ?? null,
+    event_type: payload.kind,
+    actor_id: payload.actor_id ?? 'mock-actor',
+    server_event_id: payload.server_event_id ?? `mock-event-${Date.now()}`,
+    title: payload.title,
+    body: payload.body,
+    fired_at: nowEpoch(),
+    deduped: false
+  };
+  const existing = mockNotificationEvents.get(accountId) ?? [];
+  mockNotificationEvents.set(accountId, [eventRowFromPayload(event), ...existing]);
+  await emitMockEvent('notification:event', event);
+  return event;
+}
+
 export async function submitMutation(accountId: string, kind: MutationKind, payloadJson: string) {
   if (isTauriRuntime()) {
     return unwrap(commands.submitMutation(accountId, kind, payloadJson));
@@ -643,6 +864,23 @@ declare global {
       setOnline: () => Promise<void>;
       pendingCount: () => number;
     };
+    __NOTIF_DEBUG__?: {
+      invocations: () => Array<{ command: string; payload: unknown }>;
+      clearInvocations: () => void;
+      simulateEvent: (
+        accountId: string,
+        payload: {
+          kind: string;
+          title: string;
+          body: string;
+          repo_id?: string | null;
+          repo_full_name?: string | null;
+          pr_id?: string | null;
+          actor_id?: string | null;
+          server_event_id?: string | null;
+        }
+      ) => Promise<NotificationEventPayload | null>;
+    };
   }
 }
 
@@ -655,5 +893,15 @@ if (typeof window !== 'undefined' && !window.__M2_DEBUG__) {
       }),
     setOnline: async () => setMockNetworkState(mockActiveAccountId, { state: 'online' }),
     pendingCount: () => mockPendingMutations.size
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__NOTIF_DEBUG__) {
+  window.__NOTIF_DEBUG__ = {
+    invocations: () => [...mockNotificationInvocations],
+    clearInvocations: () => {
+      mockNotificationInvocations.splice(0, mockNotificationInvocations.length);
+    },
+    simulateEvent: (accountId, payload) => notifDebugSimulateEvent(accountId, payload)
   };
 }

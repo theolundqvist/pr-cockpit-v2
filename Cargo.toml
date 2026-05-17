@@ -21,6 +21,7 @@ tauri = { version = "2.11.2", features = [] }
 tauri-build = { version = "2.6.2", features = [] }
 tauri-plugin-clipboard-manager = "2.3.2"
 tauri-plugin-fs = "2.5.1"
+tauri-plugin-notification = "2.3.2"
 tauri-plugin-os = "2.3.2"
 tauri-specta = { version = "=2.0.0-rc.25", features = ["typescript"] }
 thiserror = "2.0.17"
@@ -30,3 +31,4 @@ tracing-subscriber = { version = "0.3.20", features = ["env-filter", "fmt"] }
 tree-sitter = "0.25.10"
 tree-sitter-highlight = "0.25.10"
 zstd = "0.13.3"
+chrono-tz = "0.10.4"
