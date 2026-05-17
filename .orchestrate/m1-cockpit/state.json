@@ -286,6 +286,30 @@
       "prNumber": null,
       "failureMode": null,
       "verification": null
+    },
+    {
+      "name": "m1-bench-baselines",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-bench-baselines",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-reverify"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-05-17T12:35:37.307Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-05-17T12:35:37.307Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
