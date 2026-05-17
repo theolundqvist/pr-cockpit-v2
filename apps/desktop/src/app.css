@@ -1,0 +1,192 @@
+@import '@primer/primitives/dist/css/base/size/size.css';
+@import '@primer/primitives/dist/css/base/typography/typography.css';
+@import '@primer/primitives/dist/css/functional/themes/light.css';
+@import '@primer/css/dist/primer.css';
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: var(--bgColor-default, #f6f8fa);
+  color: var(--fgColor-default, #1f2328);
+}
+
+#svelte,
+body > div {
+  height: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--borderColor-accent-emphasis, #0969da);
+  outline-offset: 2px;
+}
+
+.cockpit-app {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+}
+
+.cockpit-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bgColor-muted, #f6f8fa);
+}
+
+.cockpit-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+}
+
+.cockpit-topbar {
+  background: var(--bgColor-default, #fff);
+}
+
+.cockpit-pane {
+  overflow: auto;
+}
+
+.skeleton-row {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e6edf3 20%, #f6f8fa 50%, #e6edf3 80%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s linear infinite;
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.pr-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+}
+
+.pr-main {
+  min-width: 0;
+}
+
+.pr-rail {
+  min-width: 0;
+}
+
+.diff-scroll {
+  height: 68vh;
+  overflow: auto;
+  background: var(--bgColor-default, #fff);
+}
+
+.diff-viewport {
+  position: relative;
+}
+
+.diff-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.diff-file-row,
+.diff-hunk-row {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 8px;
+  background: var(--bgColor-muted, #f6f8fa);
+  border-bottom: 1px solid var(--borderColor-muted, #d1d9e0);
+}
+
+.diff-hunk-row {
+  background: #ddf4ff;
+}
+
+.diff-line-row {
+  display: grid;
+  grid-template-columns: 56px 56px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 24px;
+  border-bottom: 1px solid var(--borderColor-muted, #d1d9e0);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    SF Mono,
+    Menlo,
+    Consolas,
+    Liberation Mono,
+    monospace;
+  font-size: 12px;
+}
+
+.diff-line-row.side-by-side {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.diff-side-cell {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.diff-line-number {
+  padding: 2px 8px;
+  text-align: right;
+  color: var(--fgColor-muted, #59636e);
+  background: var(--bgColor-muted, #f6f8fa);
+  border-right: 1px solid var(--borderColor-muted, #d1d9e0);
+}
+
+.diff-line-content {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 8px;
+  min-width: 0;
+}
+
+.diff-line-content.add {
+  background: #dafbe1;
+}
+
+.diff-line-content.del {
+  background: #ffebe9;
+}
+
+.diff-thread-row {
+  padding: 4px 8px 8px;
+  background: #f6f8fa;
+}
+
+.syntax-keyword {
+  color: #8250df;
+}
+
+.syntax-string {
+  color: #0a3069;
+}
+
+.syntax-number {
+  color: #0550ae;
+}
+
+.syntax-comment {
+  color: #59636e;
+  font-style: italic;
+}
+
+.cockpit-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}

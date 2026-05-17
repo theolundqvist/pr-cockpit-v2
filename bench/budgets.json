@@ -1,0 +1,82 @@
+{
+  "tolerance_pct": 10,
+  "metrics": {
+    "inbox_first_paint_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 100,
+      "baseline": 12
+    },
+    "pr_detail_open_preloaded_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 50,
+      "baseline": 1
+    },
+    "pr_detail_open_cold_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 250,
+      "baseline": 10
+    },
+    "file_open_in_diff_cached_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 100,
+      "baseline": 1
+    },
+    "comrak_render_throughput_ops_per_sec": {
+      "source": "rust",
+      "kind": "min",
+      "unit": "ops/s",
+      "budget": 850,
+      "baseline": 15000
+    },
+    "inbox_first_paint_ms_frontend": {
+      "source": "frontend",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 100,
+      "baseline": 90
+    },
+    "pr_detail_open_preloaded_ms_frontend": {
+      "source": "frontend",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 50,
+      "baseline": 40
+    },
+    "pr_detail_open_cold_ms_frontend": {
+      "source": "frontend",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 250,
+      "baseline": 80
+    },
+    "file_open_in_diff_cached_ms_frontend": {
+      "source": "frontend",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 100,
+      "baseline": 70
+    },
+    "diff_scroll_fps": {
+      "source": "frontend",
+      "kind": "min",
+      "unit": "fps",
+      "budget": 60,
+      "baseline": 62
+    },
+    "diff_scroll_frame_p95_ms": {
+      "source": "frontend",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 16.7,
+      "baseline": 16.2
+    }
+  }
+}

@@ -1,0 +1,9 @@
+
+> pr-cockpit@0.1.0 corpus /workspace
+> node ./tools/markdown-corpus/score.mjs
+
+entries=200
+structural_mean=0.295873
+visible_mean=0.015459
+weighted_mean=0.015459
+gate=0.02
