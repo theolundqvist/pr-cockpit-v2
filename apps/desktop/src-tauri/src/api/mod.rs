@@ -127,6 +127,10 @@ impl GithubClient {
         }
     }
 
+    pub fn probe_url(&self) -> String {
+        self.config.api_origin.clone()
+    }
+
     pub async fn graphql<T: DeserializeOwned>(
         &self,
         locator: &AccountLocator,

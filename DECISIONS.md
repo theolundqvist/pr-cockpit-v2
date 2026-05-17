@@ -432,3 +432,33 @@ Decision:
 
 Reason: this keeps mutation UX aligned with PLAN §3.2 risk tiers while allowing
 one dispatch/runtime path across mixed REST/GraphQL write surfaces.
+
+### 2026-05-17: M2 offline queue monitor, confirmation gating, hard-conflict payload, and airplane drill contract
+
+Decision:
+
+- `mutations::net::NetworkMonitor` is the single connectivity source for optimistic writes. It publishes a `watch::Receiver<NetState>` and uses:
+  - a HEAD probe against the configured GitHub API origin every 15s,
+  - probe execution only when mutation traffic-in-flight is zero,
+  - immediate `Offline { error_kind }` on any API 4xx/5xx/transport error reported by the engine,
+  - transition to `Online` on the first subsequent probe that returns `200 OK`.
+  Transition threshold is `1` failure (`any error`), because write replays should stop immediately when the API starts rejecting traffic.
+- `pending_mutations.requires_connection_confirmation` gates non-optimistic write kinds (`OptimismLevel::None`): `merge`, `enable_auto_merge`, `disable_auto_merge`. During drain, these remain `status='pending'`, are not auto-applied, and are surfaced to UI as “requires connection/confirmation”.
+- Hard-conflict event schema is emitted as `MutationEvent::HardConflict` and mirrored for IPC as `mutation:<id> hard-conflict` with payload:
+  - `mutation_id`,
+  - `kind`,
+  - `target_id`,
+  - `server_snapshot_json`,
+  - `predicted_snapshot_json`,
+  - `diff { summary, local_body, server_body, changed_fields[] }`.
+  UI consumption contract: render the summary immediately, show body diff for composer/conflict modals, and use `changed_fields` for structured badges (state/title/body/draft drift).
+- Airplane drill recipe lives in `apps/desktop/src-tauri/tests/airplane_drill.rs`:
+  1. Start from `Db::open_fixture()`, seed two PRs + four threads for a dedicated account.
+  2. Force monitor Offline via injected `NetProbe` kill-switch.
+  3. Queue offline writes in this order: 10 `addComment`, 3 `addLabel`, 3 `removeLabel`, 4 `resolveThread`, 1 `merge`.
+  4. Assert optimistic read models + queue + draft persistence survive engine reboot.
+  5. Flip probe Online and call `engine.drain()`.
+  6. Verify ordered replay, reconcile completion, temp→server `id_mappings`, converged read models, and exactly one remaining pending row (the unconfirmed merge).
+  To add new mutation kinds to the drill, append submissions in the same explicit order list and update the expected wiremock request sequence vector in the test.
+
+Reason: M2 needs deterministic offline durability and explicit operator control for non-optimistic operations without regressing submit latency or read-model consistency.

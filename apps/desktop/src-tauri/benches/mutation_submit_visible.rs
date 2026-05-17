@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+use std::{future::Future, pin::Pin};
 
 use anyhow::Result;
 use criterion::{criterion_group, criterion_main, Criterion};
@@ -12,7 +13,9 @@ use desktop_lib::auth::{
 };
 use desktop_lib::db::{Db, PullRequestRecord, RepoRecord, UserRecord};
 use desktop_lib::mutations::engine::MutationEngine;
+use desktop_lib::mutations::net::{NetProbe, NetState, NetworkMonitor};
 use desktop_lib::mutations::{MutationEvent, MutationKind, SubmitPayload};
+use reqwest::StatusCode;
 use tokio::runtime::Runtime;
 
 const HOST: &str = "github.com";
@@ -23,7 +26,7 @@ const PR_ID: &str = "pr-bench";
 
 fn mutation_submit_visible(c: &mut Criterion) {
     let runtime = Runtime::new().expect("runtime");
-    let (engine, account_id, _temp) = runtime.block_on(async {
+    let (online_engine, offline_engine, account_id, _temp) = runtime.block_on(async {
         let temp = tempfile::TempDir::new().expect("tempdir");
         let db = Arc::new(Db::open(temp.path()).await.expect("open db"));
         let account = db
@@ -61,14 +64,26 @@ fn mutation_submit_visible(c: &mut Criterion) {
         let github =
             GithubClient::with_config(token_client, Arc::clone(&db), GithubApiConfig::default());
 
-        let engine = MutationEngine::new(db, github);
-        (engine, account.id, temp)
+        let online_engine = MutationEngine::new(Arc::clone(&db), github.clone());
+
+        let probe = Arc::new(StaticProbe {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+        });
+        let monitor = NetworkMonitor::start_with_probe("http://127.0.0.1:65535", probe);
+        monitor.probe_now().await;
+        let offline_engine = MutationEngine::new(db, github).with_network_monitor(monitor.clone());
+        while !matches!(monitor.state(), NetState::Offline { .. }) {
+            tokio::task::yield_now().await;
+        }
+
+        (online_engine, offline_engine, account.id, temp)
     });
 
-    let mut events = engine.subscribe();
+    let mut online_events = online_engine.subscribe();
+    let mut offline_events = offline_engine.subscribe();
     let idempotency_seq = AtomicU64::new(0);
 
-    c.bench_function("mutation_submit_visible", |b| {
+    c.bench_function("mutation_submit_visible_online", |b| {
         b.iter_custom(|iters| {
             let mut total = Duration::ZERO;
             for _ in 0..iters {
@@ -85,14 +100,51 @@ fn mutation_submit_visible(c: &mut Criterion) {
                             "user_id": USER_ID,
                         }),
                     };
-                    let submitted = engine
+                    let submitted = online_engine
                         .submit(&account_id, payload)
                         .await
                         .expect("submit mutation");
 
                     loop {
-                        let event = events.recv().await.expect("receive mutation event");
+                        let event = online_events.recv().await.expect("receive mutation event");
                         if let MutationEvent::Submitted { mutation } = event {
+                            if mutation.id == submitted.mutation_id {
+                                break;
+                            }
+                        }
+                    }
+                });
+                total += started.elapsed();
+            }
+            total
+        });
+    });
+
+    c.bench_function("mutation_submit_visible_offline", |b| {
+        b.iter_custom(|iters| {
+            let mut total = Duration::ZERO;
+            for _ in 0..iters {
+                let sequence = idempotency_seq.fetch_add(1, Ordering::Relaxed);
+                let started = Instant::now();
+                runtime.block_on(async {
+                    let payload = SubmitPayload {
+                        kind: MutationKind::SetAssignees,
+                        target_type: "pull_request".to_string(),
+                        target_id: PR_ID.to_string(),
+                        idempotency_key: format!("bench-offline-idem-{sequence}"),
+                        input_json: serde_json::json!({
+                            "pr_id": PR_ID,
+                            "user_id": USER_ID,
+                        }),
+                    };
+                    let submitted = offline_engine
+                        .submit(&account_id, payload)
+                        .await
+                        .expect("submit mutation");
+
+                    loop {
+                        let event = offline_events.recv().await.expect("receive mutation event");
+                        if let MutationEvent::Queued { mutation, .. } = event {
                             if mutation.id == submitted.mutation_id {
                                 break;
                             }
@@ -217,6 +269,20 @@ struct StubGhCli;
 impl GhCli for StubGhCli {
     fn run(&self, _args: &[&str]) -> Result<GhCommandOutput, AuthError> {
         Err(AuthError::GhMissing)
+    }
+}
+
+#[derive(Clone)]
+struct StaticProbe {
+    status: StatusCode,
+}
+
+impl NetProbe for StaticProbe {
+    fn head<'a>(
+        &'a self,
+        _url: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<StatusCode>> + Send + 'a>> {
+        Box::pin(async move { Ok(self.status) })
     }
 }
 

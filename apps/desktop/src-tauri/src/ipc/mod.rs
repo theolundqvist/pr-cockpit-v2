@@ -14,6 +14,7 @@ use crate::db::{
     PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrReviewerRow,
     RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
 };
+use crate::mutations::{HardConflictPayload, NetState};
 use crate::render::{self, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
 
@@ -397,6 +398,26 @@ impl tauri_specta::Event for NotificationsChangedEventPayload {
     const NAME: &'static str = "notifications:account:<id> changed";
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct NetworkChangedEventPayload {
+    pub account_id: String,
+    pub state: NetState,
+}
+
+impl tauri_specta::Event for NetworkChangedEventPayload {
+    const NAME: &'static str = "network:<account_id> changed";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MutationHardConflictEventPayload {
+    pub mutation_id: String,
+    pub conflict: HardConflictPayload,
+}
+
+impl tauri_specta::Event for MutationHardConflictEventPayload {
+    const NAME: &'static str = "mutation:<id> hard-conflict";
+}
+
 fn normalize_page(input_limit: Option<i64>, input_offset: Option<i64>) -> (i64, i64) {
     let limit = input_limit.unwrap_or(50).clamp(1, 200);
     let offset = input_offset.unwrap_or(0).max(0);
@@ -624,6 +645,14 @@ pub fn notifications_changed_event_name(account_id: &str) -> String {
     format!("notifications:account:{account_id} changed")
 }
 
+pub fn network_changed_event_name(account_id: &str) -> String {
+    format!("network:{account_id} changed")
+}
+
+pub fn mutation_hard_conflict_event_name(mutation_id: &str) -> String {
+    format!("mutation:{mutation_id} hard-conflict")
+}
+
 #[derive(Clone)]
 pub struct TauriCacheInvalidationEmitter<R: tauri::Runtime> {
     app: tauri::AppHandle<R>,
@@ -632,6 +661,35 @@ pub struct TauriCacheInvalidationEmitter<R: tauri::Runtime> {
 impl<R: tauri::Runtime> TauriCacheInvalidationEmitter<R> {
     pub fn new(app: tauri::AppHandle<R>) -> Self {
         Self { app }
+    }
+
+    pub fn emit_network_changed(&self, account_id: &str, state: NetState) {
+        let payload = NetworkChangedEventPayload {
+            account_id: account_id.to_string(),
+            state,
+        };
+        let _ = self
+            .app
+            .emit(&network_changed_event_name(account_id), payload.clone());
+        let _ = self.app.emit(
+            <NetworkChangedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_hard_conflict(&self, mutation_id: &str, conflict: HardConflictPayload) {
+        let payload = MutationHardConflictEventPayload {
+            mutation_id: mutation_id.to_string(),
+            conflict,
+        };
+        let _ = self.app.emit(
+            &mutation_hard_conflict_event_name(mutation_id),
+            payload.clone(),
+        );
+        let _ = self.app.emit(
+            <MutationHardConflictEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
     }
 }
 
@@ -1165,7 +1223,9 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             PrChangedEventPayload,
             InboxChangedEventPayload,
             RateLimitChangedEventPayload,
-            NotificationsChangedEventPayload
+            NotificationsChangedEventPayload,
+            NetworkChangedEventPayload,
+            MutationHardConflictEventPayload
         ])
 }
 

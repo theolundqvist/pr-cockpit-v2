@@ -246,6 +246,7 @@ async fn seed_fixture(db: &Db) -> Result<()> {
         created_at: base_ts + 10,
         updated_at: base_ts + 10,
         last_error: None,
+        requires_connection_confirmation: false,
     })
     .await?;
 

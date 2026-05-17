@@ -49,6 +49,8 @@ export const commands = {
 /** Events */
 export const events = {
 	inboxAccountIdChanged: makeEvent<InboxChangedEventPayload>("inbox:account:<id> changed"),
+	mutationIdHardConflict: makeEvent<MutationHardConflictEventPayload>("mutation:<id> hard-conflict"),
+	networkAccountIdChanged: makeEvent<NetworkChangedEventPayload>("network:<account_id> changed"),
 	notificationsAccountIdChanged: makeEvent<NotificationsChangedEventPayload>("notifications:account:<id> changed"),
 	prIdChanged: makeEvent<PrChangedEventPayload>("pr:<id> changed"),
 	rateLimitAccountIdChanged: makeEvent<RateLimitChangedEventPayload>("rate_limit:account:<id> changed"),
@@ -96,6 +98,8 @@ export type CheckSummaryInput = {
 	pr_id: string,
 };
 
+export type ErrorKind = { kind: "network" } | { kind: "rate_limited" } | { kind: "auth" } | { kind: "not_found" } | { kind: "conflict" } | { kind: "server" } | { kind: "other"; detail: string };
+
 export type FileTreeSummary = {
 	account_id: string,
 	pr_id: string,
@@ -104,6 +108,22 @@ export type FileTreeSummary = {
 	file_count: number,
 	additions: number,
 	deletions: number,
+};
+
+export type HardConflictDiff = {
+	summary: string,
+	local_body: string | null,
+	server_body: string | null,
+	changed_fields: string[],
+};
+
+export type HardConflictPayload = {
+	mutation_id: string,
+	kind: MutationKind,
+	target_id: string,
+	server_snapshot_json: string,
+	predicted_snapshot_json: string,
+	diff: HardConflictDiff,
 };
 
 export type InboxChangedEventPayload = {
@@ -145,6 +165,20 @@ export type InitInboxResponse = {
 export type IpcError = {
 	code: string,
 	message: string,
+};
+
+export type MutationHardConflictEventPayload = {
+	mutation_id: string,
+	conflict: HardConflictPayload,
+};
+
+export type MutationKind = "add_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "close_pr" | "reopen_pr";
+
+export type NetState = { state: "online" } | { state: "offline"; error_kind: ErrorKind };
+
+export type NetworkChangedEventPayload = {
+	account_id: string,
+	state: NetState,
 };
 
 export type NotificationItem = {

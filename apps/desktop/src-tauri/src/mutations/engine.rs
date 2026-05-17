@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::str::FromStr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -10,8 +11,10 @@ use tokio::sync::broadcast;
 
 use super::dispatch;
 use super::ipc_types::{
-    DrainSummary, MutationEvent, PendingMutationView, SubmitPayload, SubmittedMutation,
+    DrainSummary, HardConflictPayload, MutationEvent, PendingMutationView, QueueReason,
+    SubmitPayload, SubmittedMutation,
 };
+use super::net::{error_kind_from_status, NetState, NetworkMonitor};
 use super::patch::Patch;
 use super::projector::{self, PatchSource};
 use super::{
@@ -20,9 +23,11 @@ use super::{
 };
 use crate::api::GithubClient;
 use crate::db::Db;
-use crate::sync::{CacheInvalidationEmitter, SyncHandle};
+use crate::sync::{CacheInvalidationEmitter, Clock, SyncHandle, TokioClock};
+use tokio::sync::watch;
 
 const MAX_NETWORK_RETRIES: i64 = 5;
+static MUTATION_SEQUENCE: AtomicU64 = AtomicU64::new(1);
 
 #[derive(Clone)]
 pub struct MutationEngine {
@@ -31,6 +36,9 @@ pub struct MutationEngine {
     handlers: HashMap<MutationKind, Arc<dyn Mutation>>,
     sync_handle: Option<Arc<SyncHandle>>,
     cache_emitter: Option<Arc<dyn CacheInvalidationEmitter>>,
+    network_monitor: Option<NetworkMonitor>,
+    net_state_rx: Option<watch::Receiver<NetState>>,
+    clock: Arc<dyn Clock>,
     events_tx: broadcast::Sender<MutationEvent>,
 }
 
@@ -66,19 +74,11 @@ impl MutationApplyError {
     }
 
     pub fn http(status: i64, message: impl Into<String>) -> Self {
-        let kind = if status == 401 || status == 403 {
-            ErrorKind::Auth
-        } else if status == 404 {
-            ErrorKind::NotFound
-        } else if status == 409 || status == 422 {
-            ErrorKind::Conflict
-        } else if status == 429 {
-            ErrorKind::RateLimited
-        } else if (400..500).contains(&status) {
-            ErrorKind::Other(format!("http_{status}"))
-        } else {
-            ErrorKind::Server
-        };
+        let kind = u16::try_from(status)
+            .ok()
+            .and_then(|code| reqwest::StatusCode::from_u16(code).ok())
+            .map(error_kind_from_status)
+            .unwrap_or(ErrorKind::Server);
 
         let retryable = matches!(
             kind,
@@ -105,6 +105,9 @@ impl MutationEngine {
             handlers,
             sync_handle: None,
             cache_emitter: None,
+            network_monitor: None,
+            net_state_rx: None,
+            clock: Arc::new(TokioClock),
             events_tx,
         }
     }
@@ -119,12 +122,27 @@ impl MutationEngine {
         self
     }
 
+    pub fn with_network_monitor(mut self, monitor: NetworkMonitor) -> Self {
+        self.net_state_rx = Some(monitor.subscribe());
+        self.network_monitor = Some(monitor);
+        self
+    }
+
+    pub fn with_clock(mut self, clock: Arc<dyn Clock>) -> Self {
+        self.clock = clock;
+        self
+    }
+
     pub fn register_handler(&mut self, handler: Arc<dyn Mutation>) {
         self.handlers.insert(handler.kind(), handler);
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<MutationEvent> {
         self.events_tx.subscribe()
+    }
+
+    pub fn network_state_receiver(&self) -> Option<watch::Receiver<NetState>> {
+        self.net_state_rx.clone()
     }
 
     pub async fn submit(
@@ -136,7 +154,8 @@ impl MutationEngine {
             .lookup_by_idempotency_key(&payload.idempotency_key)
             .await?
         {
-            let requires_confirmation = existing.optimism_level() == OptimismLevel::None;
+            let requires_confirmation = existing.optimism_level() == OptimismLevel::None
+                || existing.requires_connection_confirmation;
             return Ok(SubmittedMutation {
                 mutation_id: existing.id,
                 deduped: true,
@@ -153,6 +172,7 @@ impl MutationEngine {
 
         let mutation_id = new_mutation_id(account_id, &payload.idempotency_key);
         let optimism = handler.optimism();
+        let is_offline = self.is_offline();
         let mut predicted = if optimism == OptimismLevel::None {
             super::PredictedEffect {
                 forward_patch: Patch::empty(),
@@ -183,9 +203,10 @@ impl MutationEngine {
             "INSERT INTO pending_mutations(
                 id, account_id, kind, target_type, target_id, idempotency_key, input_json,
                 optimistic_patch_json, inverse_patch_json, status, retries,
-                created_at, updated_at, last_error, optimism_level, server_call_json
+                created_at, updated_at, last_error, optimism_level, server_call_json,
+                requires_connection_confirmation
              )
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'pending', 0, ?10, ?10, NULL, ?11, ?12)",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'pending', 0, ?10, ?10, NULL, ?11, ?12, 0)",
         )
         .bind(&mutation_id)
         .bind(account_id)
@@ -228,10 +249,18 @@ impl MutationEngine {
             updated_at: now_epoch_seconds()?,
             last_error: None,
             pending_overlay: None,
+            requires_connection_confirmation: false,
         };
-        let _ = self
-            .events_tx
-            .send(MutationEvent::Submitted { mutation: view });
+        if is_offline {
+            let _ = self.events_tx.send(MutationEvent::Queued {
+                mutation: view,
+                reason: QueueReason::Offline,
+            });
+        } else {
+            let _ = self
+                .events_tx
+                .send(MutationEvent::Submitted { mutation: view });
+        }
 
         Ok(SubmittedMutation {
             mutation_id,
@@ -242,6 +271,7 @@ impl MutationEngine {
 
     pub async fn drain(&self) -> Result<DrainSummary> {
         let rows = self.pending_rows().await?;
+        let offline = self.is_offline();
         let mut summary = DrainSummary {
             processed: 0,
             applied: 0,
@@ -253,6 +283,12 @@ impl MutationEngine {
 
         for row in rows {
             summary.processed += 1;
+            if offline {
+                if row.optimism_level() == OptimismLevel::None {
+                    self.mark_requires_connection_confirmation(&row.id).await?;
+                }
+                continue;
+            }
             let outcome = self.process_row(row).await?;
             summary.applied += usize::from(outcome.applied);
             summary.reconciled += usize::from(outcome.reconciled);
@@ -332,6 +368,33 @@ impl MutationEngine {
             return Ok(ProcessOutcome::default());
         }
 
+        if row.optimism_level() == OptimismLevel::None {
+            self.mark_requires_connection_confirmation(&row.id).await?;
+            if let Ok(kind) = MutationKind::from_str(&row.kind) {
+                let _ = self.events_tx.send(MutationEvent::Queued {
+                    mutation: PendingMutationView {
+                        id: row.id.clone(),
+                        account_id: row.account_id.clone(),
+                        kind,
+                        optimism: row.optimism_level(),
+                        target_type: row.target_type.clone(),
+                        target_id: row.target_id.clone(),
+                        status: row.status.clone(),
+                        retries: row.retries,
+                        created_at: row.created_at,
+                        updated_at: now_epoch_seconds()?,
+                        last_error: row.last_error.clone(),
+                        pending_overlay: None,
+                        requires_connection_confirmation: true,
+                    },
+                    reason: QueueReason::RequiresConnectionConfirmation,
+                });
+            }
+            return Ok(ProcessOutcome {
+                ..ProcessOutcome::default()
+            });
+        }
+
         let kind = MutationKind::from_str(&row.kind)?;
         let Some(handler) = self.handlers.get(&kind) else {
             self.mark_failed(
@@ -359,6 +422,9 @@ impl MutationEngine {
         let started_at = now_epoch_millis()?;
         let attempt_no = row.retries + 1;
 
+        if let Some(monitor) = &self.network_monitor {
+            monitor.traffic_started().await;
+        }
         let apply_result = handler
             .apply(&ApplyCtx {
                 db: &self.db,
@@ -371,6 +437,9 @@ impl MutationEngine {
                 server_call: &server_call,
             })
             .await;
+        if let Some(monitor) = &self.network_monitor {
+            monitor.traffic_finished().await;
+        }
 
         match apply_result {
             Ok(response) => {
@@ -434,6 +503,7 @@ impl MutationEngine {
             }
             Err(error) => {
                 let classified = classify_error(&error);
+                self.report_network_error_if_needed(&classified).await;
 
                 self.record_attempt(
                     &row.id,
@@ -445,6 +515,35 @@ impl MutationEngine {
                     Some(error.to_string()),
                 )
                 .await?;
+
+                if matches!(classified.kind, ErrorKind::Conflict) {
+                    let conflict_payload = self
+                        .build_hard_conflict_payload(&row, kind, &classified, &input_json)
+                        .await
+                        .unwrap_or(None);
+                    let merged_diff = conflict_payload
+                        .as_ref()
+                        .map(|payload| payload.diff.clone())
+                        .or_else(|| classified.hard_conflict.clone());
+
+                    if let Some(payload) = conflict_payload {
+                        let _ = self.events_tx.send(MutationEvent::HardConflict { payload });
+                    }
+
+                    self.mark_failed(
+                        &row.id,
+                        ErrorKind::Conflict,
+                        false,
+                        merged_diff,
+                        Some(error.to_string()),
+                        attempt_no,
+                    )
+                    .await?;
+                    return Ok(ProcessOutcome {
+                        failed: true,
+                        ..ProcessOutcome::default()
+                    });
+                }
 
                 if matches!(classified.kind, ErrorKind::Network) {
                     let retries = row.retries + 1;
@@ -493,7 +592,7 @@ impl MutationEngine {
                     .bind(format!("{}", error))
                     .execute(self.db.pool())
                     .await?;
-                    tokio::time::sleep(wait).await;
+                    self.clock.sleep(wait).await;
                     return Ok(ProcessOutcome {
                         retried: true,
                         ..ProcessOutcome::default()
@@ -535,6 +634,162 @@ impl MutationEngine {
                 })
             }
         }
+    }
+
+    async fn mark_requires_connection_confirmation(&self, mutation_id: &str) -> Result<()> {
+        sqlx::query(
+            "UPDATE pending_mutations
+             SET requires_connection_confirmation = 1, updated_at = ?2
+             WHERE id = ?1",
+        )
+        .bind(mutation_id)
+        .bind(now_epoch_seconds()?)
+        .execute(self.db.pool())
+        .await?;
+        Ok(())
+    }
+
+    fn is_offline(&self) -> bool {
+        self.net_state_rx
+            .as_ref()
+            .map(|rx| matches!(*rx.borrow(), NetState::Offline { .. }))
+            .unwrap_or(false)
+    }
+
+    async fn report_network_error_if_needed(&self, classified: &ClassifiedError) {
+        let should_report = classified.http_status.is_some()
+            || matches!(
+                classified.kind,
+                ErrorKind::Network
+                    | ErrorKind::Auth
+                    | ErrorKind::NotFound
+                    | ErrorKind::Conflict
+                    | ErrorKind::RateLimited
+                    | ErrorKind::Server
+            );
+        if !should_report {
+            return;
+        }
+        if let Some(monitor) = &self.network_monitor {
+            monitor.report_api_error(classified.kind.clone()).await;
+        }
+    }
+
+    async fn build_hard_conflict_payload(
+        &self,
+        row: &PendingMutationRow,
+        kind: MutationKind,
+        classified: &ClassifiedError,
+        input_json: &serde_json::Value,
+    ) -> Result<Option<HardConflictPayload>> {
+        if row.target_type != "pull_request" {
+            return Ok(None);
+        }
+
+        let predicted_snapshot = self
+            .projected_pull_request_snapshot(&row.account_id, &row.target_id)
+            .await?;
+        let server_snapshot = self
+            .fetch_server_pull_request_snapshot(row, input_json)
+            .await?
+            .unwrap_or_else(|| serde_json::json!({}));
+
+        let mut diff = compute_conflict_diff(&predicted_snapshot, &server_snapshot);
+        if diff.summary.is_empty() {
+            if let Some(existing) = &classified.hard_conflict {
+                diff = existing.clone();
+            }
+        }
+
+        Ok(Some(HardConflictPayload {
+            mutation_id: row.id.clone(),
+            kind,
+            target_id: row.target_id.clone(),
+            server_snapshot_json: server_snapshot.to_string(),
+            predicted_snapshot_json: predicted_snapshot.to_string(),
+            diff,
+        }))
+    }
+
+    async fn projected_pull_request_snapshot(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<serde_json::Value> {
+        let row = self.db.pr_detail_summary(account_id, pr_id).await?;
+        let Some(summary) = row else {
+            return Ok(serde_json::json!({}));
+        };
+        Ok(serde_json::json!({
+            "id": summary.pr_id,
+            "title": summary.title,
+            "body": summary.body,
+            "state": summary.state,
+            "draft": summary.draft == 1,
+            "updated_at": summary.updated_at
+        }))
+    }
+
+    async fn fetch_server_pull_request_snapshot(
+        &self,
+        row: &PendingMutationRow,
+        input_json: &serde_json::Value,
+    ) -> Result<Option<serde_json::Value>> {
+        let owner = input_json.get("owner").and_then(serde_json::Value::as_str);
+        let repo = input_json.get("repo").and_then(serde_json::Value::as_str);
+        let number = input_json
+            .get("pr_number")
+            .and_then(serde_json::Value::as_i64);
+        let (Some(owner), Some(repo), Some(number)) = (owner, repo, number) else {
+            return Ok(None);
+        };
+        let path = format!("/repos/{owner}/{repo}/pulls/{number}");
+        let (response, _rate_limit) = self
+            .github
+            .rest_mutation_json::<serde_json::Value>(
+                &row.account_id,
+                reqwest::Method::GET,
+                &path,
+                None,
+                Some(row.idempotency_key.as_str()),
+            )
+            .await?;
+        let Some(snapshot) = response else {
+            return Ok(None);
+        };
+
+        let title = snapshot.get("title").and_then(serde_json::Value::as_str);
+        let body = snapshot.get("body").and_then(serde_json::Value::as_str);
+        let state = snapshot.get("state").and_then(serde_json::Value::as_str);
+        let draft = snapshot.get("draft").and_then(serde_json::Value::as_bool);
+        let updated_at = snapshot
+            .get("updated_at")
+            .and_then(serde_json::Value::as_str)
+            .and_then(parse_github_timestamp);
+
+        if title.is_some() || body.is_some() || state.is_some() || draft.is_some() {
+            sqlx::query(
+                "UPDATE pull_requests
+                 SET title = COALESCE(?4, title),
+                     body = COALESCE(?5, body),
+                     state = COALESCE(?6, state),
+                     draft = COALESCE(?7, draft),
+                     updated_at = COALESCE(?8, updated_at)
+                 WHERE account_id = ?1 AND id = ?2 AND number = ?3",
+            )
+            .bind(&row.account_id)
+            .bind(&row.target_id)
+            .bind(number)
+            .bind(title)
+            .bind(body)
+            .bind(state)
+            .bind(draft.map(|value| if value { 1_i64 } else { 0_i64 }))
+            .bind(updated_at)
+            .execute(self.db.pool())
+            .await?;
+        }
+
+        Ok(Some(snapshot))
     }
 
     async fn mark_failed(
@@ -633,7 +888,8 @@ impl MutationEngine {
                 updated_at,
                 last_error,
                 optimism_level,
-                server_call_json
+                server_call_json,
+                requires_connection_confirmation
              FROM pending_mutations
              WHERE idempotency_key = ?1
              LIMIT 1",
@@ -662,7 +918,8 @@ impl MutationEngine {
                 updated_at,
                 last_error,
                 optimism_level,
-                server_call_json
+                server_call_json,
+                requires_connection_confirmation
              FROM pending_mutations
              WHERE status = 'pending'
              ORDER BY created_at ASC, id ASC",
@@ -690,7 +947,8 @@ impl MutationEngine {
                 updated_at,
                 last_error,
                 optimism_level,
-                server_call_json
+                server_call_json,
+                requires_connection_confirmation
              FROM pending_mutations
              WHERE id = ?1",
         )
@@ -720,6 +978,7 @@ struct PendingMutationRow {
     last_error: Option<String>,
     optimism_level: Option<String>,
     server_call_json: Option<String>,
+    requires_connection_confirmation: bool,
 }
 
 impl PendingMutationRow {
@@ -793,7 +1052,8 @@ fn new_mutation_id(account_id: &str, idempotency_key: &str) -> String {
     idempotency_key.hash(&mut hasher);
     let digest = hasher.finish();
     let now = now_epoch_millis().unwrap_or_default();
-    format!("mut-{now}-{digest:016x}")
+    let sequence = MUTATION_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    format!("mut-{now}-{sequence:016x}-{digest:016x}")
 }
 
 fn now_epoch_seconds() -> Result<i64> {
@@ -808,6 +1068,58 @@ fn now_epoch_millis() -> Result<i64> {
         .duration_since(UNIX_EPOCH)
         .context("system clock before unix epoch")?;
     i64::try_from(elapsed.as_millis()).context("unix timestamp millis exceeds i64")
+}
+
+fn parse_github_timestamp(value: &str) -> Option<i64> {
+    chrono::DateTime::parse_from_rfc3339(value)
+        .ok()
+        .map(|parsed| parsed.timestamp())
+}
+
+fn compute_conflict_diff(
+    predicted_snapshot: &serde_json::Value,
+    server_snapshot: &serde_json::Value,
+) -> HardConflictDiff {
+    let local_body = predicted_snapshot
+        .get("body")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let server_body = server_snapshot
+        .get("body")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+
+    let mut changed_fields = Vec::new();
+    if let (Some(predicted), Some(server)) =
+        (predicted_snapshot.as_object(), server_snapshot.as_object())
+    {
+        let mut keys = predicted
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>();
+        keys.extend(server.keys().cloned());
+        for key in keys {
+            if predicted.get(&key) != server.get(&key) {
+                changed_fields.push(key);
+            }
+        }
+    }
+
+    let summary = if changed_fields.is_empty() {
+        "Server state diverged from optimistic state.".to_string()
+    } else {
+        format!(
+            "Server state diverged on fields: {}",
+            changed_fields.join(", ")
+        )
+    };
+
+    HardConflictDiff {
+        summary,
+        local_body,
+        server_body,
+        changed_fields,
+    }
 }
 
 trait ErrorKindExt {
