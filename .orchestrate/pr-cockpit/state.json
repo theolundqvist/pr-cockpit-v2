@@ -519,6 +519,14 @@
     {
       "at": "2026-05-17T13:44:24.054Z",
       "message": "verify-m1-cockpit: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-17T14:50:35.840Z",
+      "message": "m2-optimistic-writes: SSE idle 352887ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T14:50:35.841Z",
+      "message": "m2-optimistic-writes: tool_call idle 352888ms; last=2026-05-17T14:44:42.953Z"
     }
   ]
 }
