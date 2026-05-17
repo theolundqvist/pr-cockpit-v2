@@ -63,6 +63,14 @@
     {
       "at": "2026-05-17T05:56:00.879Z",
       "message": "m1-cockpit: respawned by self-planner (was error); resuming from orch/pr-cockpit/m1-cockpit"
+    },
+    {
+      "at": "2026-05-17T06:20:47.048Z",
+      "message": "m1-cockpit: SSE idle 352065ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T06:20:47.050Z",
+      "message": "m1-cockpit: tool_call idle 352068ms; last=2026-05-17T06:14:54.982Z"
     }
   ]
 }
