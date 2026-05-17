@@ -1,0 +1,16 @@
+{
+  "name": "pr-cockpit",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "corpus": "tsx tools/markdown-corpus/score.ts",
+    "corpus:fetch": "tsx tools/markdown-corpus/fetch.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "jsdom": "^27.2.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.7"
+  }
+}
