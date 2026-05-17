@@ -1,0 +1,51 @@
+{
+  "rootSlug": "pr-cockpit",
+  "tasks": [
+    {
+      "name": "m1-cockpit",
+      "type": "subplanner",
+      "branch": "orch/pr-cockpit/m1-cockpit",
+      "startingRef": "main",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-05-17T05:52:00.100Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-05-17T05:52:00.100Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
+    },
+    {
+      "name": "verify-m1-cockpit",
+      "type": "verifier",
+      "branch": "orch/pr-cockpit/verify-m1-cockpit",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-cockpit"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
