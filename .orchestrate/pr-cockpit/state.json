@@ -55,6 +55,10 @@
     {
       "at": "2026-05-17T05:54:23.954Z",
       "message": "m1-cockpit: respawned by self-planner (was error); resuming from orch/pr-cockpit/m1-cockpit"
+    },
+    {
+      "at": "2026-05-17T05:55:10.688Z",
+      "message": "m1-cockpit: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/pr-cockpit/m1-cockpit' does not exist in repository theolundqvist/pr-cockpit-v2."
     }
   ]
 }
