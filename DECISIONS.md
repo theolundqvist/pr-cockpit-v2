@@ -59,6 +59,46 @@ These M1 contracts continue to apply in M2+ unless explicitly superseded:
    offline-by-default...`): budgets and corpus regression thresholds are CI
    blockers, not advisory checks.
 
+### 2026-05-17: M3 worktree-read discovery, mapping weights, and cleanup safety contracts
+
+Decision:
+
+- Worktree discovery runs only against configured roots (`~/dev`, `~/code`,
+  `~/src`, `~/repos` defaults) and walks each root one level deep.
+- Discovery executes `git worktree list --porcelain` with a hard concurrency
+  cap of 8 child git processes to avoid process spikes on hosts with many
+  checkouts.
+- There is no `$HOME` autoscan and no recursive walk of `~`; this remains an
+  explicit privacy and performance boundary.
+- Optional per-worktree overrides are loaded from
+  `.github-pr-cockpit.toml` with schema:
+  - `[worktree].repo = "owner/name"`
+  - `[worktree].mapped_pr = <number>`
+  - `[worktree].is_app_managed = <bool>`
+  - `[worktree].ignore = <bool>`
+- PR mapping confidence uses fixed-weight signal contributions:
+  - remote URL match `0.30`
+  - branch upstream match `0.20`
+  - `gh pr status` current branch match `0.20` (weight drops to `0` when `gh`
+    is unavailable or returns non-zero)
+  - exact head SHA match `0.15`
+  - branch naming conventions `0.10`
+  - head-SHA ancestry `0.05`
+- Cleanup safety gates are fail-closed:
+  - user-managed worktrees (`is_app_managed = 0`) are blocked unconditionally,
+  - dirty worktrees are blocked unless force snapshot mode is explicitly used,
+  - even with force, dirty worktrees are never removed.
+- Cleanup snapshots are stored as blob JSON payloads containing:
+  - `captured_at`,
+  - `worktree_path`,
+  - `git status --porcelain=v2 --branch` output,
+  - stderr from status execution,
+  - recursive file listing (excluding `.git`).
+
+Reason: M3 introduces read-side local worktree integration only. The above
+contracts keep discovery bounded, mapping explainable, and cleanup operations
+safe while preserving user control and avoiding destructive automation.
+
 ### 2026-05-17: WebKit perf gate uses best-of-5 estimator for jitter-sensitive timing metrics
 
 Decision: frontend perf harness keeps PLAN §10 hard budgets unchanged, but

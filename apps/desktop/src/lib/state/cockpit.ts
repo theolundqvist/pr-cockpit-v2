@@ -5,12 +5,17 @@ import type {
   InitInboxResponse,
   InboxItem,
   RepoSubscriptionItem,
-  SystemStatusResponse
+  SystemStatusResponse,
+  WorktreeView
 } from '$lib/ipc/bindings';
 import {
   listAccounts,
   listInbox,
+  listWorktreeRoots,
+  listWorktrees,
   listRepoSubscriptions,
+  rediscoverWorktrees,
+  setWorktreeRoots,
   switchAccount,
   toAccountId,
   getSystemStatus
@@ -23,6 +28,8 @@ export const activeAccountIdStore = writable<string | null>(null);
 export const inboxStore = writable<InboxItem[]>([]);
 export const repoSubscriptionsStore = writable<RepoSubscriptionItem[]>([]);
 export const statusStore = writable<SystemStatusResponse | null>(null);
+export const worktreesStore = writable<WorktreeView[]>([]);
+export const worktreeRootsStore = writable<string[]>([]);
 export const shellBootedStore = writable(false);
 export const focusModeStore = writable<'focused' | 'background'>('focused');
 
@@ -57,7 +64,19 @@ export async function initializeCockpit(seed: InitInboxResponse): Promise<void> 
   inboxStore.set(seed.inbox);
   repoSubscriptionsStore.set(seed.subscriptions);
   statusStore.set(seed.status);
+  worktreeRootsStore.set([]);
+  worktreesStore.set([]);
   shellBootedStore.set(true);
+  void (async () => {
+    try {
+      worktreeRootsStore.set(await listWorktreeRoots());
+      if (activeAccountId) {
+        worktreesStore.set(await listWorktrees(activeAccountId));
+      }
+    } catch {
+      // Keep boot path resilient if worktree IPC fails.
+    }
+  })();
   if (!activeAccountId) {
     return;
   }
@@ -89,16 +108,19 @@ export async function refreshAccountData(accountId?: string): Promise<void> {
     inboxStore.set([]);
     repoSubscriptionsStore.set([]);
     statusStore.set(null);
+    worktreesStore.set([]);
     return;
   }
-  const [inboxRows, subscriptions, status] = await Promise.all([
+  const [inboxRows, subscriptions, status, worktrees] = await Promise.all([
     listInbox(selected),
     listRepoSubscriptions(selected),
-    getSystemStatus(selected)
+    getSystemStatus(selected),
+    listWorktrees(selected)
   ]);
   inboxStore.set(inboxRows);
   repoSubscriptionsStore.set(subscriptions);
   statusStore.set(status);
+  worktreesStore.set(worktrees);
 }
 
 export async function selectAccountById(accountId: string): Promise<void> {
@@ -121,4 +143,25 @@ export async function selectAccountById(accountId: string): Promise<void> {
 
 export function getActiveAccountId(): string | null {
   return get(activeAccountIdStore);
+}
+
+export async function refreshWorktreeRoots(): Promise<void> {
+  worktreeRootsStore.set(await listWorktreeRoots());
+}
+
+export async function saveWorktreeRoots(roots: string[]): Promise<void> {
+  await setWorktreeRoots(roots);
+  await refreshWorktreeRoots();
+  const active = get(activeAccountIdStore);
+  if (active) {
+    await refreshAccountData(active);
+  }
+}
+
+export async function triggerWorktreeRediscovery(): Promise<void> {
+  await rediscoverWorktrees();
+  const active = get(activeAccountIdStore);
+  if (active) {
+    worktreesStore.set(await listWorktrees(active));
+  }
 }

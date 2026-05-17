@@ -226,6 +226,12 @@ async fn seed_fixture(db: &Db) -> Result<()> {
         mapping_confidence: Some(0.97),
         mapping_source: Some("head_sha".to_string()),
         is_app_managed: false,
+        manual_override_pr_id: None,
+        manual_override_at: None,
+        last_cleanup_snapshot_id: None,
+        untracked_count: 0,
+        staged_count: 0,
+        modified_count: 0,
         created_at: base_ts,
         updated_at: base_ts + 5,
     })

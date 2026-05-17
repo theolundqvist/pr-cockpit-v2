@@ -7,6 +7,7 @@ use crate::api::GithubClient;
 use crate::auth::token_client::TokenClient;
 use crate::auth::AuthService;
 use crate::db::Db;
+use crate::ipc::worktree::{watcher::WatchBackend, WorktreeService};
 use crate::mutations::{MutationEngine, NetworkMonitor};
 
 #[derive(Debug, Clone)]
@@ -51,12 +52,18 @@ pub fn run() {
             let cache_emitter = Arc::new(ipc::TauriCacheInvalidationEmitter::new(
                 app.handle().clone(),
             ));
+            let worktree_emitter = Arc::new(ipc::TauriWorktreeEventEmitter::new(app.handle().clone()));
             let network_monitor = NetworkMonitor::start(github.probe_url());
             let mutation_engine = Arc::new(
                 MutationEngine::new(Arc::clone(&db), github)
                     .with_cache_emitter(cache_emitter.clone())
                     .with_network_monitor(network_monitor.clone()),
             );
+            let worktree_service = Arc::new(WorktreeService::new(
+                Arc::clone(&db),
+                worktree_emitter,
+                WatchBackend::default(),
+            ));
             let inbox_seed = tauri::async_runtime::block_on(ipc::ipc_init_inbox_impl(
                 db.as_ref(),
                 auth_service.as_ref(),
@@ -80,6 +87,7 @@ pub fn run() {
             app.manage(Arc::clone(&auth_service));
             app.manage(Arc::clone(&sync_state));
             app.manage(Arc::clone(&mutation_engine));
+            app.manage(Arc::clone(&worktree_service));
             app.manage(inbox_seed_state);
 
             {
@@ -114,6 +122,15 @@ pub fn run() {
                         for account in account_rows {
                             emitter.emit_network_changed(&account.id, state.clone());
                         }
+                    }
+                });
+            }
+
+            {
+                let worktree_service = Arc::clone(&worktree_service);
+                tauri::async_runtime::spawn(async move {
+                    if let Err(error) = worktree_service.start().await {
+                        tracing::warn!(target: "worktree", error = %error, "worktree startup failed");
                     }
                 });
             }

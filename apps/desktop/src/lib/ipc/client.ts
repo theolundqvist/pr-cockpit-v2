@@ -14,18 +14,26 @@ import {
   type NetState,
   type PendingMutationView,
   type PrDetailSummary,
-  type SubmittedMutation
+  type SubmittedMutation,
+  type CleanupError,
+  type WorktreeView,
+  type CleanupOutcome,
+  type RediscoverSummary
 } from '$lib/ipc/bindings';
 import {
   MOCK_ACCOUNTS,
+  MOCK_CLEANUP_OUTCOME,
   MOCK_CHECKS,
   MOCK_FILES,
   MOCK_INIT_INBOX,
+  MOCK_REDISCOVER_SUMMARY,
   MOCK_PR_DETAIL,
   MOCK_PR_METADATA,
   MOCK_SUBSCRIPTIONS,
   MOCK_THREADS,
   MOCK_TIMELINE,
+  MOCK_WORKTREE_ROOTS,
+  MOCK_WORKTREES,
   mockInboxForAccount,
   mockPatch,
   mockStatus
@@ -41,6 +49,8 @@ let mockNetState: NetState = { state: 'online' };
 const mockPendingMutations = new Map<string, PendingMutationView>();
 const mockDrafts = new Map<string, Draft>();
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
+let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
+let mockWorktrees = [...MOCK_WORKTREES];
 
 const cautiousKinds = new Set<MutationKind>([
   'submit_review',
@@ -65,6 +75,16 @@ async function unwrap<T>(result: Promise<CommandResult<T>>): Promise<T> {
   const resolved = await result;
   if (resolved.status === 'error') {
     throw new Error(`${resolved.error.code}: ${resolved.error.message}`);
+  }
+  return resolved.data;
+}
+
+async function unwrapTypedError<T, E>(
+  result: Promise<{ status: 'ok'; data: T } | { status: 'error'; error: E }>
+): Promise<T> {
+  const resolved = await result;
+  if (resolved.status === 'error') {
+    throw new Error(`IPC typed error: ${JSON.stringify(resolved.error)}`);
   }
   return resolved.data;
 }
@@ -318,6 +338,72 @@ export async function getPrFileBlob(
   };
 }
 
+export async function listWorktrees(accountId: string): Promise<WorktreeView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listWorktrees(accountId));
+  }
+  return mockWorktrees.filter((worktree) => worktree.account_id === accountId);
+}
+
+export async function setWorktreeManualOverride(
+  worktreeId: string,
+  prId: string | null
+): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setWorktreeManualOverride(worktreeId, prId));
+    return;
+  }
+  mockWorktrees = mockWorktrees.map((worktree) =>
+    worktree.id === worktreeId
+      ? {
+          ...worktree,
+          manual_override_pr_id: prId,
+          mapped_pr_id: prId,
+          mapping_confidence: prId ? 1 : 0.87,
+          mapping_source: prId ? '{"manual":true}' : worktree.mapping_source
+        }
+      : worktree
+  );
+}
+
+export async function setWorktreeRoots(roots: string[]): Promise<string[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.setWorktreeRoots(roots));
+  }
+  mockWorktreeRoots = roots;
+  return mockWorktreeRoots;
+}
+
+export async function listWorktreeRoots(): Promise<string[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listWorktreeRoots());
+  }
+  return mockWorktreeRoots;
+}
+
+export async function rediscoverWorktrees(): Promise<RediscoverSummary> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.rediscoverWorktrees());
+  }
+  return {
+    ...MOCK_REDISCOVER_SUMMARY,
+    roots: mockWorktreeRoots,
+    discovered: mockWorktrees.length,
+    watched: mockWorktrees.length
+  };
+}
+
+export async function cleanupWorktree(worktreeId: string, force: boolean): Promise<CleanupOutcome> {
+  if (isTauriRuntime()) {
+    return unwrapTypedError<CleanupOutcome, CleanupError>(
+      commands.cleanupWorktree(worktreeId, force)
+    );
+  }
+  if (!force) {
+    throw new Error('ForceRequired');
+  }
+  return { ...MOCK_CLEANUP_OUTCOME, worktree_id: worktreeId };
+}
 export async function renderCommentHtml(body: string, repo: string | null) {
   if (isTauriRuntime()) {
     return unwrap(commands.renderPreview({ body, ctx: { repo } }));

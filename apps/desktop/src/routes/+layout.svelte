@@ -4,6 +4,7 @@
   import { get } from 'svelte/store';
 
   import { listenEvent, toAccountId } from '$lib/ipc/client';
+  import WorktreeRoots from '$lib/components/worktree/WorktreeRoots.svelte';
   import {
     activeAccountIdStore,
     accountsStore,
@@ -20,6 +21,7 @@
   export let data: LayoutData;
 
   let unlistenRateLimit: (() => void) | null = null;
+  let unlistenWorktreeDiscovery: (() => void) | null = null;
 
   $: activeRateLimit = $statusStore?.rate_limits[0] ?? null;
   $: selectedAccount = $accountsStore.find((account) => toAccountId(account) === $activeAccountIdStore) ?? null;
@@ -32,15 +34,21 @@
   onDestroy(() => {
     unlistenRateLimit?.();
     unlistenRateLimit = null;
+    unlistenWorktreeDiscovery?.();
+    unlistenWorktreeDiscovery = null;
   });
 
   async function subscribeRateLimit(): Promise<void> {
     unlistenRateLimit?.();
+    unlistenWorktreeDiscovery?.();
     const activeId = get(activeAccountIdStore);
     if (!activeId) {
       return;
     }
     unlistenRateLimit = await listenEvent(`rate_limit:account:${activeId} changed`, async () => {
+      await refreshAccountData(activeId);
+    });
+    unlistenWorktreeDiscovery = await listenEvent('worktree:discovery completed', async () => {
       await refreshAccountData(activeId);
     });
   }
@@ -94,6 +102,8 @@
         </ul>
       {/if}
     </div>
+
+    <WorktreeRoots />
 
     <div class="p-3 border-top color-border-muted">
       <div class="f6 text-bold mb-1">Rate limit</div>

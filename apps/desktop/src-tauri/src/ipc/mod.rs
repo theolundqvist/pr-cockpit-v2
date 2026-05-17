@@ -7,6 +7,13 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Emitter;
 
+#[path = "../worktree/mod.rs"]
+pub mod worktree;
+
+use self::worktree::{
+    CleanupError, CleanupOutcome, RediscoverSummary, WorktreeEventEmitter, WorktreeService,
+    WorktreeView,
+};
 use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
 };
@@ -923,6 +930,32 @@ pub fn mutation_hard_conflict_event_name(mutation_id: &str) -> String {
     format!("mutation:{mutation_id} hard-conflict")
 }
 
+pub fn worktree_changed_event_name(worktree_id: &str) -> String {
+    format!("worktree:{worktree_id} changed")
+}
+
+pub fn worktree_discovery_completed_event_name() -> &'static str {
+    "worktree:discovery completed"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct WorktreeChangedEventPayload {
+    pub worktree_id: String,
+}
+
+impl tauri_specta::Event for WorktreeChangedEventPayload {
+    const NAME: &'static str = "worktree:<id> changed";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct WorktreeDiscoveryCompletedEventPayload {
+    pub summary: RediscoverSummary,
+}
+
+impl tauri_specta::Event for WorktreeDiscoveryCompletedEventPayload {
+    const NAME: &'static str = "worktree:discovery completed";
+}
+
 #[derive(Clone)]
 pub struct TauriCacheInvalidationEmitter<R: tauri::Runtime> {
     app: tauri::AppHandle<R>,
@@ -1009,6 +1042,45 @@ impl<R: tauri::Runtime> TauriCacheInvalidationEmitter<R> {
         let payload = MutationRolledBackEventPayload { mutation_id };
         let _ = self.app.emit(
             <MutationRolledBackEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+}
+
+#[derive(Clone)]
+pub struct TauriWorktreeEventEmitter<R: tauri::Runtime> {
+    app: tauri::AppHandle<R>,
+}
+
+impl<R: tauri::Runtime> TauriWorktreeEventEmitter<R> {
+    pub fn new(app: tauri::AppHandle<R>) -> Self {
+        Self { app }
+    }
+}
+
+impl<R: tauri::Runtime> WorktreeEventEmitter for TauriWorktreeEventEmitter<R> {
+    fn emit_worktree_changed(&self, worktree_id: &str) {
+        let payload = WorktreeChangedEventPayload {
+            worktree_id: worktree_id.to_string(),
+        };
+        let _ = self
+            .app
+            .emit(&worktree_changed_event_name(worktree_id), payload.clone());
+        let _ = self.app.emit(
+            <WorktreeChangedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    fn emit_worktree_discovery_completed(&self, summary: &RediscoverSummary) {
+        let payload = WorktreeDiscoveryCompletedEventPayload {
+            summary: summary.clone(),
+        };
+        let _ = self
+            .app
+            .emit(worktree_discovery_completed_event_name(), payload.clone());
+        let _ = self.app.emit(
+            <WorktreeDiscoveryCompletedEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
     }
@@ -1666,6 +1738,55 @@ pub fn render_preview_impl(input: RenderPreviewInput) -> RenderedCommentHtml {
     })
 }
 
+pub async fn list_worktrees_impl(
+    worktree_service: &WorktreeService,
+    account_id: String,
+) -> Result<Vec<WorktreeView>, IpcError> {
+    worktree_service
+        .list_worktrees(&account_id)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn set_worktree_manual_override_impl(
+    worktree_service: &WorktreeService,
+    worktree_id: String,
+    pr_id: Option<String>,
+) -> Result<(), IpcError> {
+    worktree_service
+        .set_worktree_manual_override(&worktree_id, pr_id.as_deref())
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn set_worktree_roots_impl(
+    worktree_service: &WorktreeService,
+    roots: Vec<String>,
+) -> Result<Vec<String>, IpcError> {
+    worktree_service
+        .set_worktree_roots(roots)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn list_worktree_roots_impl(
+    worktree_service: &WorktreeService,
+) -> Result<Vec<String>, IpcError> {
+    worktree_service
+        .list_worktree_roots()
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn rediscover_worktrees_impl(
+    worktree_service: &WorktreeService,
+) -> Result<RediscoverSummary, IpcError> {
+    worktree_service
+        .rediscover_worktrees()
+        .await
+        .map_err(IpcError::db)
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn ipc_accounts_list(
@@ -1888,6 +2009,60 @@ pub fn render_preview(input: RenderPreviewInput) -> Result<RenderedCommentHtml, 
     Ok(render_preview_impl(input))
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn list_worktrees(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+    account_id: String,
+) -> Result<Vec<WorktreeView>, IpcError> {
+    list_worktrees_impl(worktree_service.inner(), account_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_worktree_manual_override(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+    worktree_id: String,
+    pr_id: Option<String>,
+) -> Result<(), IpcError> {
+    set_worktree_manual_override_impl(worktree_service.inner(), worktree_id, pr_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_worktree_roots(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+    roots: Vec<String>,
+) -> Result<Vec<String>, IpcError> {
+    set_worktree_roots_impl(worktree_service.inner(), roots).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_worktree_roots(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+) -> Result<Vec<String>, IpcError> {
+    list_worktree_roots_impl(worktree_service.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn rediscover_worktrees(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+) -> Result<RediscoverSummary, IpcError> {
+    rediscover_worktrees_impl(worktree_service.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn cleanup_worktree(
+    worktree_service: tauri::State<'_, Arc<WorktreeService>>,
+    worktree_id: String,
+    force: bool,
+) -> Result<CleanupOutcome, CleanupError> {
+    worktree_service.cleanup_worktree(&worktree_id, force).await
+}
+
 pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .dangerously_cast_bigints_to_number()
@@ -1916,7 +2091,13 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             list_drafts,
             save_draft,
             delete_draft,
-            render_preview
+            render_preview,
+            list_worktrees,
+            set_worktree_manual_override,
+            set_worktree_roots,
+            list_worktree_roots,
+            rediscover_worktrees,
+            cleanup_worktree
         ])
         .events(tauri_specta::collect_events![
             PrChangedEventPayload,
@@ -1929,7 +2110,9 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             MutationAppliedEventPayload,
             MutationReconciledEventPayload,
             MutationFailedEventPayload,
-            MutationRolledBackEventPayload
+            MutationRolledBackEventPayload,
+            WorktreeChangedEventPayload,
+            WorktreeDiscoveryCompletedEventPayload
         ])
 }
 
@@ -1978,5 +2161,11 @@ pub fn command_names() -> &'static [&'static str] {
         "save_draft",
         "delete_draft",
         "render_preview",
+        "list_worktrees",
+        "set_worktree_manual_override",
+        "set_worktree_roots",
+        "list_worktree_roots",
+        "rediscover_worktrees",
+        "cleanup_worktree",
     ]
 }

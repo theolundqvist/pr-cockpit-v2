@@ -8,6 +8,8 @@
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
   import ServerAdjustedChip from '$lib/components/ServerAdjustedChip.svelte';
   import SyncErrorsTray from '$lib/components/SyncErrorsTray.svelte';
+  import WorktreeBadge from '$lib/components/worktree/WorktreeBadge.svelte';
+  import WorktreeMappingChip from '$lib/components/worktree/WorktreeMappingChip.svelte';
   import {
     checksRollupBadge,
     getPrDetailBundle,
@@ -31,6 +33,7 @@
   } from '$lib/ipc/bindings';
   import { reduceConversationTimeline } from '$lib/timeline/reducer';
   import { formatRelative } from '$lib/utils/time';
+  import { inboxStore, refreshAccountData, worktreesStore } from '$lib/state/cockpit';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -93,6 +96,11 @@
   );
   $: queuedMutationCount = pendingMutations.filter((entry) => entry.status === 'pending').length;
   $: offline = networkState.state === 'offline';
+  $: currentWorktree =
+    $worktreesStore.find((worktree) => worktree.mapped_pr_id === data.prId) ?? null;
+  $: repoPrOptions = $inboxStore
+    .filter((row) => row.repo_id === bundle.summary.repo_id)
+    .map((row) => ({ id: row.pr_id, number: row.pr_number, title: row.title }));
 
   onMount(async () => {
     await Promise.all([initSubscription(data.prId, data.activeAccountId), refreshPending()]);
@@ -157,7 +165,10 @@
         (payload) => {
           networkState = payload.state;
         }
-      )
+      ),
+      listenEventPayload('worktree:discovery completed', async () => {
+        await refreshAccountData(accountId);
+      })
     ]);
     unlisten = listeners;
   }
@@ -257,10 +268,22 @@
             {#if offline}
               <span class="Label Label--attention">Offline — queued: {queuedMutationCount}</span>
             {/if}
+            {#if currentWorktree}
+              <WorktreeBadge worktree={currentWorktree} />
+            {/if}
             <button class="btn btn-sm" type="button" on:click={() => (syncTrayOpen = !syncTrayOpen)}>
               Sync errors ({failedMutations.length})
             </button>
           </div>
+          {#if currentWorktree}
+            <div class="mt-2">
+              <WorktreeMappingChip
+                worktree={currentWorktree}
+                {repoPrOptions}
+                on:changed={() => refreshAccountData(data.activeAccountId)}
+              />
+            </div>
+          {/if}
         </div>
         <div class="text-right f6 color-fg-muted">
           <div>{bundle.summary.base_ref} ← {bundle.summary.head_ref}</div>

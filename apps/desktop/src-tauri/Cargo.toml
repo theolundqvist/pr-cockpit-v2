@@ -81,6 +81,7 @@ once_cell = "1.21.4"
 regex = "1.12.2"
 kuchiki = "0.8.1"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
+toml = "1.1.2"
 
 [dev-dependencies]
 criterion = "0.8.2"

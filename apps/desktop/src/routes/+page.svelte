@@ -3,13 +3,20 @@
   import { onMount } from 'svelte';
   import inboxIcon from '@primer/octicons/build/svg/inbox-24.svg?raw';
 
+  import type { WorktreeView } from '$lib/ipc/bindings';
   import InboxRow from '$lib/components/InboxRow.svelte';
   import { prDetailPreload } from '$lib/data/pr-detail';
-  import { activeAccountIdStore, inboxStore, refreshAccountData } from '$lib/state/cockpit';
+  import {
+    activeAccountIdStore,
+    inboxStore,
+    refreshAccountData,
+    worktreesStore
+  } from '$lib/state/cockpit';
 
   let selectedIndex = 0;
 
   $: rows = $inboxStore;
+  $: worktreesByPr = indexWorktreesByPr($worktreesStore);
   $: if (selectedIndex > Math.max(0, rows.length - 1)) {
     selectedIndex = Math.max(0, rows.length - 1);
   }
@@ -60,6 +67,21 @@
     }
     await onListKeydown(event);
   }
+
+  function indexWorktreesByPr(worktrees: WorktreeView[]): Map<string, WorktreeView> {
+    const byPr = new Map<string, WorktreeView>();
+    for (const worktree of worktrees) {
+      const prId = worktree.mapped_pr_id;
+      if (!prId) {
+        continue;
+      }
+      const existing = byPr.get(prId);
+      if (!existing || (worktree.mapping_confidence ?? 0) > (existing.mapping_confidence ?? 0)) {
+        byPr.set(prId, worktree);
+      }
+    }
+    return byPr;
+  }
 </script>
 
 <svelte:window on:keydown={onWindowKeydown} />
@@ -92,6 +114,7 @@
           {#each rows as row, index}
             <InboxRow
               item={row}
+              worktree={worktreesByPr.get(row.pr_id) ?? null}
               selected={index === selectedIndex}
               onPreload={() => preloadRow(row.pr_id)}
               onOpen={() => openSelected(index)}
