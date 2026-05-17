@@ -63,12 +63,12 @@
       "handoffPath": "handoffs/m1-auth-layer.md",
       "startedAt": "2026-05-17T06:46:56.438Z",
       "finishedAt": "2026-05-17T07:00:56.651Z",
-      "lastUpdate": "2026-05-17T07:00:56.651Z",
+      "lastUpdate": "2026-05-17T07:00:59.930Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -79,15 +79,15 @@
       "dependsOn": [
         "m1-auth-layer"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-fd80cc54-a1be-4d62-9418-cf19deb0fb4a",
+      "runId": "run-c45242e9-978a-4148-9d25-e2c5c388388b",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-17T07:00:59.081Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T07:00:59.081Z",
+      "lastUpdate": "2026-05-17T07:01:01.771Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -250,6 +250,10 @@
     {
       "at": "2026-05-17T06:46:51.107Z",
       "message": "m1-data-layer: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T07:00:59.931Z",
+      "message": "m1-auth-layer: verification self-reported (unit-test-verified)"
     }
   ]
 }
