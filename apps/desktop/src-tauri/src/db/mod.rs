@@ -797,6 +797,19 @@ impl Db {
         Ok(rows)
     }
 
+    pub async fn auth_account_by_id(&self, account_id: &str) -> Result<Option<AuthAccountRow>> {
+        let row = sqlx::query_as::<_, AuthAccountRow>(
+            "SELECT id, host, login, token_kind, scopes, created_at, updated_at
+             FROM accounts
+             WHERE id = ?1
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
     pub async fn active_account_id(&self) -> Result<Option<String>> {
         let active_id: Option<String> = sqlx::query_scalar(
             "SELECT value

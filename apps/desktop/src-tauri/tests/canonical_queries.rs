@@ -16,6 +16,8 @@ fn graphql_queries_are_canonicalized() -> Result<()> {
 
     let mut graphql_files = Vec::new();
     collect_files_with_ext(&desktop_root, "graphql", &mut graphql_files)?;
+    let mut root_query_count = 0usize;
+    let mut mutation_query_count = 0usize;
     for file in &graphql_files {
         let normalized = file.to_string_lossy().replace('\\', "/");
         assert!(
@@ -23,11 +25,30 @@ fn graphql_queries_are_canonicalized() -> Result<()> {
             "stray graphql file outside canonical directory: {}",
             file.display()
         );
+        if normalized.contains("/src-tauri/src/api/queries/mutations/") {
+            mutation_query_count += 1;
+            continue;
+        }
+        if normalized.ends_with("/src-tauri/src/api/queries/PrDetail.graphql")
+            || normalized.ends_with("/src-tauri/src/api/queries/InboxRefresh.graphql")
+        {
+            root_query_count += 1;
+            continue;
+        }
+        panic!(
+            "non-mutation graphql files must stay in canonical top-level query set: {}",
+            file.display()
+        );
     }
     assert_eq!(
-        graphql_files.len(),
+        root_query_count,
         2,
-        "expected exactly two canonical graphql files in {}",
+        "expected exactly two top-level canonical graphql files in {}",
+        canonical_dir.display()
+    );
+    assert!(
+        mutation_query_count > 0,
+        "expected mutation graphql files under {}/mutations",
         canonical_dir.display()
     );
 

@@ -392,3 +392,43 @@ Seed reproduction recipe:
 4. once fixed, restore the original case count.
 
 Reason: deterministic seeds eliminate shrinking nondeterminism across CI/local runs and make mutation-state bugs reproducible from one failing transcript.
+
+### 2026-05-17: M2 mutation transport split, idempotency policy, and optimism tiers for real handlers
+
+Decision:
+
+- Per-kind transport:
+  - **REST**: `addComment` (non-thread reply), `editComment`, `deleteComment`,
+    `addReaction`, `removeReaction`, `addLabel`, `removeLabel`, `setAssignees`,
+    `requestReview`, `removeReviewRequest`, `markFileViewed`, `unmarkFileViewed`,
+    `updatePrTitle`, `updatePrDescription`, `setMilestone`, `updateBranch`,
+    `merge`, `closePr`, `reopenPr`.
+  - **GraphQL**: `addComment` (thread reply via
+    `addPullRequestReviewThreadReply`), `submitReview`,
+    `resolveThread`, `unresolveThread`, `setProject`,
+    `convertToDraft`, `markReadyForReview`,
+    `enableAutoMerge`, `disableAutoMerge`.
+- Canonical request shape remains centralized in
+  `apps/desktop/src-tauri/src/api/queries/mutations/*.graphql`
+  (one file per mutation).
+- Idempotency policy:
+  - Client always stores and reuses `pending_mutations.idempotency_key`.
+  - Requests include `Idempotency-Key` header on mutation calls where transport
+    allows custom headers.
+  - Kinds with naturally idempotent server semantics (set/replace style ops,
+    state toggles, add/remove endpoints with stable target identifiers) rely on
+    server-side repeat-safe behavior plus client dedupe on
+    `pending_mutations.idempotency_key`.
+- Optimism policy:
+  - `submitReview` remains **Cautious** and predicts `reviews.state =
+    "SUBMITTING"` (pending affordance only; not treated as finalized review
+    decision).
+  - `updateBranch`, `convertToDraft`, `markReadyForReview`, `setProject` are
+    **Cautious**.
+  - Merge-family controls `merge`, `enableAutoMerge`, `disableAutoMerge` are
+    **No optimism** (confirm-and-wait server truth).
+  - Remaining listed M2 write kinds are **Full optimism** with inverse-patch
+    rollback.
+
+Reason: this keeps mutation UX aligned with PLAN §3.2 risk tiers while allowing
+one dispatch/runtime path across mixed REST/GraphQL write surfaces.
