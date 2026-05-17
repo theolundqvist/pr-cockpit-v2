@@ -63,13 +63,13 @@
       "handoffPath": "handoffs/m2-optimistic-writes.md",
       "startedAt": "2026-05-17T14:25:50.964Z",
       "finishedAt": "2026-05-17T19:43:59.536Z",
-      "lastUpdate": "2026-05-17T19:43:59.536Z",
+      "lastUpdate": "2026-05-17T19:44:00.434Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "verify-m2-optimistic-writes",
@@ -82,17 +82,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T19:44:06.305Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T19:44:06.305Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m3-diff-worktree-notifs",
@@ -703,6 +704,10 @@
     {
       "at": "2026-05-17T19:37:11.130Z",
       "message": "m2-optimistic-writes: tool_call idle 315798ms; last=2026-05-17T19:31:55.332Z"
+    },
+    {
+      "at": "2026-05-17T19:44:00.434Z",
+      "message": "m2-optimistic-writes: verification self-reported (live-ui-verified)"
     }
   ]
 }
