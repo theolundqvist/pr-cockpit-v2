@@ -82,18 +82,18 @@
       "agentId": "bc-29cddf4a-b40a-409d-9536-b9ab3bfec919",
       "runId": "run-8d3bbfa8-8a4e-4b67-9714-aa4e642fc7b2",
       "parentAgentId": "bc-64160f6f-aaee-42c1-b65b-277f3260fc1b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m2-ipc-and-frontend.md",
       "startedAt": "2026-05-17T17:13:34.961Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T17:13:37.324Z",
+      "finishedAt": "2026-05-17T18:10:26.113Z",
+      "lastUpdate": "2026-05-17T18:10:26.114Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m2-finalize",
@@ -178,6 +178,14 @@
     {
       "at": "2026-05-17T17:13:33.653Z",
       "message": "m2-offline-and-queue: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T17:59:39.472Z",
+      "message": "m2-ipc-and-frontend: SSE idle 301142ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T17:59:39.473Z",
+      "message": "m2-ipc-and-frontend: tool_call idle 301143ms; last=2026-05-17T17:54:38.330Z"
     }
   ]
 }
