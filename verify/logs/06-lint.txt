@@ -1,0 +1,19 @@
+
+> pr-cockpit@0.1.0 lint /workspace
+> pnpm --filter desktop lint
+
+
+> desktop@0.1.0 lint /workspace/apps/desktop
+> ESLINT_USE_FLAT_CONFIG=false eslint . && prettier --check .
+
+Checking formatting...
+[warn] src-tauri/gen/schemas/acl-manifests.json
+[warn] src-tauri/gen/schemas/capabilities.json
+[warn] src-tauri/gen/schemas/desktop-schema.json
+[warn] src-tauri/gen/schemas/linux-schema.json
+[warn] Code style issues found in 4 files. Run Prettier with --write to fix.
+/workspace/apps/desktop:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  desktop@0.1.0 lint: `ESLINT_USE_FLAT_CONFIG=false eslint . && prettier --check .`
+Exit status 1
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?
+ ELIFECYCLE  Command failed with exit code 1.

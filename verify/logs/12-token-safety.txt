@@ -1,0 +1,9 @@
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.91s
+     Running tests/token_safety.rs (target/debug/deps/token_safety-71b906a21ae7fd39)
+
+running 1 test
+test token_safety_guards_all_auth_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
