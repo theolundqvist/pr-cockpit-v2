@@ -10,14 +10,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T05:55:00.692Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T05:54:23.067Z",
+      "lastUpdate": "2026-05-17T05:55:00.692Z",
       "note": "respawned by self-planner (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -51,6 +51,10 @@
     {
       "at": "2026-05-17T05:52:08.128Z",
       "message": "m1-cockpit: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'claude-opus-4-7' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents."
+    },
+    {
+      "at": "2026-05-17T05:54:23.954Z",
+      "message": "m1-cockpit: respawned by self-planner (was error); resuming from orch/pr-cockpit/m1-cockpit"
     }
   ]
 }
