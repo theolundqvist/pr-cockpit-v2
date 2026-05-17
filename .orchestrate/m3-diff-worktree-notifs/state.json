@@ -100,15 +100,15 @@
         "m3-notifications",
         "m3-corpus-tighten"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-cee42de4-04a8-49e1-831e-a476da76b499",
+      "runId": "run-9f7f534d-5822-4202-a7ba-37174c2402b5",
+      "parentAgentId": "bc-f868f69e-ef2d-4534-a00f-f560772f9614",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-17T22:25:21.624Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T22:25:21.624Z",
+      "lastUpdate": "2026-05-17T22:25:23.917Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -208,6 +208,14 @@
     {
       "at": "2026-05-17T22:25:21.219Z",
       "message": "m3-diff-polish: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T22:39:26.549Z",
+      "message": "m3-finalize-merge: SSE idle 313061ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T22:39:26.550Z",
+      "message": "m3-finalize-merge: tool_call idle 313061ms; last=2026-05-17T22:34:13.489Z"
     }
   ]
 }
