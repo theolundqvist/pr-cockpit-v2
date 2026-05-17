@@ -687,6 +687,14 @@
     {
       "at": "2026-05-17T19:18:45.593Z",
       "message": "m2-optimistic-writes: tool_call idle 353477ms; last=2026-05-17T19:12:52.116Z"
+    },
+    {
+      "at": "2026-05-17T19:28:02.286Z",
+      "message": "m2-optimistic-writes: SSE idle 350908ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T19:28:02.288Z",
+      "message": "m2-optimistic-writes: tool_call idle 350910ms; last=2026-05-17T19:22:11.378Z"
     }
   ]
 }
