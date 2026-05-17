@@ -111,12 +111,12 @@
       "handoffPath": "handoffs/m1-markdown-pipeline.md",
       "startedAt": "2026-05-17T07:24:41.714Z",
       "finishedAt": "2026-05-17T07:34:12.789Z",
-      "lastUpdate": "2026-05-17T07:34:12.789Z",
+      "lastUpdate": "2026-05-17T07:34:15.586Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -127,15 +127,15 @@
       "dependsOn": [
         "m1-markdown-pipeline"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-c554927f-0f3d-45ec-8f6a-dbebe0ed15b4",
+      "runId": "run-51fd63b9-e1e9-4575-9dd1-3ccc70f7746b",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-ipc-types.md",
       "startedAt": "2026-05-17T07:34:14.701Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T07:34:14.701Z",
+      "finishedAt": "2026-05-17T08:07:34.448Z",
+      "lastUpdate": "2026-05-17T08:07:34.448Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -260,6 +260,10 @@
     {
       "at": "2026-05-17T07:24:36.814Z",
       "message": "m1-api-sync: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T07:34:15.586Z",
+      "message": "m1-markdown-pipeline: verification self-reported (unit-test-verified)"
     }
   ]
 }
