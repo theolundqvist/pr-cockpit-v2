@@ -507,3 +507,22 @@ Decision:
 - ESLint enforces renderer boundaries by blocking JS markdown parser imports (`marked`, `markdown-it`, `remark*`, `unified`) and direct `fetch(...)` usage under `apps/desktop/src/**`, forcing all GitHub/DB access through typed IPC.
 
 Reason: the UI must preserve optimistic responsiveness while preventing renderer-side drift from server truth and preserving strict architecture boundaries (single markdown renderer, no direct network/database access, explicit recovery for conflicts/failures).
+
+### 2026-05-17: M3 diff polish — review comment dispatch, head-scoped viewed state, asset scope, and rename surface
+
+Decision:
+
+- `AddReviewComment` chooses transport by payload shape:
+  - replies on existing threads use `addPullRequestReviewThreadReply`,
+  - comments attached to an explicit pending review use `addPullRequestReviewComment`,
+  - new standalone inline threads use `addPullRequestReviewThread`.
+  The mutation keeps `OptimismLevel::Full` and reuses the mutation idempotency key for GraphQL mutation calls.
+- Viewed state is head-scoped in both projection and read models:
+  `is_viewed = viewed_by_account_id IS NOT NULL AND viewed_at_head_sha = pull_requests.head_sha`.
+  Marking viewed always stamps `viewed_at_head_sha` with the current head SHA.
+- Diff file kind classification is centralized in `render::diff::BinaryDetection`:
+  text/image/binary is inferred from persisted `kind`, `is_binary`, file extension, and blob-byte sniffing.
+  Renderer image URLs use Tauri's local asset protocol from blob-store paths, and the protocol scope is restricted to `$APPDATA/blobs/**/*` in `tauri.conf.json` + capability scope.
+- Rename display uses `pr_files.previous_path` (`old_path` fallback) plus `rename_similarity` (stored as REAL, surfaced as integer percentage) and renders `previous_path -> path` in diff headers.
+
+Reason: these rules keep optimistic review comments deterministic, prevent viewed-state drift after force-pushes, avoid exposing filesystem paths outside blob storage, and preserve rename intent in the diff UI without re-anchoring heuristics.

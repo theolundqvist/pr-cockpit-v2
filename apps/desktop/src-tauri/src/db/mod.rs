@@ -195,12 +195,42 @@ impl Db {
         head_sha: &str,
     ) -> Result<Vec<PrFileRow>> {
         let rows = sqlx::query(
-            "SELECT account_id, pr_id, head_sha, path, old_path, status, additions, deletions,
-                    is_binary, patch_blob_sha, viewed_by_account_id, viewed_at_head_sha,
-                    pending_state AS pending_overlay
-             FROM pr_files
-             WHERE account_id = ?1 AND pr_id = ?2 AND head_sha = ?3
-             ORDER BY path ASC",
+            "SELECT
+                pf.account_id,
+                pf.pr_id,
+                pf.head_sha,
+                pf.path,
+                pf.old_path,
+                COALESCE(pf.previous_path, pf.old_path) AS previous_path,
+                pf.status,
+                pf.additions,
+                pf.deletions,
+                pf.is_binary,
+                COALESCE(
+                  pf.kind,
+                  CASE
+                    WHEN pf.is_binary = 1 THEN 'binary'
+                    ELSE 'text'
+                  END
+                ) AS kind,
+                CASE
+                  WHEN pf.rename_similarity IS NULL THEN NULL
+                  ELSE CAST(pf.rename_similarity * 100.0 AS INTEGER)
+                END AS rename_similarity,
+                CASE
+                  WHEN pf.viewed_by_account_id IS NOT NULL
+                       AND pf.viewed_at_head_sha = pr.head_sha THEN 1
+                  ELSE 0
+                END AS is_viewed,
+                pf.patch_blob_sha,
+                pf.viewed_by_account_id,
+                pf.viewed_at_head_sha,
+                pf.pending_state AS pending_overlay
+             FROM pr_files pf
+             JOIN pull_requests pr
+               ON pr.account_id = pf.account_id AND pr.id = pf.pr_id
+             WHERE pf.account_id = ?1 AND pf.pr_id = ?2 AND pf.head_sha = ?3
+             ORDER BY pf.path ASC",
         )
         .bind(account_id)
         .bind(pr_id)
@@ -215,10 +245,14 @@ impl Db {
                     head_sha: row.try_get("head_sha")?,
                     path: row.try_get("path")?,
                     old_path: row.try_get("old_path")?,
+                    previous_path: row.try_get("previous_path")?,
                     status: row.try_get("status")?,
                     additions: row.try_get("additions")?,
                     deletions: row.try_get("deletions")?,
                     is_binary: row.try_get("is_binary")?,
+                    kind: row.try_get("kind")?,
+                    rename_similarity: row.try_get("rename_similarity")?,
+                    is_viewed: row.try_get("is_viewed")?,
                     patch_blob_sha: row.try_get("patch_blob_sha")?,
                     viewed_by_account_id: row.try_get("viewed_by_account_id")?,
                     viewed_at_head_sha: row.try_get("viewed_at_head_sha")?,
@@ -298,7 +332,7 @@ impl Db {
         head_sha: &str,
     ) -> Result<Vec<FileTreeSummaryRow>> {
         let rows = sqlx::query(
-            "SELECT account_id, pr_id, head_sha, directory, file_count, additions, deletions, pending_overlay
+            "SELECT account_id, pr_id, head_sha, directory, file_count, viewed_file_count, additions, deletions, pending_overlay
              FROM file_tree_summary
              WHERE account_id = ?1 AND pr_id = ?2 AND head_sha = ?3
              ORDER BY directory ASC",
@@ -316,6 +350,7 @@ impl Db {
                     head_sha: row.try_get("head_sha")?,
                     directory: row.try_get("directory")?,
                     file_count: row.try_get("file_count")?,
+                    viewed_file_count: row.try_get("viewed_file_count")?,
                     additions: row.try_get("additions")?,
                     deletions: row.try_get("deletions")?,
                     pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
@@ -1610,15 +1645,18 @@ impl Db {
         sqlx::query(
             "INSERT INTO pr_files(
                account_id, pr_id, head_sha, path, old_path, status, additions, deletions, is_binary,
-               patch_blob_sha, viewed_by_account_id, viewed_at_head_sha
+               kind, previous_path, rename_similarity, patch_blob_sha, viewed_by_account_id, viewed_at_head_sha
              )
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
              ON CONFLICT(account_id, pr_id, head_sha, path) DO UPDATE SET
                old_path = excluded.old_path,
+               previous_path = COALESCE(excluded.previous_path, excluded.old_path),
                status = excluded.status,
                additions = excluded.additions,
                deletions = excluded.deletions,
                is_binary = excluded.is_binary,
+               kind = excluded.kind,
+               rename_similarity = excluded.rename_similarity,
                patch_blob_sha = excluded.patch_blob_sha,
                viewed_by_account_id = excluded.viewed_by_account_id,
                viewed_at_head_sha = excluded.viewed_at_head_sha",
@@ -1632,6 +1670,9 @@ impl Db {
         .bind(file.additions)
         .bind(file.deletions)
         .bind(bool_to_i64(file.is_binary))
+        .bind(&file.kind)
+        .bind(&file.previous_path)
+        .bind(file.rename_similarity)
         .bind(&file.patch_blob_sha)
         .bind(&file.viewed_by_account_id)
         .bind(&file.viewed_at_head_sha)

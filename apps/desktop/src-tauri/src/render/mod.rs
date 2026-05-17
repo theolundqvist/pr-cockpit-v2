@@ -11,6 +11,8 @@ use sha2::{Digest, Sha256};
 use crate::storage::RenderCacheStore;
 use crate::RENDERER_VERSION;
 
+pub mod diff;
+
 static TOKEN_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
         r"@[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?|#\d+|:[a-z0-9_+-]+:|\b[0-9a-f]{7,40}\b",

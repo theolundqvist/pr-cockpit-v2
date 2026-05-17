@@ -20,7 +20,7 @@ use crate::mutations::{
     NetState, OptimismLevel, Patch, PendingMutationView, PendingOverlay, SubmitPayload,
     SubmittedMutation,
 };
-use crate::render::{self, RenderCtx};
+use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -212,10 +212,14 @@ pub struct PrFile {
     pub head_sha: String,
     pub path: String,
     pub old_path: Option<String>,
+    pub previous_path: Option<String>,
     pub status: String,
     pub additions: i64,
     pub deletions: i64,
     pub is_binary: bool,
+    pub kind: String,
+    pub rename_similarity: Option<i64>,
+    pub is_viewed: bool,
     pub patch_blob_sha: Option<String>,
     pub viewed_by_account_id: Option<String>,
     pub viewed_at_head_sha: Option<String>,
@@ -229,6 +233,7 @@ pub struct FileTreeSummary {
     pub head_sha: String,
     pub directory: String,
     pub file_count: i64,
+    pub viewed_file_count: i64,
     pub additions: i64,
     pub deletions: i64,
 }
@@ -250,6 +255,22 @@ pub struct PrPatchInput {
 pub struct PrPatchResponse {
     pub patch_blob_sha: Option<String>,
     pub patch: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrFileBlobInput {
+    pub account_id: String,
+    pub pr_id: String,
+    pub head_sha: String,
+    pub path: String,
+    pub side: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrFileBlobResponse {
+    pub sha256: String,
+    pub local_path: String,
+    pub mime_type: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -372,6 +393,12 @@ pub struct PrMilestone {
 pub struct SubmitMutationInput {
     pub account_id: String,
     pub kind: MutationKind,
+    pub payload_json: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SubmitReviewCommentInput {
+    pub account_id: String,
     pub payload_json: String,
 }
 
@@ -682,10 +709,14 @@ fn map_pr_file_row(row: PrFileRow) -> PrFile {
         head_sha: row.head_sha,
         path: row.path,
         old_path: row.old_path,
+        previous_path: row.previous_path,
         status: row.status,
         additions: row.additions,
         deletions: row.deletions,
         is_binary: row.is_binary == 1,
+        kind: row.kind,
+        rename_similarity: row.rename_similarity,
+        is_viewed: row.is_viewed == 1,
         patch_blob_sha: row.patch_blob_sha,
         viewed_by_account_id: row.viewed_by_account_id,
         viewed_at_head_sha: row.viewed_at_head_sha,
@@ -703,6 +734,7 @@ fn map_file_tree_row(row: FileTreeSummaryRow) -> FileTreeSummary {
         head_sha: row.head_sha,
         directory: row.directory,
         file_count: row.file_count,
+        viewed_file_count: row.viewed_file_count,
         additions: row.additions,
         deletions: row.deletions,
     }
@@ -1187,7 +1219,17 @@ pub async fn ipc_pr_files_impl(db: &Db, input: PrFilesInput) -> Result<PrFilesRe
         .await
         .map_err(IpcError::db)?
         .into_iter()
-        .map(map_pr_file_row)
+        .map(|mut row| {
+            row.kind = BinaryDetection::classify(
+                &row.path,
+                Some(row.kind.as_str()),
+                row.is_binary == 1,
+                None,
+            )
+            .as_str()
+            .to_string();
+            map_pr_file_row(row)
+        })
         .collect::<Vec<_>>();
     let tree = db
         .file_tree_summary(&input.account_id, &input.pr_id, &input.head_sha)
@@ -1218,6 +1260,77 @@ pub async fn ipc_pr_patch_impl(db: &Db, input: PrPatchInput) -> Result<PrPatchRe
         patch_blob_sha,
         patch,
     })
+}
+
+pub async fn ipc_pr_file_blob_impl(
+    db: &Db,
+    input: PrFileBlobInput,
+) -> Result<PrFileBlobResponse, IpcError> {
+    let file = db
+        .pr_files(&input.account_id, &input.pr_id, &input.head_sha)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .find(|candidate| candidate.path == input.path)
+        .ok_or_else(|| IpcError {
+            code: "PrFileNotFound".to_string(),
+            message: format!("missing PR file `{}`", input.path),
+        })?;
+    let sha256 = file.patch_blob_sha.ok_or_else(|| IpcError {
+        code: "PrFileBlobMissing".to_string(),
+        message: format!("file `{}` has no blob payload", input.path),
+    })?;
+    let bytes = db
+        .blob_store()
+        .get(&sha256)
+        .await
+        .map_err(IpcError::db)?
+        .ok_or_else(|| IpcError {
+            code: "PrFileBlobNotFound".to_string(),
+            message: format!("blob `{sha256}` not found"),
+        })?;
+    let detection = BinaryDetection::classify(
+        &input.path,
+        Some(file.kind.as_str()),
+        file.is_binary == 1,
+        Some(bytes.as_slice()),
+    );
+    if detection == BinaryDetection::Text {
+        return Err(IpcError {
+            code: "PrFileBlobUnsupported".to_string(),
+            message: "text files are rendered from patches".to_string(),
+        });
+    }
+    let local_path = db
+        .blob_store()
+        .path_for_sha(&sha256)
+        .to_string_lossy()
+        .to_string();
+    Ok(PrFileBlobResponse {
+        sha256,
+        local_path,
+        mime_type: mime_for_path(&input.path, detection),
+    })
+}
+
+fn mime_for_path(path: &str, detection: BinaryDetection) -> String {
+    if detection == BinaryDetection::Binary {
+        return "application/octet-stream".to_string();
+    }
+    match path
+        .rsplit('.')
+        .next()
+        .map(|ext| ext.to_ascii_lowercase())
+        .as_deref()
+    {
+        Some("png") => "image/png".to_string(),
+        Some("jpg" | "jpeg") => "image/jpeg".to_string(),
+        Some("gif") => "image/gif".to_string(),
+        Some("webp") => "image/webp".to_string(),
+        Some("bmp") => "image/bmp".to_string(),
+        Some("svg") => "image/svg+xml".to_string(),
+        _ => "image/*".to_string(),
+    }
 }
 
 pub fn ipc_rendered_comment_html_impl(input: RenderedCommentInput) -> RenderedCommentHtml {
@@ -1449,6 +1562,19 @@ pub async fn submit_mutation_impl(
         .map_err(IpcError::mutation)
 }
 
+pub async fn submit_review_comment_impl(
+    engine: &MutationEngine,
+    input: SubmitReviewCommentInput,
+) -> Result<SubmittedMutation, IpcError> {
+    submit_mutation_impl(
+        engine,
+        input.account_id,
+        MutationKind::AddReviewComment,
+        input.payload_json,
+    )
+    .await
+}
+
 pub async fn list_pending_mutations_impl(
     db: &Db,
     account_id: String,
@@ -1622,6 +1748,15 @@ pub async fn ipc_pr_patch(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_pr_file_blob(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrFileBlobInput,
+) -> Result<PrFileBlobResponse, IpcError> {
+    ipc_pr_file_blob_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn ipc_rendered_comment_html(
     input: RenderedCommentInput,
 ) -> Result<RenderedCommentHtml, IpcError> {
@@ -1684,6 +1819,15 @@ pub async fn submit_mutation(
     payload_json: String,
 ) -> Result<SubmittedMutation, IpcError> {
     submit_mutation_impl(engine.inner(), account_id, kind, payload_json).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn submit_review_comment(
+    engine: tauri::State<'_, Arc<MutationEngine>>,
+    input: SubmitReviewCommentInput,
+) -> Result<SubmittedMutation, IpcError> {
+    submit_review_comment_impl(engine.inner(), input).await
 }
 
 #[tauri::command]
@@ -1757,12 +1901,14 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             ipc_pr_check_summary,
             ipc_pr_files,
             ipc_pr_patch,
+            get_pr_file_blob,
             ipc_rendered_comment_html,
             ipc_notifications_list,
             ipc_system_status,
             ipc_repo_subscriptions,
             ipc_pr_metadata,
             ipc_init_inbox,
+            submit_review_comment,
             submit_mutation,
             list_pending_mutations,
             retry_mutation,
@@ -1816,12 +1962,14 @@ pub fn command_names() -> &'static [&'static str] {
         "ipc_pr_check_summary",
         "ipc_pr_files",
         "ipc_pr_patch",
+        "get_pr_file_blob",
         "ipc_rendered_comment_html",
         "ipc_notifications_list",
         "ipc_system_status",
         "ipc_repo_subscriptions",
         "ipc_pr_metadata",
         "ipc_init_inbox",
+        "submit_review_comment",
         "submit_mutation",
         "list_pending_mutations",
         "retry_mutation",

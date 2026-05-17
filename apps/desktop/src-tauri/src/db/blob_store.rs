@@ -222,6 +222,10 @@ impl BlobStore {
         let prefix = sha256.get(0..2).unwrap_or("00");
         self.root.join(prefix).join(sha256)
     }
+
+    pub fn path_for_sha(&self, sha256: &str) -> PathBuf {
+        self.blob_path(sha256)
+    }
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {

@@ -3,7 +3,11 @@
 
   import type { MutationKind, SubmittedMutation } from '$lib/ipc/bindings';
   import { deleteDraft, listDrafts, saveDraft } from '$lib/ipc/client';
-  import { renderComposerPreview, submitComposerMutation } from '$lib/components/composer-model';
+  import {
+    insertSuggestionBlock,
+    renderComposerPreview,
+    submitComposerMutation
+  } from '$lib/components/composer-model';
 
   export let accountId: string;
   export let targetType = 'comment';
@@ -14,12 +18,15 @@
   export let placeholder = 'Write a comment';
   export let submitLabel = 'Submit';
   export let disabled = false;
+  export let initialBody = '';
+  export let suggestionSeedLines: string[] = [];
 
   const dispatch = createEventDispatcher<{
     submitted: { submission: SubmittedMutation; elapsedMs: number; body: string };
   }>();
 
   let body = '';
+  let textareaElement: HTMLTextAreaElement | null = null;
   let tab: 'write' | 'preview' = 'write';
   let previewHtml = '';
   let previewLoading = false;
@@ -27,6 +34,7 @@
   let draftId: string | null = null;
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   let submission: SubmittedMutation | null = null;
+  let hydratedInitialBody = false;
 
   onMount(async () => {
     const drafts = await listDrafts({
@@ -37,6 +45,12 @@
     if (drafts.length > 0) {
       draftId = drafts[0]?.id ?? null;
       body = drafts[0]?.body ?? '';
+      hydratedInitialBody = true;
+      return;
+    }
+    if (!hydratedInitialBody && initialBody.trim().length > 0) {
+      body = initialBody;
+      hydratedInitialBody = true;
     }
   });
 
@@ -108,6 +122,26 @@
     }
     submitLoading = false;
   }
+
+  function onInsertSuggestion(): void {
+    const element = textareaElement;
+    if (!element) {
+      const fallback = insertSuggestionBlock(body, suggestionSeedLines, body.length, body.length);
+      body = fallback.nextBody;
+      return;
+    }
+    const start = element.selectionStart ?? body.length;
+    const end = element.selectionEnd ?? start;
+    const next = insertSuggestionBlock(body, suggestionSeedLines, start, end);
+    body = next.nextBody;
+    queueMicrotask(() => {
+      if (!textareaElement) {
+        return;
+      }
+      textareaElement.focus();
+      textareaElement.setSelectionRange(next.nextCaret, next.nextCaret);
+    });
+  }
 </script>
 
 <div class="Box composer">
@@ -134,7 +168,13 @@
   </div>
   <div class="Box-body">
     {#if tab === 'write'}
+      <div class="mb-2 d-flex flex-items-center flex-wrap gap-1">
+        <button class="btn btn-sm" type="button" data-testid="composer-insert-suggestion" on:click={onInsertSuggestion}>
+          [+ Suggestion]
+        </button>
+      </div>
       <textarea
+        bind:this={textareaElement}
         class="form-control width-full"
         rows={5}
         bind:value={body}

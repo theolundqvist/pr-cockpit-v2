@@ -1,4 +1,5 @@
 use anyhow::Result;
+use sqlx::Row;
 
 use crate::mutations::patch::{Patch, PatchValue, RowMutation};
 use crate::mutations::{
@@ -7,7 +8,7 @@ use crate::mutations::{
 };
 
 use super::common::{
-    map_apply_error, mutation_state_json, optional_str, predicted_effect, required_i64,
+    map_apply_error, mutation_state_json, optional_i64, optional_str, predicted_effect,
     required_str,
 };
 
@@ -152,11 +153,42 @@ fn viewed_patch(ctx: &PredictCtx<'_>, viewed: bool) -> Result<PredictedEffect> {
 }
 
 async fn apply_viewed(ctx: &ApplyCtx<'_>, viewed: bool) -> Result<ServerResponse> {
-    let owner = required_str(ctx.input_json, "owner")?;
-    let repo = required_str(ctx.input_json, "repo")?;
-    let number = required_i64(ctx.input_json, "pr_number")?;
     let path = required_str(ctx.input_json, "path")?;
     let pr_id = required_str(ctx.input_json, "pr_id")?;
+    let locator = sqlx::query(
+        "SELECT r.owner AS owner, r.name AS repo, pr.number AS pr_number
+         FROM pull_requests pr
+         JOIN repos r ON r.id = pr.repo_id
+         WHERE pr.account_id = ?1 AND pr.id = ?2
+         LIMIT 1",
+    )
+    .bind(ctx.account_id)
+    .bind(pr_id)
+    .fetch_optional(ctx.db.pool())
+    .await?;
+    let owner = optional_str(ctx.input_json, "owner")
+        .map(ToString::to_string)
+        .or_else(|| {
+            locator
+                .as_ref()
+                .and_then(|row| row.try_get::<String, _>("owner").ok())
+        })
+        .unwrap_or_else(|| "unknown-owner".to_string());
+    let repo = optional_str(ctx.input_json, "repo")
+        .map(ToString::to_string)
+        .or_else(|| {
+            locator
+                .as_ref()
+                .and_then(|row| row.try_get::<String, _>("repo").ok())
+        })
+        .unwrap_or_else(|| "unknown-repo".to_string());
+    let number = optional_i64(ctx.input_json, "pr_number")
+        .or_else(|| {
+            locator
+                .as_ref()
+                .and_then(|row| row.try_get::<i64, _>("pr_number").ok())
+        })
+        .unwrap_or(0);
     let encoded_path = path
         .replace('%', "%25")
         .replace(' ', "%20")

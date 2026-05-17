@@ -278,6 +278,18 @@ fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
             "body": format!("comment-{suffix}"),
             "kind": "issue",
         })),
+        MutationKind::AddReviewComment => merge_with_base(serde_json::json!({
+            "local_id": format!("local-review-comment-{suffix}"),
+            "local_thread_id": format!("local-review-thread-{suffix}"),
+            "pull_request_id": "PR_node_1",
+            "body": format!("review-comment-{suffix}"),
+            "path": "src/lib.rs",
+            "line": 7,
+            "side": "RIGHT",
+            "start_line": 5,
+            "start_side": "RIGHT",
+            "subject_type": "LINE"
+        })),
         MutationKind::EditComment => merge_with_base(serde_json::json!({
             "comment_id": "comment-edit",
             "previous_body": "before",
@@ -411,6 +423,7 @@ fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
 fn all_mutation_kinds() -> Vec<MutationKind> {
     vec![
         MutationKind::AddComment,
+        MutationKind::AddReviewComment,
         MutationKind::EditComment,
         MutationKind::DeleteComment,
         MutationKind::AddReaction,
@@ -647,10 +660,13 @@ async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
         head_sha: "head".to_string(),
         path: "src/lib.rs".to_string(),
         old_path: None,
+        previous_path: None,
         status: "modified".to_string(),
         additions: 1,
         deletions: 1,
         is_binary: false,
+        kind: "text".to_string(),
+        rename_similarity: None,
         patch_blob_sha: None,
         viewed_by_account_id: None,
         viewed_at_head_sha: None,
