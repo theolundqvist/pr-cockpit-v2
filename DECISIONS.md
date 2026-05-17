@@ -1,5 +1,37 @@
 # Decisions
 
+## M3 contract decisions (promoted for M4+)
+
+These M3 contracts are promoted because downstream milestones depend on them:
+
+1. **Diff comment transport contract is payload-shaped and keeps full optimism.**
+   `add_review_comment` remains `OptimismLevel::Full`; transport selection is
+   reply vs pending-review comment vs new review thread based on anchor payload.
+2. **Viewed-file state is head-SHA scoped, not path-only.**
+   `is_viewed` is only true when `viewed_at_head_sha == pull_requests.head_sha`,
+   and a head SHA change clears previously viewed marks by design.
+3. **Diff file kinds are normalized to text/image/binary with constrained asset scope.**
+   Image rendering must use blob-store asset URLs limited to
+   `$APPDATA/blobs/**/*`; binary files render placeholders instead of text.
+4. **Worktree discovery/mapping is bounded and explainable.**
+   Discovery roots are explicit (`~/dev`, `~/code`, `~/src`, `~/repos` unless
+   user-overridden), `git worktree list --porcelain` is authoritative, and PR
+   mapping confidence must expose per-signal contributions plus manual override.
+5. **Worktree cleanup remains fail-closed around ownership and dirty state.**
+   User-managed worktrees are never auto-removed; dirty worktrees are snapshot-only
+   and never deleted.
+6. **Notification dispatch is post-reconcile with DB-backed dedup and suppression.**
+   Dedup key is `(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)`
+   with `INSERT OR IGNORE`; quiet-hours/focus/filter suppression still records
+   events in-app while suppressing OS delivery.
+7. **Markdown corpus gate is tightened to 1.5% weighted drift.**
+   `pnpm corpus` fails above `weighted_mean > 0.015`; accepted residual drift must
+   be explicit per-entry and reviewable in source control.
+8. **M3 a11y screen-reader pass is enforced by Playwright spec.**
+   PR detail must preserve accessible naming for visible interactive elements,
+   maintain keyboard-reachable section progression, and expose visible focus
+   affordances under `:focus-visible`.
+
 ### 2026-05-17: M3 notifications engine contracts (plugin ownership, trigger predicates, dedup, suppression)
 
 Decision:

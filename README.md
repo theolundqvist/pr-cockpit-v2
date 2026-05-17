@@ -13,14 +13,30 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: **M2 optimistic writes complete**. Milestones M3 → M6 continue per the
-brief and `PLAN.md`.
+Status: **M3 diff polish + worktree read + notifications complete**. Milestones
+M4 → M6 continue per the brief and `PLAN.md`.
 
 ## Feature highlights
 
 - Local-first PR cockpit backed by SQLite denormalized read models.
 - Optimistic mutation pipeline with replay-safe queueing and inverse-patch rollback.
 - Composer with textarea + Preview parity via the shared comrak renderer path.
+- Diff polish is fully shipped: multi-line inline review comments, suggestion
+  block insertion/preview, head-SHA-scoped viewed files, and image/binary/rename
+  rendering in the diff surface (proofs:
+  `apps/desktop/playwright/diff-polish.spec.ts`,
+  `apps/desktop/src-tauri/tests/diff_polish_viewed_files_head_sha.rs`,
+  `apps/desktop/src-tauri/tests/mutations_review_comments.rs`).
+- Worktree read integration is shipped: bounded root discovery, confidence-scored
+  PR mapping with manual override, and cleanup safety contracts (proofs:
+  `apps/desktop/src-tauri/tests/worktree_discovery.rs`,
+  `apps/desktop/src-tauri/tests/worktree_mapping_signals.rs`,
+  `apps/desktop/src-tauri/tests/worktree_cleanup_safety.rs`,
+  `apps/desktop/playwright/worktree.spec.ts`).
+- Notification rule engine + native dispatch are shipped: dedup, quiet hours,
+  focus mode, and per-repo filtering (proofs:
+  `apps/desktop/src-tauri/tests/notifications_*.rs`,
+  `apps/desktop/playwright/notifications.spec.ts`).
 - Offline/airplane behavior: queued safe mutations replay on reconnect with
   explicit connection-required affordances for unsafe writes (proof drill:
   `apps/desktop/src-tauri/tests/airplane_drill.rs`).
@@ -47,7 +63,7 @@ For headless checks without a desktop display server, run:
 pnpm --filter desktop test:smoke
 ```
 
-## CI quality gates (M2)
+## CI quality gates (M3)
 
 The required local/CI gate matrix is:
 

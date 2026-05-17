@@ -40,5 +40,10 @@
     </button>
   </div>
   <p class="f6 color-fg-muted mb-2">Absolute paths only; one root per line.</p>
-  <textarea class="form-control width-full" rows={5} bind:value={rootsText}></textarea>
+  <textarea
+    class="form-control width-full"
+    rows={5}
+    bind:value={rootsText}
+    aria-label="Worktree roots paths"
+  ></textarea>
 </div>

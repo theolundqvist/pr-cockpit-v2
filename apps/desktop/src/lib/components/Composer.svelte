@@ -17,6 +17,7 @@
   export let payloadBase: Record<string, unknown> = {};
   export let placeholder = 'Write a comment';
   export let submitLabel = 'Submit';
+export let textareaAriaLabel = 'Comment body';
   export let disabled = false;
   export let initialBody = '';
   export let suggestionSeedLines: string[] = [];
@@ -179,6 +180,7 @@
         rows={5}
         bind:value={body}
         placeholder={placeholder}
+        aria-label={textareaAriaLabel}
         data-testid="composer-textarea"
       ></textarea>
     {:else if previewLoading}
