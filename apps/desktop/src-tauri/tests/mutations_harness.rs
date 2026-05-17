@@ -33,15 +33,27 @@ pub async fn run_happy(kind: MutationKind, suffix: &str) -> Result<()> {
         summary.processed >= 1,
         "expected at least one processed mutation"
     );
-    let status: String = sqlx::query_scalar("SELECT status FROM pending_mutations WHERE id = ?1")
-        .bind(submitted.mutation_id)
-        .fetch_one(harness.db.pool())
-        .await?;
-    anyhow::ensure!(
-        status == "applied",
-        "mutation {} must be applied, got status `{status}`",
-        kind.as_str()
-    );
+    let (status, requires_connection_confirmation): (String, i64) = sqlx::query_as(
+        "SELECT status, requires_connection_confirmation
+         FROM pending_mutations
+         WHERE id = ?1",
+    )
+    .bind(submitted.mutation_id)
+    .fetch_one(harness.db.pool())
+    .await?;
+    if is_requires_confirmation_kind(kind) {
+        anyhow::ensure!(
+            status == "pending" && requires_connection_confirmation == 1,
+            "mutation {} must remain pending with requires_connection_confirmation=1, got status `{status}` and flag `{requires_connection_confirmation}`",
+            kind.as_str()
+        );
+    } else {
+        anyhow::ensure!(
+            status == "applied",
+            "mutation {} must be applied, got status `{status}`",
+            kind.as_str()
+        );
+    }
     Ok(())
 }
 
@@ -54,16 +66,35 @@ pub async fn run_failure(kind: MutationKind, suffix: &str) -> Result<()> {
     let payload = payload_for_kind(kind, suffix);
     let submitted = engine.submit(&harness.account_id, payload).await?;
     let _ = engine.drain().await?;
-    let status: String = sqlx::query_scalar("SELECT status FROM pending_mutations WHERE id = ?1")
-        .bind(&submitted.mutation_id)
-        .fetch_one(harness.db.pool())
-        .await?;
-    anyhow::ensure!(
-        status == "failed",
-        "mutation {} must fail on 422, got `{status}`",
-        kind.as_str()
-    );
+    let (status, requires_connection_confirmation): (String, i64) = sqlx::query_as(
+        "SELECT status, requires_connection_confirmation
+         FROM pending_mutations
+         WHERE id = ?1",
+    )
+    .bind(&submitted.mutation_id)
+    .fetch_one(harness.db.pool())
+    .await?;
+    if is_requires_confirmation_kind(kind) {
+        anyhow::ensure!(
+            status == "pending" && requires_connection_confirmation == 1,
+            "mutation {} must remain pending with requires_connection_confirmation=1, got status `{status}` and flag `{requires_connection_confirmation}`",
+            kind.as_str()
+        );
+    } else {
+        anyhow::ensure!(
+            status == "failed",
+            "mutation {} must fail on 422, got `{status}`",
+            kind.as_str()
+        );
+    }
     Ok(())
+}
+
+fn is_requires_confirmation_kind(kind: MutationKind) -> bool {
+    matches!(
+        kind,
+        MutationKind::Merge | MutationKind::EnableAutoMerge | MutationKind::DisableAutoMerge
+    )
 }
 
 pub async fn mount_success(server: &MockServer, kind: MutationKind) {

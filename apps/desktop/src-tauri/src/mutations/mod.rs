@@ -18,12 +18,14 @@ pub mod dispatch;
 pub mod engine;
 pub mod handlers;
 pub mod ipc_types;
+pub mod net;
 pub mod patch;
 pub mod projector;
 pub mod reconciler;
 
 pub use engine::MutationEngine;
 pub use ipc_types::*;
+pub use net::{NetProbe, NetState, NetworkMonitor, ReqwestNetProbe};
 pub use patch::Patch;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]

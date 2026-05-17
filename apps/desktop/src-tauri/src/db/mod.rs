@@ -1630,14 +1630,70 @@ impl Db {
         Ok(())
     }
 
+    pub async fn upsert_draft(&self, draft: &DraftRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO drafts(id, account_id, target_type, target_id, body, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(id) DO UPDATE SET
+               account_id = excluded.account_id,
+               target_type = excluded.target_type,
+               target_id = excluded.target_id,
+               body = excluded.body,
+               updated_at = excluded.updated_at",
+        )
+        .bind(&draft.id)
+        .bind(&draft.account_id)
+        .bind(&draft.target_type)
+        .bind(&draft.target_id)
+        .bind(&draft.body)
+        .bind(draft.created_at)
+        .bind(draft.updated_at)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn list_drafts(
+        &self,
+        account_id: &str,
+        target_type: Option<&str>,
+        target_id: Option<&str>,
+    ) -> Result<Vec<DraftRow>> {
+        let rows = sqlx::query_as::<_, DraftRow>(
+            "SELECT id, account_id, target_type, target_id, body, created_at, updated_at
+             FROM drafts
+             WHERE account_id = ?1
+               AND (?2 IS NULL OR target_type = ?2)
+               AND (?3 IS NULL OR target_id = ?3)
+             ORDER BY updated_at DESC, id DESC",
+        )
+        .bind(account_id)
+        .bind(target_type)
+        .bind(target_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn delete_draft(&self, draft_id: &str) -> Result<()> {
+        sqlx::query("DELETE FROM drafts WHERE id = ?1")
+            .bind(draft_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
     pub async fn apply_pending_mutation(&self, mutation: &PendingMutationRecord) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
             "INSERT INTO pending_mutations(
                id, account_id, kind, target_type, target_id, idempotency_key, input_json,
-               optimistic_patch_json, inverse_patch_json, status, retries, created_at, updated_at, last_error
+               optimistic_patch_json, inverse_patch_json, status, retries, created_at, updated_at,
+               last_error, requires_connection_confirmation
              )
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
              ON CONFLICT(id) DO UPDATE SET
                kind = excluded.kind,
                target_type = excluded.target_type,
@@ -1649,7 +1705,8 @@ impl Db {
                status = excluded.status,
                retries = excluded.retries,
                updated_at = excluded.updated_at,
-               last_error = excluded.last_error",
+               last_error = excluded.last_error,
+               requires_connection_confirmation = excluded.requires_connection_confirmation",
         )
         .bind(&mutation.id)
         .bind(&mutation.account_id)
@@ -1665,6 +1722,7 @@ impl Db {
         .bind(mutation.created_at)
         .bind(mutation.updated_at)
         .bind(&mutation.last_error)
+        .bind(bool_to_i64(mutation.requires_connection_confirmation))
         .execute(tx.as_mut())
         .await?;
         tx.commit().await?;

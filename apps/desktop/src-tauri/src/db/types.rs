@@ -545,6 +545,28 @@ pub struct WorktreeRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DraftRecord {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct DraftRow {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingMutationRecord {
     pub id: String,
     pub account_id: String,
@@ -560,6 +582,7 @@ pub struct PendingMutationRecord {
     pub created_at: i64,
     pub updated_at: i64,
     pub last_error: Option<String>,
+    pub requires_connection_confirmation: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
