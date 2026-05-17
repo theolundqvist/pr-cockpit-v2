@@ -260,6 +260,24 @@
       ]
     },
     {
+      "name": "m1-bench-baselines",
+      "type": "worker",
+      "model": "gpt-5.3-codex-high-fast",
+      "maxAttempts": 1,
+      "dependsOn": ["m1-reverify"],
+      "pathsAllowed": ["**"],
+      "pathsForbidden": ["AUTONOMY_BRIEF.md", "PLAN.md", "synthesis.md"],
+      "scopedGoal": "Make `pnpm bench` green on the GitHub Actions runner the perf-bench job runs on (Ubuntu Linux). The m1-reverify handoff confirmed CI run 25990142848 still fails the perf-bench job because the 10% relative-regression alarm fires on two metrics that ARE INSIDE PLAN \u00a710 hard budgets but exceed their `bench/budgets.json` *baseline tolerance* on shared CI hardware: `comrak_render_throughput_ops_per_sec` (CI 20337 vs baseline 30000, 10% threshold 27000 \u2014 PLAN \u00a710 budget is \u22650.85k ops/s, comfortably met) and `pr_detail_open_preloaded_ms_frontend` (CI 40 ms vs baseline 30 ms, 10% threshold 33 ms \u2014 PLAN \u00a710 budget is \u226450 ms, comfortably met).\n\nFix scope (narrow):\n1) Take CI run **25990142848** as the source of truth for the GH Actions runner's measurement of these two metrics. Update `bench/budgets.json` so the *baselines* (not the PLAN \u00a710 hard budgets) reflect a value the CI runner can hit reliably. Keep the PLAN \u00a710 hard budget assertions verbatim. Pick conservative baselines (e.g. comrak baseline 15000 ops/s for CI, preloaded baseline 40 ms for CI) so the alarm only fires on real regressions, not on first run.\n2) If `bench/budgets.json` cannot encode separate \"hard budget\" + \"baseline\" values today, extend the schema. Add a `tolerance` per-metric or a `regression_only_fail_above_hard` flag. Whatever shape you pick, document it in `bench/README.md` and add a unit test that drives the comparator with deliberately bumped numbers and asserts behaviour.\n3) Re-run `pnpm bench` locally to confirm exit 0 with the updated baselines (and with deliberate +5% drift to confirm the regression alarm still fires when the metric crosses the hard-budget breach line).\n4) Apply the same best-of-N estimator policy from m1-fix-gates to `pr_detail_open_preloaded_ms_frontend` if it is WebKit-jitter-sensitive on the CI runner (verifier evidence: locally beefy VM is 25 ms; CI runner is 40 ms; jitter band ~15 ms). Document the change.\n5) Update `DECISIONS.md` with a dated entry: how the comparator distinguishes \"hard-budget breach\" (PLAN \u00a710, must fail) from \"baseline regression\" (relative, can be tuned). Cross-reference the m1-fix-gates min-of-N entry.\n6) Push and report SHA. Don't open a PR; the parent ships.\n\nNon-goals: do NOT widen any PLAN \u00a710 hard budget; do NOT touch any other M1 module; do NOT refactor the perf-bench harness beyond what's needed for the two metrics.",
+      "acceptance": [
+        "`bench/budgets.json` has the two flagged metrics tuned so the CI runner's measurements no longer trip the 10% baseline-regression alarm.",
+        "PLAN \u00a710 M1 hard budgets remain enforced verbatim and a controlled +10% drift on top of them still fails the gate.",
+        "If schema changed, `bench/README.md` documents the new hard-vs-baseline distinction.",
+        "`pnpm bench` exits 0 locally; the CI run on this branch's HEAD is green for the perf-bench job (note the run id in `## Notes`).",
+        "DECISIONS.md updated with the dated hard-vs-baseline policy.",
+        "Branch pushed with the new SHA recorded in `## Branch`."
+      ]
+    },
+    {
       "name": "m1-reverify",
       "type": "verifier",
       "verifies": "m1-fix-gates",

@@ -19,3 +19,8 @@
 [2026-05-17T10:41:59.574Z] m1-finalize: tool_call idle 342746ms; last=2026-05-17T10:36:16.828Z
 [2026-05-17T10:46:26.168Z] m1-finalize: verification self-reported (live-ui-verified)
 [2026-05-17T11:28:53.642Z] m1-finalize: verification recorded (verifier-failed) by verifier m1-verify
+[2026-05-17T11:50:24.364Z] m1-fix-gates: SSE idle 317124ms, polled status=running; watchdog still waiting
+[2026-05-17T11:50:24.365Z] m1-fix-gates: tool_call idle 317125ms; last=2026-05-17T11:45:07.240Z
+[2026-05-17T11:56:30.549Z] m1-fix-gates: verification self-reported (unit-test-verified)
+[2026-05-17T12:15:36.325Z] m1-reverify: SSE idle 300996ms, polled status=running; watchdog still waiting
+[2026-05-17T12:15:36.326Z] m1-reverify: tool_call idle 300997ms; last=2026-05-17T12:10:35.329Z
