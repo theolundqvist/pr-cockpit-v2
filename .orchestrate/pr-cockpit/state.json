@@ -15,36 +15,37 @@
       "handoffPath": "handoffs/m1-cockpit.md",
       "startedAt": "2026-05-17T05:56:01.240Z",
       "finishedAt": "2026-05-17T13:42:49.300Z",
-      "lastUpdate": "2026-05-17T13:42:49.301Z",
+      "lastUpdate": "2026-05-17T13:42:50.189Z",
       "note": "respawned by self-planner (was error; attempts=2)",
       "attempts": 3,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "verify-m1-cockpit",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m1-cockpit",
-      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "startingRef": "`orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)",
       "dependsOn": [
         "m1-cockpit"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "error",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": null,
-      "note": null,
+      "lastUpdate": "2026-05-17T13:43:04.466Z",
+      "note": "spawn failed after 3 transient sub-attempts: Error: m1-cockpit: branch must be orch/pr-cockpit/m1-cockpit, got `orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)",
       "slackTs": null,
       "prNumber": null,
-      "failureMode": null,
-      "verification": null
+      "failureMode": "unknown",
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -271,6 +272,14 @@
     {
       "at": "2026-05-17T12:51:33.871Z",
       "message": "m1-cockpit: tool_call idle 332198ms; last=2026-05-17T12:46:01.673Z"
+    },
+    {
+      "at": "2026-05-17T13:42:50.188Z",
+      "message": "verify-m1-cockpit: startingRef reconciled orch/pr-cockpit/m1-cockpit -> `orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`) (target m1-cockpit handed off on actual branch)"
+    },
+    {
+      "at": "2026-05-17T13:42:50.189Z",
+      "message": "m1-cockpit: verification self-reported (unit-test-verified)"
     }
   ]
 }
