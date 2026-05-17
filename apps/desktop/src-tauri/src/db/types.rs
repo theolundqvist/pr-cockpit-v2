@@ -104,6 +104,56 @@ pub struct PrFileRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct TimelineRow {
+    pub item_id: String,
+    pub item_kind: String,
+    pub body: String,
+    pub author_login: Option<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub review_state: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct ReviewThreadRow {
+    pub id: String,
+    pub path: String,
+    pub line: Option<i64>,
+    pub side: Option<String>,
+    pub start_line: Option<i64>,
+    pub start_side: Option<String>,
+    pub is_outdated: i64,
+    pub is_resolved: i64,
+    pub resolved_by_login: Option<String>,
+    pub updated_at: i64,
+    pub comment_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckRunSummaryRow {
+    pub id: String,
+    pub name: String,
+    pub status: String,
+    pub conclusion: Option<String>,
+    pub details_url: Option<String>,
+    pub started_at: Option<i64>,
+    pub completed_at: Option<i64>,
+    pub app_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct NotificationListRow {
+    pub id: String,
+    pub reason: String,
+    pub title: String,
+    pub unread: i64,
+    pub updated_at: i64,
+    pub pr_id: Option<String>,
+    pub repo_owner: String,
+    pub repo_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct SearchHitRow {
     pub doc_type: String,
     pub doc_ref: String,

@@ -157,6 +157,25 @@ impl Db {
         }
     }
 
+    pub async fn pr_patch_blob_sha(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        head_sha: &str,
+    ) -> Result<Option<String>> {
+        let sha = sqlx::query_scalar::<_, String>(
+            "SELECT patch_blob_sha
+             FROM pr_patches
+             WHERE account_id = ?1 AND pr_id = ?2 AND head_sha = ?3",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .bind(head_sha)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(sha)
+    }
+
     pub async fn unread_counts(&self, account_id: &str) -> Result<Option<UnreadCountsRow>> {
         let row = sqlx::query_as::<_, UnreadCountsRow>(
             "SELECT account_id, total_notifications, unread_notifications, prs_with_unread
@@ -187,6 +206,192 @@ impl Db {
         .fetch_all(&self.pool)
         .await?;
         Ok(rows)
+    }
+
+    pub async fn pr_timeline_page(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<TimelineRow>> {
+        let rows = sqlx::query_as::<_, TimelineRow>(
+            "SELECT item_id, item_kind, body, author_login, created_at, updated_at, review_state
+             FROM (
+               SELECT
+                 c.id AS item_id,
+                 c.kind AS item_kind,
+                 c.body AS body,
+                 u.login AS author_login,
+                 c.created_at AS created_at,
+                 c.updated_at AS updated_at,
+                 NULL AS review_state
+               FROM comments c
+               LEFT JOIN users u ON u.id = c.author_id
+               WHERE c.account_id = ?1 AND c.pr_id = ?2
+
+               UNION ALL
+
+               SELECT
+                 rv.id AS item_id,
+                 'review' AS item_kind,
+                 rv.body AS body,
+                 u.login AS author_login,
+                 rv.created_at AS created_at,
+                 rv.updated_at AS updated_at,
+                 rv.state AS review_state
+               FROM reviews rv
+               LEFT JOIN users u ON u.id = rv.author_id
+               WHERE rv.account_id = ?1 AND rv.pr_id = ?2
+             )
+             ORDER BY created_at DESC, item_id DESC
+             LIMIT ?3 OFFSET ?4",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_review_threads(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<ReviewThreadRow>> {
+        let rows = sqlx::query_as::<_, ReviewThreadRow>(
+            "SELECT
+               rt.id,
+               rt.path,
+               rt.line,
+               rt.side,
+               rt.start_line,
+               rt.start_side,
+               rt.is_outdated,
+               rt.is_resolved,
+               u.login AS resolved_by_login,
+               rt.updated_at,
+               (
+                 SELECT COUNT(*)
+                 FROM comments c
+                 WHERE c.account_id = rt.account_id AND c.thread_id = rt.id
+               ) AS comment_count
+             FROM review_threads rt
+             LEFT JOIN users u ON u.id = rt.resolved_by_id
+             WHERE rt.account_id = ?1 AND rt.pr_id = ?2
+             ORDER BY rt.updated_at DESC, rt.id DESC
+             LIMIT ?3 OFFSET ?4",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_check_runs(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<Vec<CheckRunSummaryRow>> {
+        let rows = sqlx::query_as::<_, CheckRunSummaryRow>(
+            "SELECT
+               cr.id,
+               cr.name,
+               cr.status,
+               cr.conclusion,
+               cr.details_url,
+               cr.started_at,
+               cr.completed_at,
+               cs.app_name
+             FROM check_runs cr
+             LEFT JOIN check_suites cs ON cs.id = cr.check_suite_id
+             WHERE cr.account_id = ?1 AND cr.pr_id = ?2
+             ORDER BY cr.completed_at DESC, cr.updated_at DESC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn list_notifications(
+        &self,
+        account_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<NotificationListRow>> {
+        let rows = sqlx::query_as::<_, NotificationListRow>(
+            "SELECT
+               n.id,
+               n.reason,
+               n.title,
+               n.unread,
+               n.updated_at,
+               n.pr_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name
+             FROM notifications n
+             JOIN repos r ON r.id = n.repo_id
+             WHERE n.account_id = ?1
+             ORDER BY n.updated_at DESC, n.id DESC
+             LIMIT ?2 OFFSET ?3",
+        )
+        .bind(account_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn rate_limit_buckets_for_account(
+        &self,
+        account_id: &str,
+    ) -> Result<Vec<RateLimitBucketRow>> {
+        let rows = sqlx::query_as::<_, RateLimitBucketRow>(
+            "SELECT account_id, resource, remaining, limit_total, reset_at, updated_at
+             FROM rate_limit_buckets
+             WHERE account_id = ?1
+             ORDER BY resource ASC",
+        )
+        .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn resolve_pr_id(
+        &self,
+        account_id: &str,
+        owner: &str,
+        repo: &str,
+        number: i64,
+    ) -> Result<Option<String>> {
+        let pr_id = sqlx::query_scalar::<_, String>(
+            "SELECT pr.id
+             FROM pull_requests pr
+             JOIN repos r ON r.id = pr.repo_id
+             WHERE pr.account_id = ?1
+               AND r.owner = ?2
+               AND r.name = ?3
+               AND pr.number = ?4
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .bind(owner)
+        .bind(repo)
+        .bind(number)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(pr_id)
     }
 
     pub async fn search(

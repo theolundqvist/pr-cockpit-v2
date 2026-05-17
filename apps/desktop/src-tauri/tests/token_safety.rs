@@ -196,10 +196,7 @@ async fn token_safety_guards_all_auth_paths() -> Result<()> {
     let db_path = temp.path().join("cockpit.db");
     let wal_path = temp.path().join("cockpit.db-wal");
     let db_bytes = tokio::fs::read(db_path).await?;
-    let wal_bytes = match tokio::fs::read(wal_path).await {
-        Ok(bytes) => bytes,
-        Err(_) => Vec::new(),
-    };
+    let wal_bytes: Vec<u8> = tokio::fs::read(wal_path).await.unwrap_or_default();
     for token in [
         GH_TOKEN,
         OAUTH_TOKEN,
@@ -217,21 +214,23 @@ async fn token_safety_guards_all_auth_paths() -> Result<()> {
         );
     }
 
-    let events = capture
-        .lock()
-        .map_err(|_| anyhow::anyhow!("capture lock poisoned"))?;
-    for event in events.iter() {
-        for token in [
-            GH_TOKEN,
-            OAUTH_TOKEN,
-            OAUTH_ROTATED_TOKEN,
-            OAUTH_REFRESH_TOKEN,
-            PAT_TOKEN,
-        ] {
-            assert!(
-                !event.contains(token),
-                "tracing event leaked raw token content"
-            );
+    {
+        let events = capture
+            .lock()
+            .map_err(|_| anyhow::anyhow!("capture lock poisoned"))?;
+        for event in events.iter() {
+            for token in [
+                GH_TOKEN,
+                OAUTH_TOKEN,
+                OAUTH_ROTATED_TOKEN,
+                OAUTH_REFRESH_TOKEN,
+                PAT_TOKEN,
+            ] {
+                assert!(
+                    !event.contains(token),
+                    "tracing event leaked raw token content"
+                );
+            }
         }
     }
 

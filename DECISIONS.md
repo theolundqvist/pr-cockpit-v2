@@ -1,5 +1,28 @@
 # Decisions
 
+### 2026-05-17: IPC surface is generated from `ipc::` with pinned Specta RC (M1 IPC wiring)
+
+Decision: IPC commands/events consumed by the desktop renderer are declared in
+`apps/desktop/src-tauri/src/ipc/mod.rs` with `#[tauri::command]` +
+`#[specta::specta]`, and bindings are generated to
+`apps/desktop/src/lib/ipc/bindings.ts` using `tauri-specta`.
+
+Version pin:
+- `specta = 2.0.0-rc.25`
+- `tauri-specta = 2.0.0-rc.25`
+- `specta-typescript = 0.0.12`
+
+Refresh workflow:
+- `cargo run -p desktop --bin generate-ipc-bindings`
+- `pnpm typecheck`
+- `pnpm svelte-check`
+
+Guardrail: renderer isolation is enforced by test
+`apps/desktop/src-tauri/tests/renderer_isolation.rs`, which fails when
+`apps/desktop/src/**/*.{ts,svelte}` contains direct SQLite/GitHub client usage
+(`sqlite`, `better-sqlite3`, `octokit`, `graphql-request`, direct
+`fetch("https://api.github.com...`) outside `import type` lines.
+
 ### 2026-05-16: Use `gh` CLI's public OAuth client_id `Iv1.b507a08c87ecfe98` for device flow (M1)
 
 Reason: we don't have a registered OAuth app yet; `gh`'s client_id is documented

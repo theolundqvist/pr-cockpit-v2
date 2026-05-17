@@ -8,6 +8,14 @@ use crate::db::Db;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let specta_builder = ipc::specta_builder::<tauri::Wry>();
+    let invoke_handler = specta_builder.invoke_handler();
+
+    #[cfg(debug_assertions)]
+    if let Err(error) = ipc::export_default_bindings() {
+        panic!("failed to generate IPC bindings: {error:#}");
+    }
+
     let _ = tracing_subscriber::fmt()
         .with_env_filter(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "desktop=info,tauri=warn".to_string()),
@@ -15,31 +23,31 @@ pub fn run() {
         .try_init();
 
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(move |app| {
             let data_dir = app
                 .path()
                 .app_data_dir()
                 .context("resolving app data directory")?;
-            let db = tauri::async_runtime::block_on(Db::open(&data_dir))
-                .context("opening sqlite database")?;
+
+            let db = Arc::new(
+                tauri::async_runtime::block_on(Db::open(&data_dir))
+                    .context("opening sqlite database")?,
+            );
             let auth_service =
-                Arc::new(AuthService::new(Arc::new(db)).context("building auth service")?);
+                Arc::new(AuthService::new(Arc::clone(&db)).context("building auth service")?);
+            let sync_state = Arc::new(sync::SyncTierStateStore::default());
+
+            app.manage(db);
             app.manage(auth_service);
+            app.manage(sync_state);
+
+            specta_builder.mount_events(app);
             Ok(())
         })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .invoke_handler(tauri::generate_handler![
-            auth::auth_detect_gh_token,
-            auth::auth_oauth_device_start,
-            auth::auth_oauth_device_poll,
-            auth::auth_pat_save,
-            auth::auth_list_accounts,
-            auth::auth_switch_account,
-            auth::auth_remove_account,
-            auth::auth_refresh
-        ])
+        .invoke_handler(invoke_handler)
         .run(tauri::generate_context!())
         .expect("error while running desktop app");
 }
@@ -47,8 +55,12 @@ pub fn run() {
 pub mod api;
 pub mod auth;
 pub mod db;
+pub mod ipc;
+pub mod render;
+pub mod storage;
 pub mod sync;
 pub use sync::{shutdown as sync_shutdown, start as sync_start};
+pub static RENDERER_VERSION: &str = "m1-renderer-v1";
 
 #[cfg(test)]
 mod tests {
