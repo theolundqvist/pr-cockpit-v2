@@ -122,12 +122,35 @@ impl Db {
         pr_id: &str,
     ) -> Result<Option<PrDetailSummaryRow>> {
         let row = sqlx::query(
-            "SELECT account_id, pr_id, repo_id, pr_number, title, body, state, draft, base_ref,
-                    base_sha, head_ref, head_sha, mergeable_state, merge_state_status, additions,
-                    deletions, changed_files, comment_count, review_count, thread_count,
-                    check_run_count, file_count, updated_at, pending_overlay
-             FROM pr_detail_summary
-             WHERE account_id = ?1 AND pr_id = ?2",
+            "SELECT
+                summary.account_id,
+                summary.pr_id,
+                summary.repo_id,
+                summary.pr_number,
+                summary.title,
+                summary.body,
+                summary.state,
+                summary.draft,
+                summary.base_ref,
+                summary.base_sha,
+                summary.head_ref,
+                summary.head_sha,
+                summary.mergeable_state,
+                summary.merge_state_status,
+                summary.additions,
+                summary.deletions,
+                summary.changed_files,
+                summary.comment_count,
+                summary.review_count,
+                summary.thread_count,
+                summary.check_run_count,
+                summary.file_count,
+                summary.updated_at,
+                pr.body_server_adjusted AS body_server_adjusted,
+                summary.pending_overlay
+             FROM pr_detail_summary summary
+             JOIN pull_requests pr ON pr.account_id = summary.account_id AND pr.id = summary.pr_id
+             WHERE summary.account_id = ?1 AND summary.pr_id = ?2",
         )
         .bind(account_id)
         .bind(pr_id)
@@ -158,6 +181,7 @@ impl Db {
                 check_run_count: row.try_get("check_run_count")?,
                 file_count: row.try_get("file_count")?,
                 updated_at: row.try_get("updated_at")?,
+                body_server_adjusted: row.try_get("body_server_adjusted")?,
                 pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
             })
         })
@@ -307,8 +331,8 @@ impl Db {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<TimelineRow>> {
-        let rows = sqlx::query_as::<_, TimelineRow>(
-            "SELECT item_id, item_kind, body, author_login, created_at, updated_at, review_state
+        let rows = sqlx::query(
+            "SELECT item_id, item_kind, body, author_login, created_at, updated_at, review_state, body_server_adjusted, pending_overlay
              FROM (
                SELECT
                  c.id AS item_id,
@@ -317,7 +341,9 @@ impl Db {
                  u.login AS author_login,
                  c.created_at AS created_at,
                  c.updated_at AS updated_at,
-                 NULL AS review_state
+                 NULL AS review_state,
+                 c.body_server_adjusted AS body_server_adjusted,
+                 c.pending_state AS pending_overlay
                FROM comments c
                LEFT JOIN users u ON u.id = c.author_id
                WHERE c.account_id = ?1 AND c.pr_id = ?2
@@ -331,7 +357,9 @@ impl Db {
                  u.login AS author_login,
                  rv.created_at AS created_at,
                  rv.updated_at AS updated_at,
-                 rv.state AS review_state
+                 rv.state AS review_state,
+                 rv.body_server_adjusted AS body_server_adjusted,
+                 rv.pending_state AS pending_overlay
                FROM reviews rv
                LEFT JOIN users u ON u.id = rv.author_id
                WHERE rv.account_id = ?1 AND rv.pr_id = ?2
@@ -345,7 +373,21 @@ impl Db {
         .bind(offset)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(TimelineRow {
+                    item_id: row.try_get("item_id")?,
+                    item_kind: row.try_get("item_kind")?,
+                    body: row.try_get("body")?,
+                    author_login: row.try_get("author_login")?,
+                    created_at: row.try_get("created_at")?,
+                    updated_at: row.try_get("updated_at")?,
+                    review_state: row.try_get("review_state")?,
+                    body_server_adjusted: row.try_get("body_server_adjusted")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_review_threads(
@@ -355,7 +397,7 @@ impl Db {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<ReviewThreadRow>> {
-        let rows = sqlx::query_as::<_, ReviewThreadRow>(
+        let rows = sqlx::query(
             "SELECT
                rt.id,
                rt.path,
@@ -371,7 +413,8 @@ impl Db {
                  SELECT COUNT(*)
                  FROM comments c
                  WHERE c.account_id = rt.account_id AND c.thread_id = rt.id
-               ) AS comment_count
+               ) AS comment_count,
+               rt.pending_state AS pending_overlay
              FROM review_threads rt
              LEFT JOIN users u ON u.id = rt.resolved_by_id
              WHERE rt.account_id = ?1 AND rt.pr_id = ?2
@@ -384,7 +427,24 @@ impl Db {
         .bind(offset)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(ReviewThreadRow {
+                    id: row.try_get("id")?,
+                    path: row.try_get("path")?,
+                    line: row.try_get("line")?,
+                    side: row.try_get("side")?,
+                    start_line: row.try_get("start_line")?,
+                    start_side: row.try_get("start_side")?,
+                    is_outdated: row.try_get("is_outdated")?,
+                    is_resolved: row.try_get("is_resolved")?,
+                    resolved_by_login: row.try_get("resolved_by_login")?,
+                    updated_at: row.try_get("updated_at")?,
+                    comment_count: row.try_get("comment_count")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_check_runs(
@@ -469,8 +529,8 @@ impl Db {
     }
 
     pub async fn pr_labels(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrLabelRow>> {
-        let rows = sqlx::query_as::<_, PrLabelRow>(
-            "SELECT label_name, label_color, description
+        let rows = sqlx::query(
+            "SELECT label_name, label_color, description, pending_state AS pending_overlay
              FROM pr_labels
              WHERE account_id = ?1 AND pr_id = ?2
              ORDER BY label_name ASC",
@@ -479,15 +539,25 @@ impl Db {
         .bind(pr_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrLabelRow {
+                    label_name: row.try_get("label_name")?,
+                    label_color: row.try_get("label_color")?,
+                    description: row.try_get("description")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_assignees(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrAssigneeRow>> {
-        let rows = sqlx::query_as::<_, PrAssigneeRow>(
+        let rows = sqlx::query(
             "SELECT
                pa.user_id,
                u.login,
-               pa.assigned_at
+               pa.assigned_at,
+               pa.pending_state AS pending_overlay
              FROM pr_assignees pa
              LEFT JOIN users u ON u.id = pa.user_id
              WHERE pa.account_id = ?1 AND pa.pr_id = ?2
@@ -497,17 +567,27 @@ impl Db {
         .bind(pr_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrAssigneeRow {
+                    user_id: row.try_get("user_id")?,
+                    login: row.try_get("login")?,
+                    assigned_at: row.try_get("assigned_at")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_reviewers(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrReviewerRow>> {
-        let rows = sqlx::query_as::<_, PrReviewerRow>(
+        let rows = sqlx::query(
             "SELECT
                pr.user_id,
                u.login,
                pr.reviewer_type,
                pr.reviewer_state,
-               pr.requested_at
+               pr.requested_at,
+               pr.pending_state AS pending_overlay
              FROM pr_reviewers pr
              LEFT JOIN users u ON u.id = pr.user_id
              WHERE pr.account_id = ?1 AND pr.pr_id = ?2
@@ -517,12 +597,23 @@ impl Db {
         .bind(pr_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrReviewerRow {
+                    user_id: row.try_get("user_id")?,
+                    login: row.try_get("login")?,
+                    reviewer_type: row.try_get("reviewer_type")?,
+                    reviewer_state: row.try_get("reviewer_state")?,
+                    requested_at: row.try_get("requested_at")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_projects(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrProjectRow>> {
-        let rows = sqlx::query_as::<_, PrProjectRow>(
-            "SELECT project_id, project_title, item_id, status, updated_at
+        let rows = sqlx::query(
+            "SELECT project_id, project_title, item_id, status, updated_at, pending_state AS pending_overlay
              FROM pr_projects
              WHERE account_id = ?1 AND pr_id = ?2
              ORDER BY project_title ASC, project_id ASC",
@@ -531,7 +622,18 @@ impl Db {
         .bind(pr_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrProjectRow {
+                    project_id: row.try_get("project_id")?,
+                    project_title: row.try_get("project_title")?,
+                    item_id: row.try_get("item_id")?,
+                    status: row.try_get("status")?,
+                    updated_at: row.try_get("updated_at")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_milestones(
@@ -539,8 +641,8 @@ impl Db {
         account_id: &str,
         pr_id: &str,
     ) -> Result<Vec<PrMilestoneRow>> {
-        let rows = sqlx::query_as::<_, PrMilestoneRow>(
-            "SELECT milestone_id, title, state, due_on, description
+        let rows = sqlx::query(
+            "SELECT milestone_id, title, state, due_on, description, pending_state AS pending_overlay
              FROM pr_milestones
              WHERE account_id = ?1 AND pr_id = ?2
              ORDER BY title ASC, milestone_id ASC",
@@ -549,7 +651,18 @@ impl Db {
         .bind(pr_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrMilestoneRow {
+                    milestone_id: row.try_get("milestone_id")?,
+                    title: row.try_get("title")?,
+                    state: row.try_get("state")?,
+                    due_on: row.try_get("due_on")?,
+                    description: row.try_get("description")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn rate_limit_buckets_for_account(
@@ -1683,6 +1796,39 @@ impl Db {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    pub async fn list_pending_mutations(
+        &self,
+        account_id: &str,
+        include_pending: bool,
+    ) -> Result<Vec<PendingMutationRow>> {
+        let rows = sqlx::query_as::<_, PendingMutationRow>(
+            "SELECT
+               id,
+               account_id,
+               kind,
+               target_type,
+               target_id,
+               status,
+               retries,
+               created_at,
+               updated_at,
+               last_error,
+               optimism_level,
+               optimistic_patch_json,
+               requires_connection_confirmation
+             FROM pending_mutations
+             WHERE account_id = ?1
+               AND status IN ('failed', 'pending')
+               AND (?2 = 1 OR status = 'failed')
+             ORDER BY updated_at DESC, id DESC",
+        )
+        .bind(account_id)
+        .bind(if include_pending { 1_i64 } else { 0_i64 })
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
     }
 
     pub async fn apply_pending_mutation(&self, mutation: &PendingMutationRecord) -> Result<()> {

@@ -10,6 +10,8 @@ export type ConversationEntry =
       createdAt: number;
       html: string;
       reviewState: string | null;
+      pendingOverlay: RenderedTimelineItem['pending_overlay'];
+      bodyServerAdjusted: boolean;
     }
   | {
       id: string;
@@ -21,6 +23,7 @@ export type ConversationEntry =
       side: string | null;
       isOutdated: boolean;
       commentCount: number;
+      pendingOverlay: ReviewThread['pending_overlay'];
     }
   | {
       id: string;
@@ -39,7 +42,9 @@ function timelineEntryFromItem(item: RenderedTimelineItem): ConversationEntry {
     author: item.author_login ?? 'ghost',
     createdAt: item.created_at,
     html: item.rendered_html,
-    reviewState: item.review_state
+    reviewState: item.review_state,
+    pendingOverlay: item.pending_overlay,
+    bodyServerAdjusted: item.body_server_adjusted
   };
 }
 
@@ -53,7 +58,8 @@ function threadEntries(threads: ReviewThread[]): ConversationEntry[] {
     line: thread.line,
     side: thread.side,
     isOutdated: thread.is_outdated,
-    commentCount: thread.comment_count
+    commentCount: thread.comment_count,
+    pendingOverlay: thread.pending_overlay
   }));
 }
 

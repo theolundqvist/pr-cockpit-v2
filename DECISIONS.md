@@ -462,3 +462,17 @@ Decision:
   To add new mutation kinds to the drill, append submissions in the same explicit order list and update the expected wiremock request sequence vector in the test.
 
 Reason: M2 needs deterministic offline durability and explicit operator control for non-optimistic operations without regressing submit latency or read-model consistency.
+
+### 2026-05-17: M2 frontend mutation UX uses one IPC markdown renderer, live sync-error surfaces, and offline safety gating
+
+Decision:
+
+- Composer preview and timeline markdown rendering both call the same renderer path through IPC (`render_preview`/comrak); no JS markdown libraries are allowed in renderer code.
+- Mutation failures surface in two coordinated views:
+  - local inline banner near the affected target with Retry/Discard,
+  - global slide-in sync-errors tray grouped by PR and live-updated from `mutation:failed` / `mutation:rolled-back`.
+- `mutation:hard-conflict` always opens an explicit diff modal with `Refresh and retry` + `Discard`; conflicts are never silently dropped.
+- Network event `network:<account_id> changed` drives an offline status pill (`Offline — queued: N`), and connection-required actions remain disabled with `requires connection` affordance while offline.
+- ESLint enforces renderer boundaries by blocking JS markdown parser imports (`marked`, `markdown-it`, `remark*`, `unified`) and direct `fetch(...)` usage under `apps/desktop/src/**`, forcing all GitHub/DB access through typed IPC.
+
+Reason: the UI must preserve optimistic responsiveness while preventing renderer-side drift from server truth and preserving strict architecture boundaries (single markdown renderer, no direct network/database access, explicit recovery for conflicts/failures).

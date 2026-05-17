@@ -190,3 +190,72 @@ body > div {
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
+
+.composer textarea {
+  font-family: var(--fontStack-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.pending-affordance {
+  text-transform: lowercase;
+}
+
+.sync-errors-tray {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: min(420px, 92vw);
+  transform: translateX(102%);
+  transition: transform 180ms ease-in-out;
+  z-index: 40;
+  padding: 12px;
+}
+
+.sync-errors-tray.open {
+  transform: translateX(0);
+}
+
+.sync-errors-tray .Box {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.sync-errors-tray .Box-body {
+  overflow: auto;
+}
+
+.conflict-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 45%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 12px;
+}
+
+.conflict-modal {
+  width: min(980px, 96vw);
+  max-height: 92vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.conflict-modal .Box-body {
+  overflow: auto;
+}
+
+.conflict-diff-block {
+  margin: 0;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  border-radius: 6px;
+  background: var(--bgColor-muted, #f6f8fa);
+  padding: 8px;
+  min-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-family: var(--fontStack-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+}

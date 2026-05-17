@@ -61,7 +61,8 @@ function buildInbox(account_id: string): InboxItem[] {
       updated_at: BASE_TS + idx,
       author_login: `fixture-user-${((idx % 40) + 1).toString().padStart(2, '0')}`,
       unread_notification_count: idx <= 150 ? (idx % 4) + 1 : 0,
-      latest_notification_at: BASE_TS + idx
+      latest_notification_at: BASE_TS + idx,
+      pending_overlay: null
     });
   }
   return rows;
@@ -174,21 +175,29 @@ export const MOCK_PR_DETAIL: PrDetailSummary = {
   thread_count: 5,
   check_run_count: 10,
   file_count: 30,
-  updated_at: BASE_TS + 1
+  updated_at: BASE_TS + 1,
+  body_server_adjusted: false,
+  pending_overlay: null
 };
 
 export const MOCK_PR_METADATA: PrMetadataResponse = {
   labels: [
-    { label_name: 'needs-review', label_color: 'fbca04', description: 'Needs review before merge' }
+    {
+      label_name: 'needs-review',
+      label_color: 'fbca04',
+      description: 'Needs review before merge',
+      pending_overlay: null
+    }
   ],
-  assignees: [{ user_id: 'user_3', login: 'fixture-user-03' }],
+  assignees: [{ user_id: 'user_3', login: 'fixture-user-03', pending_overlay: null }],
   requested_reviewers: [
     {
       user_id: 'user_4',
       login: 'fixture-user-04',
       reviewer_type: 'user',
       reviewer_state: 'requested',
-      requested_at: BASE_TS + 811
+      requested_at: BASE_TS + 811,
+      pending_overlay: null
     }
   ],
   projects: [
@@ -197,7 +206,8 @@ export const MOCK_PR_METADATA: PrMetadataResponse = {
       project_title: 'Roadmap',
       item_id: 'item_1',
       status: 'In Review',
-      updated_at: BASE_TS + 812
+      updated_at: BASE_TS + 812,
+      pending_overlay: null
     }
   ],
   milestones: [
@@ -206,7 +216,8 @@ export const MOCK_PR_METADATA: PrMetadataResponse = {
       title: 'M1 cockpit',
       state: 'open',
       due_on: BASE_TS + 86_400,
-      description: 'Milestone for read-only cockpit'
+      description: 'Milestone for read-only cockpit',
+      pending_overlay: null
     }
   ]
 };
@@ -224,7 +235,9 @@ export const MOCK_TIMELINE: TimelinePage = {
       author_login: `fixture-user-${((id % 40) + 1).toString().padStart(2, '0')}`,
       created_at: BASE_TS + 500 + id,
       updated_at: BASE_TS + 500 + id,
-      review_state: isReview ? (id % 2 === 0 ? 'COMMENTED' : 'CHANGES_REQUESTED') : null
+      review_state: isReview ? (id % 2 === 0 ? 'COMMENTED' : 'CHANGES_REQUESTED') : null,
+      body_server_adjusted: id % 7 === 0,
+      pending_overlay: null
     };
   }),
   next_offset: null
@@ -244,7 +257,8 @@ export const MOCK_THREADS: ReviewThreadsPage = {
       is_resolved: id === 5,
       resolved_by_login: id === 5 ? 'fixture-user-02' : null,
       updated_at: BASE_TS + 350 + id,
-      comment_count: id + 1
+      comment_count: id + 1,
+      pending_overlay: null
     };
   }),
   next_offset: null
@@ -281,7 +295,8 @@ export const MOCK_FILES: PrFilesResponse = {
       is_binary: false,
       patch_blob_sha: '356fb2a44e36283baed13a4f96756b377d5eec0cd8340a2f5a35eb0af7b118f6',
       viewed_by_account_id: accountId(primaryAccount.host, primaryAccount.login),
-      viewed_at_head_sha: MOCK_PR_DETAIL.head_sha
+      viewed_at_head_sha: MOCK_PR_DETAIL.head_sha,
+      pending_overlay: null
     },
     ...Array.from({ length: 29 }, (_value, idx) => ({
       account_id: accountId(primaryAccount.host, primaryAccount.login),
@@ -295,7 +310,8 @@ export const MOCK_FILES: PrFilesResponse = {
       is_binary: false,
       patch_blob_sha: null,
       viewed_by_account_id: null,
-      viewed_at_head_sha: null
+      viewed_at_head_sha: null,
+      pending_overlay: null
     }))
   ],
   tree: [

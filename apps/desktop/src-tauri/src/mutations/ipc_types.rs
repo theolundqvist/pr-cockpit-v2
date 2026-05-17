@@ -95,6 +95,8 @@ pub struct SubmittedMutation {
     pub mutation_id: String,
     pub deduped: bool,
     pub requires_confirmation: bool,
+    pub optimism_level: OptimismLevel,
+    pub projected_changes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
