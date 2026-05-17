@@ -10,14 +10,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T20:58:07.076Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:57:50.676Z",
+      "lastUpdate": "2026-05-17T20:58:07.076Z",
       "note": "respawned by local-cli (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -159,6 +159,10 @@
     {
       "at": "2026-05-17T20:57:52.657Z",
       "message": "m3-worktree-read: respawned by local-cli (was error)"
+    },
+    {
+      "at": "2026-05-17T20:57:53.883Z",
+      "message": "m3-notifications: respawned by local-cli (was error)"
     }
   ]
 }
