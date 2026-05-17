@@ -1,9 +1,39 @@
 # Decisions
 
-## M2+ contract decisions (promoted)
+## M2 contract decisions (promoted for M3+)
 
-These are the M1 decisions that downstream milestones must preserve unless
-explicitly superseded in this file:
+These are the non-obvious M2 contracts that downstream milestones should treat
+as stable unless explicitly superseded:
+
+1. **Mutation surface tracks the full enumerated set (27 kinds, despite "~25" wording).**
+   Source of truth is `MutationKind` + handler dispatch, not the rough count in
+   milestone prose.
+2. **Optimism policy is handler-defined and must stay aligned with PLAN §3.2 intent.**
+   `merge`/`enable_auto_merge`/`disable_auto_merge` are `OptimismLevel::None`;
+   `submit_review`/`set_project`/`convert_to_draft`/`mark_ready_for_review`/`update_branch`
+   are `OptimismLevel::Cautious`; other shipped M2 kinds are `OptimismLevel::Full`.
+3. **Reconciliation contract is mandatory after successful apply.**
+   Every success path upserts returned server nodes, writes temp→server `id_mappings`,
+   schedules targeted PR refetch, and preserves markdown parity through
+   `body_server_adjusted` affordances when server normalization differs.
+4. **Offline queue semantics are deterministic and durable.**
+   Submissions persist before apply, replay in submission order on reconnect, and
+   retain explicit operator gating via `requires_connection_confirmation` for
+   non-optimistic kinds.
+5. **Renderer markdown parity is single-path by IPC.**
+   Composer preview and timeline/comment rendering share `render_preview`/comrak;
+   renderer-side markdown libraries and direct GitHub fetches remain lint-forbidden.
+6. **Hard conflicts are explicit UX events, never silent drops.**
+   Engine emits structured conflict payloads (`server_snapshot_json`, `predicted_snapshot_json`,
+   and diff summary/fields), and UI surfaces a diff modal with retry/discard actions.
+7. **M2 quality bars are hard gates, not advisory.**
+   Property tests over mutation/conflict sequences, airplane drill replay proofs, perf
+   budgets (including `mutation_submit_visible_ms < 16`), and markdown corpus regression
+   remain required.
+
+## M1 carry-forward contract decisions
+
+These M1 contracts continue to apply in M2+ unless explicitly superseded:
 
 1. **Token safety is fail-closed and keychain-only** (`2026-05-17: Auth tokens
    are keychain-only...`, `2026-05-17: Token safety regression is enforced by
@@ -11,7 +41,8 @@ explicitly superseded in this file:
    absence is an explicit error, not a storage fallback.
 2. **GraphQL surface is intentionally narrow and pinned** (`2026-05-17:
    Canonical GraphQL schema revision is pinned in query artifacts`): only
-   `PrDetail` + `InboxRefresh` query files are allowed for M1/M2 fan-in.
+   canonical query/mutation artifacts under the pinned API query paths are
+   allowed; no ad-hoc renderer GraphQL drift.
 3. **Diff/thread anchoring uses GitHub coordinates verbatim** (`2026-05-17:
    Schema mappings for non-obvious PR cockpit fields`): both current and
    original coordinates are stored without local re-anchoring.

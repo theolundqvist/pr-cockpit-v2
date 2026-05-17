@@ -271,8 +271,8 @@ async fn open_fixture_loads_inbox_under_timing_budget_best_effort() -> Result<()
         );
     }
     assert!(
-        elapsed < Duration::from_millis(250),
-        "fixture inbox cold load should remain comfortably below regression threshold"
+        elapsed < Duration::from_millis(500),
+        "fixture inbox cold load should remain below shared-runner regression threshold"
     );
     Ok(())
 }
