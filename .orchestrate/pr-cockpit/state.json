@@ -280,6 +280,10 @@
     {
       "at": "2026-05-17T13:42:50.189Z",
       "message": "m1-cockpit: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T13:43:05.277Z",
+      "message": "verify-m1-cockpit: spawn failed after 3 transient sub-attempts: Error: m1-cockpit: branch must be orch/pr-cockpit/m1-cockpit, got `orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)"
     }
   ]
 }
