@@ -4,7 +4,7 @@
     {
       "name": "m1-cockpit",
       "type": "subplanner",
-      "branch": "`orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)",
+      "branch": "orch/pr-cockpit/m1-cockpit",
       "startingRef": "orch/pr-cockpit/m1-cockpit",
       "dependsOn": [],
       "agentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
@@ -27,25 +27,25 @@
       "name": "verify-m1-cockpit",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m1-cockpit",
-      "startingRef": "`orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
       "dependsOn": [
         "m1-cockpit"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "error",
+      "status": "pending",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T13:43:04.466Z",
-      "note": "spawn failed after 3 transient sub-attempts: Error: m1-cockpit: branch must be orch/pr-cockpit/m1-cockpit, got `orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)",
+      "lastUpdate": "2026-05-17T13:44:23.260Z",
+      "note": "respawned by self-planner (was error; attempts=1)",
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
-      "verification": null,
-      "attempts": 1
+      "failureMode": null,
+      "verification": null
     }
   ],
   "attention": [
