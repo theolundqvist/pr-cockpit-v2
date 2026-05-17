@@ -1,5 +1,33 @@
 # Decisions
 
+## M2+ contract decisions (promoted)
+
+These are the M1 decisions that downstream milestones must preserve unless
+explicitly superseded in this file:
+
+1. **Token safety is fail-closed and keychain-only** (`2026-05-17: Auth tokens
+   are keychain-only...`, `2026-05-17: Token safety regression is enforced by
+   integration test`): tokens never persist in SQLite/logs; Linux keyring
+   absence is an explicit error, not a storage fallback.
+2. **GraphQL surface is intentionally narrow and pinned** (`2026-05-17:
+   Canonical GraphQL schema revision is pinned in query artifacts`): only
+   `PrDetail` + `InboxRefresh` query files are allowed for M1/M2 fan-in.
+3. **Diff/thread anchoring uses GitHub coordinates verbatim** (`2026-05-17:
+   Schema mappings for non-obvious PR cockpit fields`): both current and
+   original coordinates are stored without local re-anchoring.
+4. **Sync scheduling contract remains deterministic** (`2026-05-16: Sync engine
+   talks to consumers through a TierActions trait`, `2026-05-17: Refetch fanout
+   is deduplicated and FIFO-ordered by scheduler`, `2026-05-17: Mergeable-null
+   recovery uses an injected Clock trait`): scheduler invariants are trait- and
+   clock-driven for deterministic tests.
+5. **Renderer process remains strictly read-only over typed IPC** (`2026-05-17:
+   IPC surface is generated from ipc::...`): renderer cannot bypass IPC to reach
+   DB/network clients directly.
+6. **Performance/corpus gates are hard quality bars** (`2026-05-17: Perf CI uses
+   Linux WebKit headless harness...`, `2026-05-17: Markdown corpus gate stays
+   offline-by-default...`): budgets and corpus regression thresholds are CI
+   blockers, not advisory checks.
+
 ### 2026-05-17: IPC surface is generated from `ipc::` with pinned Specta RC (M1 IPC wiring)
 
 Decision: IPC commands/events consumed by the desktop renderer are declared in
@@ -24,6 +52,9 @@ Guardrail: renderer isolation is enforced by test
 `fetch("https://api.github.com...`) outside `import type` lines.
 
 ### 2026-05-16: Use `gh` CLI's public OAuth client_id `Iv1.b507a08c87ecfe98` for device flow (M1)
+
+Decision: reuse `gh` CLI's public OAuth client_id
+`Iv1.b507a08c87ecfe98` for device flow during M1 development.
 
 Reason: we don't have a registered OAuth app yet; `gh`'s client_id is documented
 public; tokens show up as "GitHub CLI" in users' authorized apps. Tolerated for
@@ -52,14 +83,6 @@ the cadence + pause behaviour now means adding the consumer later (subscribed
 repos list — separate ticket) is a one-line change inside the `tick` closure
 instead of re-introducing the loop. Trade-off: two extra idle tokio tasks
 sitting in `select!` until consumers exist.
-
-### 2026-05-17: Confirm GitHub OAuth client_id reuse note remains accurate (M1 bootstrap)
-
-Decision: retain the existing M1 note to reuse `gh` CLI's public OAuth client_id
-`Iv1.b507a08c87ecfe98` for device flow during development.
-
-Reason: this bootstrap task does not introduce a project-owned OAuth app, and the
-existing rationale still applies to local development and fixture-driven runs.
 
 ### 2026-05-17: Use SvelteKit static adapter for Tauri shell (M1 bootstrap)
 

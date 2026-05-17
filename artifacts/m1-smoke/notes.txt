@@ -1,0 +1,7 @@
+display_server=headless-webkit
+offline_smoke_driver=playwright+vite-preview
+tauri_window_capture=not_available_in_cloud_agent_headless_mode
+offline_flow_verified=inbox->pr-detail->conversation->files->unified->side-by-side
+fixture_diff_extensions=.rs,.ts (fixture corpus has no .md diff file to render in diff viewer)
+tree_sitter_pack_files_present=tree-sitter-rust.wasm,tree-sitter-typescript.wasm,tree-sitter-markdown.wasm
+online_demo=skipped_no_github_token

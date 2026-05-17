@@ -15,6 +15,7 @@
     "test": "pnpm --filter desktop test",
     "bench": "node ./tools/perf-bench/run-all.mjs",
     "corpus": "node ./tools/markdown-corpus/score.mjs",
+    "online-demo": "node --experimental-strip-types ./tools/online-demo/run.ts",
     "rust:fmt": "cargo fmt --check",
     "rust:clippy": "cargo clippy --workspace --all-targets -- -D warnings",
     "rust:test": "cargo test --workspace",

@@ -13,4 +13,43 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: scaffolding pending. Milestones M1 → M6 to follow per the brief.
+Status: **M1 read-only cockpit complete**. Milestones M2 → M6 continue per the
+brief and `PLAN.md`.
+
+## Quick start (desktop cockpit)
+
+```bash
+pnpm install
+pnpm --filter desktop tauri dev
+```
+
+## Offline fixtures mode
+
+M1 supports deterministic offline verification against committed fixtures:
+
+- Fixture generator and assets:
+  `apps/desktop/src-tauri/fixtures/README.md`
+- The fixture SQLite + blob corpus used by tests/bench:
+  `apps/desktop/src-tauri/fixtures/`
+
+For headless checks without a desktop display server, run:
+
+```bash
+pnpm --filter desktop test:smoke
+```
+
+## CI quality gates (M1)
+
+The required local/CI gate matrix is:
+
+```bash
+cargo fmt --check
+cargo clippy --workspace -- -D warnings
+cargo test --workspace
+pnpm typecheck
+pnpm svelte-check
+pnpm lint
+pnpm test
+pnpm bench
+pnpm corpus
+```
