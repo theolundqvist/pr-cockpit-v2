@@ -1699,14 +1699,343 @@ impl Db {
         Ok(())
     }
 
+    pub async fn worktree_by_id(&self, worktree_id: &str) -> Result<Option<WorktreeViewRow>> {
+        let row = sqlx::query_as::<_, WorktreeViewRow>(
+            "SELECT
+               w.id,
+               w.account_id,
+               w.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               w.path,
+               w.head_sha,
+               w.branch,
+               w.dirty,
+               w.ahead,
+               w.behind,
+               w.untracked_count,
+               w.staged_count,
+               w.modified_count,
+               w.mapped_pr_id,
+               pr.number AS mapped_pr_number,
+               w.mapping_confidence,
+               w.mapping_source,
+               w.is_app_managed,
+               w.manual_override_pr_id,
+               w.manual_override_at,
+               w.last_cleanup_snapshot_id,
+               w.created_at,
+               w.updated_at
+             FROM worktrees w
+             JOIN repos r ON r.id = w.repo_id
+             LEFT JOIN pull_requests pr ON pr.id = w.mapped_pr_id
+             WHERE w.id = ?1
+             LIMIT 1",
+        )
+        .bind(worktree_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn list_worktrees(&self, account_id: &str) -> Result<Vec<WorktreeViewRow>> {
+        let rows = sqlx::query_as::<_, WorktreeViewRow>(
+            "SELECT
+               w.id,
+               w.account_id,
+               w.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               w.path,
+               w.head_sha,
+               w.branch,
+               w.dirty,
+               w.ahead,
+               w.behind,
+               w.untracked_count,
+               w.staged_count,
+               w.modified_count,
+               w.mapped_pr_id,
+               pr.number AS mapped_pr_number,
+               w.mapping_confidence,
+               w.mapping_source,
+               w.is_app_managed,
+               w.manual_override_pr_id,
+               w.manual_override_at,
+               w.last_cleanup_snapshot_id,
+               w.created_at,
+               w.updated_at
+             FROM worktrees w
+             JOIN repos r ON r.id = w.repo_id
+             LEFT JOIN pull_requests pr ON pr.id = w.mapped_pr_id
+             WHERE w.account_id = ?1
+             ORDER BY w.updated_at DESC, w.path ASC",
+        )
+        .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn worktree_by_account_path(
+        &self,
+        account_id: &str,
+        path: &str,
+    ) -> Result<Option<WorktreeViewRow>> {
+        let row = sqlx::query_as::<_, WorktreeViewRow>(
+            "SELECT
+               w.id,
+               w.account_id,
+               w.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               w.path,
+               w.head_sha,
+               w.branch,
+               w.dirty,
+               w.ahead,
+               w.behind,
+               w.untracked_count,
+               w.staged_count,
+               w.modified_count,
+               w.mapped_pr_id,
+               pr.number AS mapped_pr_number,
+               w.mapping_confidence,
+               w.mapping_source,
+               w.is_app_managed,
+               w.manual_override_pr_id,
+               w.manual_override_at,
+               w.last_cleanup_snapshot_id,
+               w.created_at,
+               w.updated_at
+             FROM worktrees w
+             JOIN repos r ON r.id = w.repo_id
+             LEFT JOIN pull_requests pr ON pr.id = w.mapped_pr_id
+             WHERE w.account_id = ?1 AND w.path = ?2
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .bind(path)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn list_worktrees_by_path(&self, path: &str) -> Result<Vec<WorktreeViewRow>> {
+        let rows = sqlx::query_as::<_, WorktreeViewRow>(
+            "SELECT
+               w.id,
+               w.account_id,
+               w.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               w.path,
+               w.head_sha,
+               w.branch,
+               w.dirty,
+               w.ahead,
+               w.behind,
+               w.untracked_count,
+               w.staged_count,
+               w.modified_count,
+               w.mapped_pr_id,
+               pr.number AS mapped_pr_number,
+               w.mapping_confidence,
+               w.mapping_source,
+               w.is_app_managed,
+               w.manual_override_pr_id,
+               w.manual_override_at,
+               w.last_cleanup_snapshot_id,
+               w.created_at,
+               w.updated_at
+             FROM worktrees w
+             JOIN repos r ON r.id = w.repo_id
+             LEFT JOIN pull_requests pr ON pr.id = w.mapped_pr_id
+             WHERE w.path = ?1
+             ORDER BY w.updated_at DESC",
+        )
+        .bind(path)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn list_repo_owner_name_rows(&self) -> Result<Vec<RepoOwnerNameRow>> {
+        let rows = sqlx::query_as::<_, RepoOwnerNameRow>(
+            "SELECT account_id, id AS repo_id, owner, name
+             FROM repos
+             ORDER BY account_id ASC, owner ASC, name ASC",
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn list_pull_request_mapping_candidates(
+        &self,
+        account_id: &str,
+        repo_id: &str,
+    ) -> Result<Vec<PullRequestMappingCandidateRow>> {
+        let rows = sqlx::query_as::<_, PullRequestMappingCandidateRow>(
+            "SELECT
+               pr.id,
+               pr.account_id,
+               pr.repo_id,
+               repo.owner AS repo_owner,
+               repo.name AS repo_name,
+               pr.number,
+               pr.head_ref,
+               pr.head_sha,
+               pr.head_repo_id,
+               hr.owner AS head_repo_owner
+             FROM pull_requests pr
+             JOIN repos repo ON repo.id = pr.repo_id
+             LEFT JOIN repos hr ON hr.id = pr.head_repo_id
+             WHERE pr.account_id = ?1
+               AND pr.repo_id = ?2
+               AND pr.state = 'open'
+             ORDER BY pr.updated_at DESC, pr.number DESC",
+        )
+        .bind(account_id)
+        .bind(repo_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn resolve_pr_id_by_number(
+        &self,
+        account_id: &str,
+        repo_id: &str,
+        number: i64,
+    ) -> Result<Option<String>> {
+        let pr_id = sqlx::query_scalar::<_, String>(
+            "SELECT id
+             FROM pull_requests
+             WHERE account_id = ?1 AND repo_id = ?2 AND number = ?3
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .bind(repo_id)
+        .bind(number)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(pr_id)
+    }
+
+    pub async fn set_worktree_manual_override(
+        &self,
+        worktree_id: &str,
+        manual_override_pr_id: Option<&str>,
+        now_epoch: i64,
+    ) -> Result<()> {
+        sqlx::query(
+            "UPDATE worktrees
+             SET manual_override_pr_id = ?2,
+                 manual_override_at = CASE
+                   WHEN ?2 IS NULL THEN NULL
+                   ELSE ?3
+                 END,
+                 updated_at = ?3
+             WHERE id = ?1",
+        )
+        .bind(worktree_id)
+        .bind(manual_override_pr_id)
+        .bind(now_epoch)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn set_worktree_mapping(
+        &self,
+        worktree_id: &str,
+        mapped_pr_id: Option<&str>,
+        mapping_confidence: Option<f64>,
+        mapping_source: Option<&str>,
+        now_epoch: i64,
+    ) -> Result<()> {
+        sqlx::query(
+            "UPDATE worktrees
+             SET mapped_pr_id = ?2,
+                 mapping_confidence = ?3,
+                 mapping_source = ?4,
+                 updated_at = ?5
+             WHERE id = ?1",
+        )
+        .bind(worktree_id)
+        .bind(mapped_pr_id)
+        .bind(mapping_confidence)
+        .bind(mapping_source)
+        .bind(now_epoch)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn set_worktree_cleanup_snapshot(
+        &self,
+        worktree_id: &str,
+        snapshot_sha: &str,
+        now_epoch: i64,
+    ) -> Result<()> {
+        sqlx::query(
+            "UPDATE worktrees
+             SET last_cleanup_snapshot_id = ?2, updated_at = ?3
+             WHERE id = ?1",
+        )
+        .bind(worktree_id)
+        .bind(snapshot_sha)
+        .bind(now_epoch)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn list_worktree_roots(&self) -> Result<Option<Vec<String>>> {
+        let row = sqlx::query_as::<_, WorktreeSettingRow>(
+            "SELECT id, key, value_json, created_at, updated_at
+             FROM worktree_settings
+             WHERE key = 'roots'
+             LIMIT 1",
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        let Some(row) = row else {
+            return Ok(None);
+        };
+        let roots: Vec<String> = serde_json::from_str(&row.value_json)
+            .with_context(|| format!("parsing worktree roots json for setting `{}`", row.id))?;
+        Ok(Some(roots))
+    }
+
+    pub async fn set_worktree_roots(&self, roots: &[String], now_epoch: i64) -> Result<()> {
+        let value_json =
+            serde_json::to_string(roots).context("serializing worktree roots setting")?;
+        sqlx::query(
+            "INSERT INTO worktree_settings(id, key, value_json, created_at, updated_at)
+             VALUES ('worktree_settings:roots', 'roots', ?1, ?2, ?2)
+             ON CONFLICT(key) DO UPDATE SET
+               value_json = excluded.value_json,
+               updated_at = excluded.updated_at",
+        )
+        .bind(value_json)
+        .bind(now_epoch)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
     pub async fn upsert_worktree(&self, worktree: &WorktreeRecord) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
             "INSERT INTO worktrees(
                id, account_id, repo_id, path, head_sha, branch, dirty, ahead, behind, mapped_pr_id,
-               mapping_confidence, mapping_source, is_app_managed, created_at, updated_at
+               mapping_confidence, mapping_source, is_app_managed, manual_override_pr_id,
+               manual_override_at, last_cleanup_snapshot_id, untracked_count, staged_count,
+               modified_count, created_at, updated_at
              )
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21)
              ON CONFLICT(id) DO UPDATE SET
                account_id = excluded.account_id,
                repo_id = excluded.repo_id,
@@ -1720,6 +2049,12 @@ impl Db {
                mapping_confidence = excluded.mapping_confidence,
                mapping_source = excluded.mapping_source,
                is_app_managed = excluded.is_app_managed,
+               manual_override_pr_id = excluded.manual_override_pr_id,
+               manual_override_at = excluded.manual_override_at,
+               last_cleanup_snapshot_id = excluded.last_cleanup_snapshot_id,
+               untracked_count = excluded.untracked_count,
+               staged_count = excluded.staged_count,
+               modified_count = excluded.modified_count,
                updated_at = excluded.updated_at",
         )
         .bind(&worktree.id)
@@ -1735,6 +2070,12 @@ impl Db {
         .bind(worktree.mapping_confidence)
         .bind(&worktree.mapping_source)
         .bind(bool_to_i64(worktree.is_app_managed))
+        .bind(&worktree.manual_override_pr_id)
+        .bind(worktree.manual_override_at)
+        .bind(&worktree.last_cleanup_snapshot_id)
+        .bind(worktree.untracked_count)
+        .bind(worktree.staged_count)
+        .bind(worktree.modified_count)
         .bind(worktree.created_at)
         .bind(worktree.updated_at)
         .execute(tx.as_mut())

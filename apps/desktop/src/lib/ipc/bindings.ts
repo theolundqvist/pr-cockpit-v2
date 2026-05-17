@@ -54,6 +54,12 @@ export const commands = {
 	saveDraft: (input: SaveDraftInput) => typedError<Draft, IpcError>(__TAURI_INVOKE("save_draft", { input })),
 	deleteDraft: (draftId: string) => typedError<null, IpcError>(__TAURI_INVOKE("delete_draft", { draftId })),
 	renderPreview: (input: RenderPreviewInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("render_preview", { input })),
+	listWorktrees: (accountId: string) => typedError<WorktreeView[], IpcError>(__TAURI_INVOKE("list_worktrees", { accountId })),
+	setWorktreeManualOverride: (worktreeId: string, prId: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_worktree_manual_override", { worktreeId, prId })),
+	setWorktreeRoots: (roots: string[]) => typedError<string[], IpcError>(__TAURI_INVOKE("set_worktree_roots", { roots })),
+	listWorktreeRoots: () => typedError<string[], IpcError>(__TAURI_INVOKE("list_worktree_roots")),
+	rediscoverWorktrees: () => typedError<RediscoverSummary, IpcError>(__TAURI_INVOKE("rediscover_worktrees")),
+	cleanupWorktree: (worktreeId: string, force: boolean) => typedError<CleanupOutcome, CleanupError>(__TAURI_INVOKE("cleanup_worktree", { worktreeId, force })),
 };
 
 /** Events */
@@ -69,6 +75,8 @@ export const events = {
 	notificationsAccountIdChanged: makeEvent<NotificationsChangedEventPayload>("notifications:account:<id> changed"),
 	prIdChanged: makeEvent<PrChangedEventPayload>("pr:<id> changed"),
 	rateLimitAccountIdChanged: makeEvent<RateLimitChangedEventPayload>("rate_limit:account:<id> changed"),
+	worktreeIdChanged: makeEvent<WorktreeChangedEventPayload>("worktree:<id> changed"),
+	worktreeDiscoveryCompleted: makeEvent<WorktreeDiscoveryCompletedEventPayload>("worktree:discovery completed"),
 };
 
 /* Types */
@@ -111,6 +119,17 @@ export type CheckRunSummary = {
 export type CheckSummaryInput = {
 	account_id: string,
 	pr_id: string,
+};
+
+export type CleanupError = { kind: "NotFound" } | { kind: "UserManaged" } | { kind: "DirtyState" } | { kind: "ForceRequired" } | { kind: "SnapshotFailed"; detail: string };
+
+export type CleanupOutcome = {
+	worktree_id: string,
+	snapshot_id: string | null,
+	blocked_reason: string | null,
+	dirty_detected: boolean,
+	would_remove: boolean,
+	removed: boolean,
 };
 
 export type Draft = {
@@ -431,6 +450,14 @@ export type RateLimitChangedEventPayload = {
 	account_id: string,
 };
 
+export type RediscoverSummary = {
+	roots: string[],
+	discovered: number,
+	watched: number,
+	skipped_unmapped: number,
+	updated_at: number,
+};
+
 export type RenderPreviewCtx = {
 	repo: string | null,
 };
@@ -539,6 +566,41 @@ export type TimelineItem = {
 export type TimelinePage = {
 	items: TimelineItem[],
 	next_offset: number | null,
+};
+
+export type WorktreeChangedEventPayload = {
+	worktree_id: string,
+};
+
+export type WorktreeDiscoveryCompletedEventPayload = {
+	summary: RediscoverSummary,
+};
+
+export type WorktreeView = {
+	id: string,
+	account_id: string,
+	repo_id: string,
+	repo_owner: string,
+	repo_name: string,
+	path: string,
+	head_sha: string,
+	branch: string,
+	dirty: boolean,
+	ahead: number,
+	behind: number,
+	untracked_count: number,
+	staged_count: number,
+	modified_count: number,
+	mapped_pr_id: string | null,
+	mapped_pr_number: number | null,
+	mapping_confidence: number | null,
+	mapping_source: string | null,
+	is_app_managed: boolean,
+	manual_override_pr_id: string | null,
+	manual_override_at: number | null,
+	last_cleanup_snapshot_id: string | null,
+	created_at: number,
+	updated_at: number,
 };
 
 /* Tauri Specta runtime */

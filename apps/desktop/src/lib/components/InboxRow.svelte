@@ -1,10 +1,12 @@
 <script lang="ts">
-  import type { InboxItem } from '$lib/ipc/bindings';
+  import type { InboxItem, WorktreeView } from '$lib/ipc/bindings';
   import { checkLabel, syntheticLabels } from '$lib/components/inbox-row';
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
+  import WorktreeBadge from '$lib/components/worktree/WorktreeBadge.svelte';
   import { formatRelative } from '$lib/utils/time';
 
   export let item: InboxItem;
+  export let worktree: WorktreeView | null = null;
   export let selected = false;
   export let onOpen: () => void = () => {};
   export let onPreload: () => void = () => {};
@@ -45,6 +47,9 @@
           {#each syntheticLabels(item) as label}
             <span class="Label">{label}</span>
           {/each}
+          {#if worktree}
+            <WorktreeBadge {worktree} />
+          {/if}
         </div>
       </div>
       <span class="Label Label--success">{checkLabel(item)}</span>

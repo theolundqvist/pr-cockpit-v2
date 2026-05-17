@@ -9,6 +9,9 @@ import type {
   PrPatchResponse,
   RepoSubscriptionItem,
   ReviewThreadsPage,
+  WorktreeView,
+  RediscoverSummary,
+  CleanupOutcome,
   SystemStatusResponse,
   TimelinePage
 } from '$lib/ipc/bindings';
@@ -97,6 +100,55 @@ export const MOCK_SUBSCRIPTIONS: RepoSubscriptionItem[] = [
     updated_at: BASE_TS - 60
   }
 ];
+
+export const MOCK_WORKTREE_ROOTS: string[] = ['~/dev', '~/code', '~/src', '~/repos'];
+
+export const MOCK_WORKTREES: WorktreeView[] = [
+  {
+    id: 'wt_1',
+    account_id: accountId(primaryAccount.host, primaryAccount.login),
+    repo_id: 'repo_1',
+    repo_owner: 'fixture-org',
+    repo_name: 'repo-1',
+    path: '/workspace/demo/repo-1',
+    head_sha: 'active_head_sha_000000000000000000000000000000000001',
+    branch: 'feature/pr-1',
+    dirty: false,
+    ahead: 1,
+    behind: 0,
+    untracked_count: 0,
+    staged_count: 0,
+    modified_count: 0,
+    mapped_pr_id: 'pr_1',
+    mapped_pr_number: 1,
+    mapping_confidence: 0.87,
+    mapping_source:
+      '{"manual":false,"confidence":0.87,"signals":[{"signal":"remote_url_match","weight":0.3,"confidence":1,"contribution":0.3},{"signal":"branch_upstream_match","weight":0.2,"confidence":1,"contribution":0.2},{"signal":"exact_head_sha","weight":0.15,"confidence":1,"contribution":0.15},{"signal":"branch_convention","weight":0.1,"confidence":1,"contribution":0.1},{"signal":"head_sha_ancestry","weight":0.05,"confidence":1,"contribution":0.05}]}',
+    is_app_managed: false,
+    manual_override_pr_id: null,
+    manual_override_at: null,
+    last_cleanup_snapshot_id: null,
+    created_at: BASE_TS,
+    updated_at: BASE_TS + 10
+  }
+];
+
+export const MOCK_REDISCOVER_SUMMARY: RediscoverSummary = {
+  roots: MOCK_WORKTREE_ROOTS,
+  discovered: 1,
+  watched: 1,
+  skipped_unmapped: 0,
+  updated_at: BASE_TS + 10
+};
+
+export const MOCK_CLEANUP_OUTCOME: CleanupOutcome = {
+  worktree_id: 'wt_1',
+  snapshot_id: 'snapshot_mock',
+  blocked_reason: 'm3_write_surface_disabled',
+  dirty_detected: false,
+  would_remove: true,
+  removed: false
+};
 
 export const MOCK_ACCOUNTS: AccountsListResponse = {
   active: { host: primaryAccount.host, login: primaryAccount.login },

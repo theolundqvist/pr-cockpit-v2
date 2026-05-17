@@ -549,6 +549,71 @@ pub struct WorktreeRecord {
     pub mapping_confidence: Option<f64>,
     pub mapping_source: Option<String>,
     pub is_app_managed: bool,
+    pub manual_override_pr_id: Option<String>,
+    pub manual_override_at: Option<i64>,
+    pub last_cleanup_snapshot_id: Option<String>,
+    pub untracked_count: i64,
+    pub staged_count: i64,
+    pub modified_count: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq)]
+pub struct WorktreeViewRow {
+    pub id: String,
+    pub account_id: String,
+    pub repo_id: String,
+    pub repo_owner: String,
+    pub repo_name: String,
+    pub path: String,
+    pub head_sha: String,
+    pub branch: String,
+    pub dirty: i64,
+    pub ahead: i64,
+    pub behind: i64,
+    pub untracked_count: i64,
+    pub staged_count: i64,
+    pub modified_count: i64,
+    pub mapped_pr_id: Option<String>,
+    pub mapped_pr_number: Option<i64>,
+    pub mapping_confidence: Option<f64>,
+    pub mapping_source: Option<String>,
+    pub is_app_managed: i64,
+    pub manual_override_pr_id: Option<String>,
+    pub manual_override_at: Option<i64>,
+    pub last_cleanup_snapshot_id: Option<String>,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct RepoOwnerNameRow {
+    pub account_id: String,
+    pub repo_id: String,
+    pub owner: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PullRequestMappingCandidateRow {
+    pub id: String,
+    pub account_id: String,
+    pub repo_id: String,
+    pub repo_owner: String,
+    pub repo_name: String,
+    pub number: i64,
+    pub head_ref: String,
+    pub head_sha: String,
+    pub head_repo_id: Option<String>,
+    pub head_repo_owner: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct WorktreeSettingRow {
+    pub id: String,
+    pub key: String,
+    pub value_json: String,
     pub created_at: i64,
     pub updated_at: i64,
 }
