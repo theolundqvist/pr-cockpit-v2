@@ -298,18 +298,18 @@
       "agentId": "bc-4e19627a-2b30-44bd-8301-9efbcc7daa2a",
       "runId": "run-6abc31da-6d6c-4f07-b4ac-db4c1608638d",
       "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-bench-baselines.md",
       "startedAt": "2026-05-17T12:35:37.307Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T12:35:40.251Z",
+      "finishedAt": "2026-05-17T13:38:39.962Z",
+      "lastUpdate": "2026-05-17T13:38:39.963Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
