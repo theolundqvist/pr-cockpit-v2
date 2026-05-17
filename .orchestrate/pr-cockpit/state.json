@@ -113,11 +113,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-05-17T20:42:23.469Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "verify-m3-diff-worktree-notifs",
