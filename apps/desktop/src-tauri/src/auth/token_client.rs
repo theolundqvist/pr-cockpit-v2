@@ -31,12 +31,27 @@ impl TokenClient {
         method: reqwest::Method,
         url: &str,
     ) -> Result<reqwest::Response, AuthError> {
+        self.request_with(locator, method, url, HeaderMap::new(), None)
+            .await
+    }
+
+    pub async fn request_with(
+        &self,
+        locator: &AccountLocator,
+        method: reqwest::Method,
+        url: &str,
+        extra_headers: HeaderMap,
+        body: Option<Vec<u8>>,
+    ) -> Result<reqwest::Response, AuthError> {
         let (account, secret) = self.auth_service.token_for_account(locator).await?;
         let mut response = self
-            .http_client
-            .request(method.clone(), url)
-            .headers(auth_headers(&secret.access_token)?)
-            .send()
+            .dispatch(
+                &method,
+                url,
+                &secret.access_token,
+                &extra_headers,
+                body.clone(),
+            )
             .await?;
 
         if response.status() == reqwest::StatusCode::UNAUTHORIZED
@@ -45,13 +60,36 @@ impl TokenClient {
         {
             let (_, rotated_secret) = self.auth_service.token_for_account(locator).await?;
             response = self
-                .http_client
-                .request(method, url)
-                .headers(auth_headers(&rotated_secret.access_token)?)
-                .send()
+                .dispatch(
+                    &method,
+                    url,
+                    &rotated_secret.access_token,
+                    &extra_headers,
+                    body,
+                )
                 .await?;
         }
         Ok(response)
+    }
+
+    async fn dispatch(
+        &self,
+        method: &reqwest::Method,
+        url: &str,
+        token: &str,
+        extra_headers: &HeaderMap,
+        body: Option<Vec<u8>>,
+    ) -> Result<reqwest::Response, AuthError> {
+        let mut headers = auth_headers(token)?;
+        headers.extend(extra_headers.clone());
+        let mut request = self
+            .http_client
+            .request(method.clone(), url)
+            .headers(headers);
+        if let Some(bytes) = body {
+            request = request.body(bytes);
+        }
+        request.send().await.map_err(AuthError::from)
     }
 }
 

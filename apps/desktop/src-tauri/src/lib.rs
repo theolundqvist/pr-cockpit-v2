@@ -44,8 +44,11 @@ pub fn run() {
         .expect("error while running desktop app");
 }
 
+pub mod api;
 pub mod auth;
 pub mod db;
+pub mod sync;
+pub use sync::{shutdown as sync_shutdown, start as sync_start};
 
 #[cfg(test)]
 mod tests {

@@ -159,3 +159,48 @@ mocked `gh` output, and local HTTP server, then asserts:
 
 Reason: this catches regressions at the persistence boundary and logging
 boundary before sync/frontend layers are integrated.
+
+### 2026-05-17: Use a hand-rolled `reqwest` GitHub client for M1 API/sync
+
+Decision: M1 API transport uses `api::GithubClient` backed by
+`auth::TokenClient` + direct `reqwest` calls for both GraphQL and REST
+(`.diff`, `/notifications`, conditional GETs).
+
+Reason: M1 requires explicit handling of `Accept: application/vnd.github.v3.diff`,
+ETag/If-None-Match replay, If-Modified-Since, and polling metadata
+(`X-Poll-Interval`, `X-RateLimit-*`) at call boundaries. A thin in-repo client
+keeps those wire-level invariants testable without octocrab abstraction leakage.
+
+### 2026-05-17: Canonical GraphQL schema revision is pinned in query artifacts
+
+Decision: only two hand-written query files exist under
+`apps/desktop/src-tauri/src/api/queries/`:
+
+- `PrDetail.graphql` (`revision: 2026-05-17.m1.v1`)
+- `InboxRefresh.graphql` (`revision: 2026-05-17.m1.v1`)
+
+A guard test (`tests/canonical_queries.rs`) fails if any other `.graphql` file
+or `gql!` macro usage appears under `apps/desktop/**`.
+
+Reason: M1 contract requires centrally-owned, reviewable API surface and forbids
+ad-hoc per-component GraphQL drift.
+
+### 2026-05-17: Refetch fanout is deduplicated and FIFO-ordered by scheduler
+
+Decision: tier actions return `Vec<RefetchTarget>` signals; sync runtime pushes
+them through a dedicated refetch channel. The worker preserves send order while
+deduplicating by `(owner, repo, number)` per batch before invoking
+`TierActions::run_refetch`.
+
+Reason: `/notifications` is treated as a cheap change detector; stable ordering
+and per-batch dedupe reduce redundant GraphQL fanout while preserving causal
+signal flow from warm-tier polls.
+
+### 2026-05-17: Mergeable-null recovery uses an injected `Clock` trait
+
+Decision: mergeable backoff is implemented via `run_mergeable_backoff(clock, poll)`
+with schedule `2s, 5s, 15s, 45s, 2min`, then capped `5min` intervals. Runtime
+uses `TokioClock`; tests inject `MockClock`.
+
+Reason: the polling sequence must be verified deterministically without wall-time
+delays. Clock injection makes retry behavior precise and CI-stable.
