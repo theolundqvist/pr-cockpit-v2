@@ -8,8 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "typecheck": "pnpm --filter desktop typecheck",
-    "svelte-check": "pnpm --filter desktop svelte-check",
+    "ipc:bindings": "cargo run -p desktop --bin generate-ipc-bindings",
+    "typecheck": "pnpm ipc:bindings && pnpm --filter desktop typecheck",
+    "svelte-check": "pnpm ipc:bindings && pnpm --filter desktop svelte-check",
     "lint": "pnpm --filter desktop lint",
     "test": "pnpm --filter desktop test",
     "bench": "pnpm --filter desktop bench",

@@ -7,6 +7,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
+use specta::Type;
 use tokio::sync::{broadcast, mpsc, oneshot, watch, Mutex};
 
 use crate::api::{
@@ -26,8 +28,9 @@ const UNFOCUS_PAUSE_AFTER: Duration = Duration::from_secs(5 * 60);
 
 pub type ActionFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum FocusState {
+    #[default]
     Focused,
     Unfocused,
 }
@@ -44,6 +47,106 @@ pub enum Tier {
 pub enum Priority {
     Foreground,
     Background,
+}
+
+pub trait CacheInvalidationEmitter: Send + Sync {
+    fn emit_pr_changed(&self, _pr_id: &str) {}
+    fn emit_inbox_changed(&self, _account_id: &str) {}
+    fn emit_rate_limit_changed(&self, _account_id: &str) {}
+    fn emit_notifications_changed(&self, _account_id: &str) {}
+}
+
+#[derive(Default)]
+pub struct NoopCacheInvalidationEmitter;
+
+impl CacheInvalidationEmitter for NoopCacheInvalidationEmitter {}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SyncTierSnapshot {
+    pub tier: String,
+    pub last_started_at: Option<i64>,
+    pub last_finished_at: Option<i64>,
+    pub last_error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SyncSystemSnapshot {
+    pub focus_state: String,
+    pub tiers: Vec<SyncTierSnapshot>,
+}
+
+#[derive(Default)]
+pub struct SyncTierStateStore {
+    state: Mutex<SyncTierState>,
+}
+
+#[derive(Default)]
+struct SyncTierState {
+    focus_state: FocusState,
+    tiers: HashMap<Tier, SyncTierSnapshot>,
+}
+
+impl SyncTierStateStore {
+    pub async fn mark_focus(&self, focus: FocusState) {
+        let mut state = self.state.lock().await;
+        state.focus_state = focus;
+    }
+
+    pub async fn mark_tier_started(&self, tier: Tier) {
+        let mut state = self.state.lock().await;
+        let entry = state.tiers.entry(tier).or_insert_with(|| SyncTierSnapshot {
+            tier: tier_name(tier).to_string(),
+            last_started_at: None,
+            last_finished_at: None,
+            last_error: None,
+        });
+        entry.last_started_at = now_epoch_seconds().ok();
+        entry.last_error = None;
+    }
+
+    pub async fn mark_tier_finished(&self, tier: Tier, error: Option<String>) {
+        let mut state = self.state.lock().await;
+        let entry = state.tiers.entry(tier).or_insert_with(|| SyncTierSnapshot {
+            tier: tier_name(tier).to_string(),
+            last_started_at: None,
+            last_finished_at: None,
+            last_error: None,
+        });
+        entry.last_finished_at = now_epoch_seconds().ok();
+        entry.last_error = error;
+    }
+
+    pub async fn snapshot(&self) -> SyncSystemSnapshot {
+        let state = self.state.lock().await;
+        let mut tiers = [Tier::Hot, Tier::Warm, Tier::Cool, Tier::Cold]
+            .into_iter()
+            .map(|tier| {
+                state.tiers.get(&tier).cloned().unwrap_or(SyncTierSnapshot {
+                    tier: tier_name(tier).to_string(),
+                    last_started_at: None,
+                    last_finished_at: None,
+                    last_error: None,
+                })
+            })
+            .collect::<Vec<_>>();
+        tiers.sort_by(|a, b| a.tier.cmp(&b.tier));
+        SyncSystemSnapshot {
+            focus_state: match state.focus_state {
+                FocusState::Focused => "focused".to_string(),
+                FocusState::Unfocused => "unfocused".to_string(),
+            },
+            tiers,
+        }
+    }
+}
+
+fn tier_name(tier: Tier) -> &'static str {
+    match tier {
+        Tier::Hot => "hot",
+        Tier::Warm => "warm",
+        Tier::Cool => "cool",
+        Tier::Cold => "cold",
+    }
 }
 
 pub trait TierActions: Send + Sync {
@@ -81,6 +184,10 @@ pub struct RateLimitBudgeter {
 
 impl RateLimitBudgeter {
     pub fn start(db: Arc<Db>) -> Self {
+        Self::start_with_emitter(db, Arc::new(NoopCacheInvalidationEmitter))
+    }
+
+    pub fn start_with_emitter(db: Arc<Db>, emitter: Arc<dyn CacheInvalidationEmitter>) -> Self {
         let (command_tx, mut command_rx) = mpsc::channel::<BudgetCommand>(128);
         tokio::spawn(async move {
             let mut buckets = HashMap::<ApiResource, BudgetState>::new();
@@ -101,7 +208,7 @@ impl RateLimitBudgeter {
                         );
                         let _ = db
                             .update_rate_limit_bucket(&RateLimitBucketUpdate {
-                                account_id,
+                                account_id: account_id.clone(),
                                 resource: resource.as_str().to_string(),
                                 remaining: snapshot.remaining,
                                 limit_total: snapshot.limit_total,
@@ -109,6 +216,7 @@ impl RateLimitBudgeter {
                                 updated_at: now_epoch_seconds().unwrap_or_default(),
                             })
                             .await;
+                        emitter.emit_rate_limit_changed(&account_id);
                     }
                     BudgetCommand::Allow { priority, reply_tx } => {
                         let allow = match priority {
@@ -360,6 +468,8 @@ struct RealActionsInner {
     account_id: String,
     locator: AccountLocator,
     budgeter: RateLimitBudgeter,
+    emitter: Arc<dyn CacheInvalidationEmitter>,
+    sync_state: Arc<SyncTierStateStore>,
     clock: Arc<dyn Clock>,
     hot_target: Mutex<Option<RefetchTarget>>,
     mergeable_inflight: Mutex<HashSet<String>>,
@@ -374,6 +484,26 @@ impl RealActions {
         locator: AccountLocator,
         budgeter: RateLimitBudgeter,
     ) -> Self {
+        Self::new_with_emitter(
+            db,
+            github,
+            account_id,
+            locator,
+            budgeter,
+            Arc::new(NoopCacheInvalidationEmitter),
+            Arc::new(SyncTierStateStore::default()),
+        )
+    }
+
+    pub fn new_with_emitter(
+        db: Arc<Db>,
+        github: GithubClient,
+        account_id: String,
+        locator: AccountLocator,
+        budgeter: RateLimitBudgeter,
+        emitter: Arc<dyn CacheInvalidationEmitter>,
+        sync_state: Arc<SyncTierStateStore>,
+    ) -> Self {
         Self {
             inner: Arc::new(RealActionsInner {
                 db,
@@ -381,6 +511,8 @@ impl RealActions {
                 account_id,
                 locator,
                 budgeter,
+                emitter,
+                sync_state,
                 clock: Arc::new(TokioClock),
                 hot_target: Mutex::new(None),
                 mergeable_inflight: Mutex::new(HashSet::new()),
@@ -397,6 +529,8 @@ impl RealActions {
                 account_id: self.inner.account_id.clone(),
                 locator: self.inner.locator.clone(),
                 budgeter: self.inner.budgeter.clone(),
+                emitter: Arc::clone(&self.inner.emitter),
+                sync_state: Arc::clone(&self.inner.sync_state),
                 clock,
                 hot_target: Mutex::new(None),
                 mergeable_inflight: Mutex::new(HashSet::new()),
@@ -440,6 +574,24 @@ impl RealActions {
                 payload,
             )
             .await?;
+            self.inner
+                .emitter
+                .emit_inbox_changed(&self.inner.account_id);
+            for target in &chunk_targets {
+                if let Some(pr_id) = self
+                    .inner
+                    .db
+                    .resolve_pr_id(
+                        &self.inner.account_id,
+                        &target.owner,
+                        &target.repo,
+                        target.number,
+                    )
+                    .await?
+                {
+                    self.inner.emitter.emit_pr_changed(&pr_id);
+                }
+            }
             targets.extend(chunk_targets);
         }
         if priority == Priority::Foreground {
@@ -502,8 +654,26 @@ impl RealActions {
             }
         }
 
-        let _ = reconcile_pr_detail(Arc::clone(&self.inner.db), &self.inner.account_id, payload)
-            .await?;
+        if let Some(target) =
+            reconcile_pr_detail(Arc::clone(&self.inner.db), &self.inner.account_id, payload).await?
+        {
+            self.inner
+                .emitter
+                .emit_inbox_changed(&self.inner.account_id);
+            if let Some(pr_id) = self
+                .inner
+                .db
+                .resolve_pr_id(
+                    &self.inner.account_id,
+                    &target.owner,
+                    &target.repo,
+                    target.number,
+                )
+                .await?
+            {
+                self.inner.emitter.emit_pr_changed(&pr_id);
+            }
+        }
         Ok(mergeable_is_null)
     }
 
@@ -543,8 +713,34 @@ impl RealActions {
                     .into_iter()
                     .map(map_notification_payload)
                     .collect::<Vec<_>>();
-                reconcile_notifications(Arc::clone(&self.inner.db), &self.inner.account_id, mapped)
-                    .await
+                let targets = reconcile_notifications(
+                    Arc::clone(&self.inner.db),
+                    &self.inner.account_id,
+                    mapped,
+                )
+                .await?;
+                self.inner
+                    .emitter
+                    .emit_notifications_changed(&self.inner.account_id);
+                self.inner
+                    .emitter
+                    .emit_inbox_changed(&self.inner.account_id);
+                for target in &targets {
+                    if let Some(pr_id) = self
+                        .inner
+                        .db
+                        .resolve_pr_id(
+                            &self.inner.account_id,
+                            &target.owner,
+                            &target.repo,
+                            target.number,
+                        )
+                        .await?
+                    {
+                        self.inner.emitter.emit_pr_changed(&pr_id);
+                    }
+                }
+                Ok(targets)
             }
         }
     }
@@ -579,7 +775,8 @@ impl TierActions for RealActions {
         _priority: Priority,
     ) -> ActionFuture<'a, Vec<RefetchTarget>> {
         Box::pin(async move {
-            match tier {
+            self.inner.sync_state.mark_tier_started(tier).await;
+            let result = match tier {
                 Tier::Hot => {
                     let target = self.inner.hot_target.lock().await.clone();
                     if let Some(target) = target {
@@ -592,7 +789,17 @@ impl TierActions for RealActions {
                 }
                 Tier::Warm => self.poll_notifications().await,
                 Tier::Cool | Tier::Cold => Ok(Vec::new()),
+            };
+            match &result {
+                Ok(_) => self.inner.sync_state.mark_tier_finished(tier, None).await,
+                Err(error) => {
+                    self.inner
+                        .sync_state
+                        .mark_tier_finished(tier, Some(error.to_string()))
+                        .await
+                }
             }
+            result
         })
     }
 

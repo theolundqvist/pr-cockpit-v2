@@ -63,6 +63,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: dtolnay/rust-toolchain@stable
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -84,6 +86,11 @@ jobs:
 
       - name: Fetch wasm grammars
         run: ./scripts/fetch-grammars.sh
+
+      - name: Generate IPC bindings
+        run: |
+          pnpm ipc:bindings
+          git diff --exit-code -- apps/desktop/src/lib/ipc/bindings.ts
 
       - name: Frontend typecheck
         run: pnpm typecheck
