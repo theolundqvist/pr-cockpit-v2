@@ -2,6 +2,8 @@
 build
 dist
 src-tauri/icons
+src-tauri/gen
+src-tauri/gen/**
 src/lib/ipc/bindings.ts
 artifacts
 test-results

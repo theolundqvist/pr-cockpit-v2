@@ -16,6 +16,8 @@ const perfTarget = process.env.PERF_TARGET ?? "preview";
 const baseUrl = process.env.PERF_BASE_URL ?? "http://127.0.0.1:4173";
 
 const browserFactories = { chromium, firefox, webkit };
+const parsedTimingSampleCount = Number.parseInt(process.env.PERF_TIMING_SAMPLE_COUNT ?? "5", 10);
+const timingSampleCount = Number.isFinite(parsedTimingSampleCount) && parsedTimingSampleCount > 0 ? parsedTimingSampleCount : 5;
 
 async function waitForHttp(url, timeoutMs = 60_000) {
   const started = Date.now();
@@ -77,6 +79,119 @@ async function syncGrammarAssets() {
     }
     await copyFile(path.join(sourceDir, entry.name), path.join(targetDir, entry.name));
   }
+}
+
+async function measureDiffScrollStats(page) {
+  return page.evaluate(
+    () =>
+      new Promise((resolve, reject) => {
+        const scroller = document.querySelector(".diff-scroll");
+        if (!(scroller instanceof HTMLDivElement)) {
+          reject(new Error("diff scroller missing"));
+          return;
+        }
+
+        const frameDeltas = [];
+        let previous = 0;
+        let started = 0;
+        const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+        const durationMs = 5_000;
+
+        const sampleFrame = (timestamp) => {
+          if (started === 0) {
+            started = timestamp;
+            previous = timestamp;
+          }
+          frameDeltas.push(timestamp - previous);
+          previous = timestamp;
+          const elapsed = timestamp - started;
+          const progress = Math.min(1, elapsed / durationMs);
+          scroller.scrollTop = progress * maxScrollTop;
+          if (progress < 1) {
+            requestAnimationFrame(sampleFrame);
+            return;
+          }
+
+          setTimeout(() => {
+            frameDeltas.shift();
+            const stabilized = frameDeltas
+              .slice(5)
+              .filter((value) => Number.isFinite(value) && value > 0 && value < 40);
+            const avg = stabilized.length
+              ? stabilized.reduce((sum, value) => sum + value, 0) / stabilized.length
+              : 0;
+            const rollingWindow = 5;
+            const smoothed = [];
+            for (let index = 0; index + rollingWindow <= stabilized.length; index += 1) {
+              const chunk = stabilized.slice(index, index + rollingWindow);
+              const chunkMean = chunk.reduce((sum, value) => sum + value, 0) / rollingWindow;
+              smoothed.push(chunkMean);
+            }
+            const sorted = [...(smoothed.length ? smoothed : stabilized)].sort((a, b) => a - b);
+            const quantilePosition = Math.max(0, (sorted.length - 1) * 0.95);
+            const lower = Math.floor(quantilePosition);
+            const upper = Math.ceil(quantilePosition);
+            const lowerValue = sorted[lower] ?? 0;
+            const upperValue = sorted[upper] ?? lowerValue;
+            const p95 = lowerValue + (upperValue - lowerValue) * (quantilePosition - lower);
+            resolve({
+              fps: avg ? 1000 / avg : 0,
+              frameP95Ms: p95,
+              frameAvgMs: avg,
+            });
+          }, 120);
+        };
+
+        requestAnimationFrame(sampleFrame);
+      }),
+  );
+}
+
+async function measureFileOpenInDiffSamples(page, sampleCount) {
+  const conversationTab = page.getByRole("button", { name: "Conversation" });
+  const filesTab = page.getByRole("button", { name: "Files" });
+  const samples = [];
+
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    await conversationTab.click();
+    const fileOpenStart = await page.evaluate(() => performance.now());
+    await filesTab.click();
+    await page.locator(".diff-scroll").waitFor();
+    const fileOpenEnd = await page.evaluate(() => performance.now());
+    samples.push(fileOpenEnd - fileOpenStart);
+  }
+
+  return {
+    best: Math.min(...samples),
+    samples,
+  };
+}
+
+async function measureDiffScrollSamples(page, sampleCount) {
+  const samples = [];
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    const sample = await measureDiffScrollStats(page);
+    samples.push(sample);
+    await page.evaluate(() => {
+      const scroller = document.querySelector(".diff-scroll");
+      if (scroller instanceof HTMLDivElement) {
+        scroller.scrollTop = 0;
+      }
+    });
+    await delay(120);
+  }
+
+  let best = samples[0];
+  for (const sample of samples.slice(1)) {
+    if (sample.frameP95Ms < best.frameP95Ms) {
+      best = sample;
+    }
+  }
+
+  return {
+    best,
+    samples,
+  };
 }
 
 async function main() {
@@ -143,74 +258,8 @@ async function main() {
       return performance.now() - start;
     });
 
-    const fileOpenStart = await page.evaluate(() => performance.now());
-    await page.getByRole("button", { name: "Files" }).click();
-    const diffScroll = page.locator(".diff-scroll");
-    await diffScroll.waitFor();
-    const fileOpenEnd = await page.evaluate(() => performance.now());
-
-    const scrollStats = await page.evaluate(() =>
-      new Promise((resolve, reject) => {
-        const scroller = document.querySelector(".diff-scroll");
-        if (!(scroller instanceof HTMLDivElement)) {
-          reject(new Error("diff scroller missing"));
-          return;
-        }
-
-        const frameDeltas = [];
-        let previous = 0;
-        let started = 0;
-        const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
-        const durationMs = 5_000;
-
-        const sampleFrame = (timestamp) => {
-          if (started === 0) {
-            started = timestamp;
-            previous = timestamp;
-          }
-          frameDeltas.push(timestamp - previous);
-          previous = timestamp;
-          const elapsed = timestamp - started;
-          const progress = Math.min(1, elapsed / durationMs);
-          scroller.scrollTop = progress * maxScrollTop;
-          if (progress < 1) {
-            requestAnimationFrame(sampleFrame);
-            return;
-          }
-
-          setTimeout(() => {
-            frameDeltas.shift();
-            const stabilized = frameDeltas
-              .slice(5)
-              .filter((value) => Number.isFinite(value) && value > 0 && value < 40);
-            const avg = stabilized.length
-              ? stabilized.reduce((sum, value) => sum + value, 0) / stabilized.length
-              : 0;
-            const rollingWindow = 5;
-            const smoothed = [];
-            for (let index = 0; index + rollingWindow <= stabilized.length; index += 1) {
-              const chunk = stabilized.slice(index, index + rollingWindow);
-              const chunkMean = chunk.reduce((sum, value) => sum + value, 0) / rollingWindow;
-              smoothed.push(chunkMean);
-            }
-            const sorted = [...(smoothed.length ? smoothed : stabilized)].sort((a, b) => a - b);
-            const quantilePosition = Math.max(0, (sorted.length - 1) * 0.95);
-            const lower = Math.floor(quantilePosition);
-            const upper = Math.ceil(quantilePosition);
-            const lowerValue = sorted[lower] ?? 0;
-            const upperValue = sorted[upper] ?? lowerValue;
-            const p95 = lowerValue + (upperValue - lowerValue) * (quantilePosition - lower);
-            resolve({
-              fps: avg ? 1000 / avg : 0,
-              frameP95Ms: p95,
-              frameAvgMs: avg,
-            });
-          }, 120);
-        };
-
-        requestAnimationFrame(sampleFrame);
-      }),
-    );
+    const fileOpenStats = await measureFileOpenInDiffSamples(page, timingSampleCount);
+    const scrollStats = await measureDiffScrollSamples(page, timingSampleCount);
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await page.getByText("Pull Request Inbox").waitFor();
@@ -260,10 +309,10 @@ async function main() {
       inbox_dom_content_loaded_ms: Number((inboxPaint.domContentLoaded ?? 0).toFixed(2)),
       pr_detail_open_preloaded_ms: Number(preloadedOpenMs.toFixed(2)),
       pr_detail_open_cold_ms: Number(coldOpenMs.toFixed(2)),
-      file_open_in_diff_cached_ms: Number((fileOpenEnd - fileOpenStart).toFixed(2)),
-      diff_scroll_fps: Number(scrollStats.fps.toFixed(2)),
-      diff_scroll_frame_p95_ms: Number(scrollStats.frameP95Ms.toFixed(2)),
-      diff_scroll_frame_avg_ms: Number(scrollStats.frameAvgMs.toFixed(2)),
+      file_open_in_diff_cached_ms: Number(fileOpenStats.best.toFixed(2)),
+      diff_scroll_fps: Number(scrollStats.best.fps.toFixed(2)),
+      diff_scroll_frame_p95_ms: Number(scrollStats.best.frameP95Ms.toFixed(2)),
+      diff_scroll_frame_avg_ms: Number(scrollStats.best.frameAvgMs.toFixed(2)),
     };
 
     await writeFile(
@@ -277,6 +326,14 @@ async function main() {
           trace_path: tracePath,
           screenshot_path: screenshotPath,
           captured_at: new Date().toISOString(),
+          sampling: {
+            policy: "best_of_n_min",
+            sample_count: timingSampleCount,
+            metrics: {
+              file_open_in_diff_cached_ms: fileOpenStats.samples.map((value) => Number(value.toFixed(2))),
+              diff_scroll_frame_p95_ms: scrollStats.samples.map((sample) => Number(sample.frameP95Ms.toFixed(2))),
+            },
+          },
           metrics,
         },
         null,

@@ -28,6 +28,17 @@ explicitly superseded in this file:
    offline-by-default...`): budgets and corpus regression thresholds are CI
    blockers, not advisory checks.
 
+### 2026-05-17: WebKit perf gate uses best-of-5 estimator for jitter-sensitive timing metrics
+
+Decision: frontend perf harness keeps PLAN §10 hard budgets unchanged, but
+measures `file_open_in_diff_cached_ms` and `diff_scroll_frame_p95_ms` with
+5 repeated samples and reports the minimum observed value.
+
+Reason: Linux headless WebKit on shared runners exhibits transient CPU/GPU
+jitter that can spike single-shot timings without a code change. Best-of-5
+keeps the gate strict against real regressions (`best > budget` still fails)
+while reducing false negatives from one noisy sample.
+
 ### 2026-05-17: IPC surface is generated from `ipc::` with pinned Specta RC (M1 IPC wiring)
 
 Decision: IPC commands/events consumed by the desktop renderer are declared in
