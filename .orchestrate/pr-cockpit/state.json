@@ -74,7 +74,7 @@
     {
       "name": "verify-m2-optimistic-writes",
       "type": "verifier",
-      "branch": "orch/pr-cockpit/verify-m2-optimistic-writes",
+      "branch": "`cursor/m2-rerun-verifier-8dc7` (verifier artifacts only; no target source modified)",
       "startingRef": "orch/pr-cockpit/m2-optimistic-writes",
       "dependsOn": [
         "m2-optimistic-writes"
@@ -82,12 +82,12 @@
       "agentId": "bc-e8599bd6-1a93-4128-b3ec-2b126c2b8dc7",
       "runId": "run-88b6badf-9026-4596-87d7-613fade9212a",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-m2-optimistic-writes.md",
       "startedAt": "2026-05-17T19:44:06.305Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T19:44:09.244Z",
+      "finishedAt": "2026-05-17T20:42:14.005Z",
+      "lastUpdate": "2026-05-17T20:42:14.005Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
