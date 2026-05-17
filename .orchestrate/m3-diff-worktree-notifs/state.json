@@ -10,12 +10,12 @@
       "agentId": "bc-6f8c7c18-ca52-4481-97e1-394aaeed26e1",
       "runId": "run-68e3ede8-1787-42f1-8a9b-ab2eec6bae8b",
       "parentAgentId": "bc-f868f69e-ef2d-4534-a00f-f560772f9614",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m3-diff-polish.md",
       "startedAt": "2026-05-17T20:58:07.076Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:58:09.248Z",
+      "finishedAt": "2026-05-17T22:25:20.354Z",
+      "lastUpdate": "2026-05-17T22:25:20.354Z",
       "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -37,13 +37,13 @@
       "handoffPath": "handoffs/m3-worktree-read.md",
       "startedAt": "2026-05-17T20:58:09.250Z",
       "finishedAt": "2026-05-17T22:06:14.327Z",
-      "lastUpdate": "2026-05-17T22:06:14.327Z",
+      "lastUpdate": "2026-05-17T22:06:15.209Z",
       "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "m3-notifications",
@@ -199,6 +199,10 @@
     {
       "at": "2026-05-17T21:47:19.610Z",
       "message": "m3-notifications: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T22:06:15.209Z",
+      "message": "m3-worktree-read: verification self-reported (live-ui-verified)"
     }
   ]
 }
