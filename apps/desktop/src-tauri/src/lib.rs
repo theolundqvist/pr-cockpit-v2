@@ -3,8 +3,11 @@ use std::sync::Arc;
 use anyhow::Context;
 use tauri::Manager;
 
+use crate::api::GithubClient;
+use crate::auth::token_client::TokenClient;
 use crate::auth::AuthService;
 use crate::db::Db;
+use crate::mutations::{MutationEngine, NetworkMonitor};
 
 #[derive(Debug, Clone)]
 struct InboxSeedState {
@@ -41,6 +44,19 @@ pub fn run() {
             let auth_service =
                 Arc::new(AuthService::new(Arc::clone(&db)).context("building auth service")?);
             let sync_state = Arc::new(sync::SyncTierStateStore::default());
+            let github = GithubClient::new(
+                TokenClient::from_auth_service(Arc::clone(&auth_service)),
+                Arc::clone(&db),
+            );
+            let cache_emitter = Arc::new(ipc::TauriCacheInvalidationEmitter::new(
+                app.handle().clone(),
+            ));
+            let network_monitor = NetworkMonitor::start(github.probe_url());
+            let mutation_engine = Arc::new(
+                MutationEngine::new(Arc::clone(&db), github)
+                    .with_cache_emitter(cache_emitter.clone())
+                    .with_network_monitor(network_monitor.clone()),
+            );
             let inbox_seed = tauri::async_runtime::block_on(ipc::ipc_init_inbox_impl(
                 db.as_ref(),
                 auth_service.as_ref(),
@@ -60,10 +76,47 @@ pub fn run() {
                 json: serde_json::to_string(&inbox_seed).unwrap_or_else(|_| "null".to_string()),
             };
 
-            app.manage(db);
-            app.manage(auth_service);
-            app.manage(sync_state);
+            app.manage(Arc::clone(&db));
+            app.manage(Arc::clone(&auth_service));
+            app.manage(Arc::clone(&sync_state));
+            app.manage(Arc::clone(&mutation_engine));
             app.manage(inbox_seed_state);
+
+            {
+                let emitter = Arc::clone(&cache_emitter);
+                let mut events_rx = mutation_engine.subscribe();
+                tauri::async_runtime::spawn(async move {
+                    loop {
+                        match events_rx.recv().await {
+                            Ok(event) => ipc::fanout_mutation_event(&emitter, event),
+                            Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
+                            Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                        }
+                    }
+                });
+            }
+
+            {
+                let emitter = Arc::clone(&cache_emitter);
+                let db = Arc::clone(&db);
+                let mut net_rx = network_monitor.subscribe();
+                tauri::async_runtime::spawn(async move {
+                    loop {
+                        if net_rx.changed().await.is_err() {
+                            break;
+                        }
+                        let state = net_rx.borrow().clone();
+                        let account_rows = db.list_auth_accounts().await.unwrap_or_default();
+                        if account_rows.is_empty() {
+                            emitter.emit_network_changed("unknown", state.clone());
+                            continue;
+                        }
+                        for account in account_rows {
+                            emitter.emit_network_changed(&account.id, state.clone());
+                        }
+                    }
+                });
+            }
 
             specta_builder.mount_events(app);
             Ok(())
@@ -88,6 +141,7 @@ pub mod api;
 pub mod auth;
 pub mod db;
 pub mod ipc;
+pub mod mutations;
 pub mod render;
 pub mod storage;
 pub mod sync;

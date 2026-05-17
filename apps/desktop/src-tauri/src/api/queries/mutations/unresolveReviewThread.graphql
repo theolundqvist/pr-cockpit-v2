@@ -1,0 +1,20 @@
+mutation UnresolveReviewThread($threadId: ID!) {
+  unresolveReviewThread(input: { threadId: $threadId }) {
+    thread {
+      id
+      path
+      line
+      side
+      startLine
+      startSide
+      isOutdated
+      isResolved
+      updatedAt
+      resolvedBy {
+        ... on User {
+          id
+        }
+      }
+    }
+  }
+}

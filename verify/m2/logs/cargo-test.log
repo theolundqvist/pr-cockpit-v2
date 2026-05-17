@@ -1,0 +1,314 @@
+   Compiling slab v0.4.12
+   Compiling tokio v1.52.3
+   Compiling bit-set v0.8.0
+   Compiling crossbeam-utils v0.8.21
+   Compiling dom_query v0.27.0
+   Compiling futures-util v0.3.32
+   Compiling zerocopy v0.8.48
+   Compiling tauri-utils v2.9.2
+   Compiling futures-executor v0.3.32
+   Compiling glib v0.18.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.2.2
+   Compiling rand v0.7.3
+   Compiling phf_generator v0.8.0
+   Compiling getrandom v0.3.4
+   Compiling tokio-util v0.7.18
+   Compiling h2 v0.4.14
+   Compiling phf_codegen v0.8.0
+   Compiling crossbeam-channel v0.5.15
+   Compiling httpdate v1.0.3
+   Compiling either v1.15.0
+   Compiling gio v0.18.4
+   Compiling cairo-rs v0.18.5
+   Compiling atk v0.18.2
+   Compiling tauri-build v2.6.2
+   Compiling tauri-plugin v2.6.2
+   Compiling javascriptcore-rs v1.1.2
+   Compiling hyper v1.9.0
+   Compiling tauri-codegen v2.6.2
+   Compiling hyper-util v0.1.20
+   Compiling phf_macros v0.8.0
+   Compiling tauri v2.11.2
+   Compiling concurrent-queue v2.5.0
+   Compiling event-listener v5.4.1
+   Compiling phf v0.8.0
+   Compiling tauri-macros v2.6.2
+   Compiling crossbeam-queue v0.3.12
+   Compiling rand_chacha v0.3.1
+   Compiling sqlx-core v0.8.6
+   Compiling rand v0.8.6
+   Compiling markup5ever v0.10.1
+   Compiling tower v0.5.3
+   Compiling num-bigint-dig v0.8.6
+   Compiling tokio-rustls v0.26.4
+   Compiling ahash v0.8.12
+   Compiling async-compression v0.4.42
+   Compiling sqlx-sqlite v0.8.6
+   Compiling tauri-plugin-os v2.3.2
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-clipboard-manager v2.3.2
+   Compiling selectors v0.22.0
+   Compiling tokio-stream v0.1.18
+   Compiling cssparser v0.27.2
+   Compiling gdk-pixbuf v0.18.5
+   Compiling pango v0.18.3
+   Compiling soup3 v0.5.0
+   Compiling sqlx-macros-core v0.8.6
+   Compiling gdk v0.18.2
+   Compiling rsa v0.9.10
+   Compiling hyper-rustls v0.27.9
+   Compiling tower-http v0.6.10
+   Compiling hashbrown v0.14.5
+   Compiling futures v0.3.32
+   Compiling html5ever v0.25.2
+   Compiling jsonwebtoken v10.4.0
+   Compiling hashlink v0.9.1
+   Compiling sqlx-macros v0.8.6
+   Compiling gtk v0.18.2
+   Compiling gdkx11 v0.18.2
+   Compiling hyper-timeout v0.5.2
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+   Compiling rusqlite v0.32.1
+   Compiling octocrab v0.50.0
+   Compiling sqlx v0.8.6
+   Compiling kuchiki v0.8.1
+   Compiling reqwest v0.12.28
+   Compiling rand_core v0.9.5
+   Compiling crossbeam-epoch v0.9.18
+   Compiling crossbeam-deque v0.8.6
+   Compiling rand_chacha v0.9.0
+   Compiling half v2.7.1
+   Compiling ciborium-io v0.2.2
+   Compiling plotters-backend v0.3.7
+   Compiling plotters-svg v0.3.7
+   Compiling ciborium-ll v0.2.2
+   Compiling rand v0.9.4
+   Compiling rayon-core v1.13.0
+   Compiling itertools v0.13.0
+   Compiling assert-json-diff v2.0.2
+   Compiling wait-timeout v0.2.1
+   Compiling num_cpus v1.17.0
+   Compiling bit-vec v0.8.0
+   Compiling deadpool-runtime v0.1.4
+   Compiling cast v0.3.0
+   Compiling quick-error v1.2.3
+   Compiling rusty-fork v0.3.1
+   Compiling criterion-plot v0.8.2
+   Compiling deadpool v0.12.3
+   Compiling rayon v1.12.0
+   Compiling alloca v0.4.0
+   Compiling ciborium v0.2.2
+   Compiling plotters v0.3.7
+   Compiling rand_xorshift v0.4.0
+   Compiling webkit2gtk v2.0.2
+   Compiling wry v0.55.1
+   Compiling tauri-runtime v2.11.2
+   Compiling tao v0.35.2
+   Compiling muda v0.19.1
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling tinytemplate v1.2.1
+   Compiling page_size v0.6.0
+   Compiling colored v3.1.1
+   Compiling oorandom v11.1.5
+   Compiling unarray v0.1.4
+   Compiling anes v0.1.6
+   Compiling similar v2.7.0
+   Compiling mockito v1.7.2
+   Compiling criterion v0.8.2
+   Compiling proptest v1.11.0
+   Compiling tauri-specta v2.0.0-rc.25
+   Compiling wiremock v0.6.5
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 54s
+     Running unittests src/lib.rs (target/debug/deps/desktop_lib-584ce12ff5dd2da1)
+
+running 7 tests
+test auth::gh::tests::parses_status_sections_by_token_match ... ok
+test mutations::net::tests::api_error_marks_offline_immediately ... ok
+test mutations::net::tests::probe_transitions_offline_to_online ... ok
+test tests::package_name_is_stable ... ok
+test mutations::projector::tests::optimistic_prediction_stamps_pending_overlay ... ok
+test mutations::projector::tests::apply_forward_then_inverse_is_noop_for_single_row ... ok
+test render::tests::sanitizes_scripts ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/main.rs (target/debug/deps/desktop-22e780f092fffe84)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests fixtures/build.rs (target/debug/deps/fixture_build-789e170928b03d18)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generate_ipc_bindings.rs (target/debug/deps/generate_ipc_bindings-fc234e428057138c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_batch.rs (target/debug/deps/render_batch-b69d6d8bca626468)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/airplane_drill.rs (target/debug/deps/airplane_drill-5ec3f04c3f4fce00)
+
+running 1 test
+test airplane_offline_queue_replay_drill ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/canonical_queries.rs (target/debug/deps/canonical_queries-532419e841c42f2d)
+
+running 1 test
+test graphql_queries_are_canonicalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/db_integration.rs (target/debug/deps/db_integration-324a1b77a454300f)
+
+running 5 tests
+test fts_search_returns_expected_hits ... ok
+test open_fixture_loads_inbox_under_timing_budget_best_effort ... ok
+test blob_store_round_trip_and_ref_counts_work ... ok
+test migrations_apply_cleanly_to_empty_file ... ok
+test read_models_match_hand_rolled_selects_on_fixture ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/ipc_bindings.rs (target/debug/deps/ipc_bindings-30860e58cf14eed0)
+
+running 1 test
+test ipc_bindings_are_up_to_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/ipc_token_safety.rs (target/debug/deps/ipc_token_safety-86d9f06b5f983d98)
+
+running 1 test
+test ipc_flow_tracing_does_not_leak_stubbed_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/mutation_engine_proptest.rs (target/debug/deps/mutation_engine_proptest-afcca8c04d0cbc17)
+
+running 4 tests
+test dispatch_table_covers_full_kind_set ... ok
+test prop_projector_is_involution ... ok
+test prop_submit_then_rollback_restores_domain_state_for_all_kinds ... ok
+test prop_interleaved_submit_discard_is_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.90s
+
+     Running tests/mutations_collaboration.rs (target/debug/deps/mutations_collaboration-aea8deaab0769e46)
+
+running 2 tests
+test collaboration_failure_paths_roll_back ... ok
+test collaboration_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/mutations_comments.rs (target/debug/deps/mutations_comments-94ac726e1db9f308)
+
+running 2 tests
+test comments_happy_paths_round_trip ... ok
+test comments_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests/mutations_e2e.rs (target/debug/deps/mutations_e2e-3e84dd1c63cfab5c)
+
+running 1 test
+test cross_family_e2e_reflects_optimistic_then_reconciled_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/mutations_harness.rs (target/debug/deps/mutations_harness-445aab115aaca67b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutations_pr_meta.rs (target/debug/deps/mutations_pr_meta-92f8b897417f2442)
+
+running 2 tests
+test pr_meta_happy_paths_round_trip ... ok
+test pr_meta_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.53s
+
+     Running tests/mutations_reviews_threads.rs (target/debug/deps/mutations_reviews_threads-eef648553ab4462a)
+
+running 2 tests
+test review_and_thread_failure_paths_roll_back ... ok
+test review_and_thread_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/online_demo.rs (target/debug/deps/online_demo-d1ea4a58bab0c3d7)
+
+running 1 test
+test optional_online_inbox_refresh_demo ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/perf_smoke.rs (target/debug/deps/perf_smoke-877b33cfa4322238)
+
+running 1 test
+test inbox_cold_paint_fixture_budget_smoke ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/render.rs (target/debug/deps/render-a63e7c035dcb6afc)
+
+running 8 tests
+test renders_emoji_shortcode ... ok
+test renders_alert_block ... ok
+test renders_issue_autolink ... ok
+test renders_sha_autolink ... ok
+test renders_suggestion_fence ... ok
+test uses_render_cache_on_second_render ... ok
+test renders_user_autolink ... ok
+test mini_corpus_smoke_snapshot ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/renderer_isolation.rs (target/debug/deps/renderer_isolation-2e44d14505abd474)
+
+running 1 test
+test renderer_does_not_reach_sqlite_or_github_directly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/sync_integration.rs (target/debug/deps/sync_integration-91c17d429b31a5ff)
+
+running 6 tests
+test mergeable_null_recovery_uses_expected_virtual_clock_schedule ... ok
+test rate_limit_budgeter_throttles_background_only ... ok
+test pr_detail_reconcile_upserts_expected_sqlite_rows ... ok
+test etag_304_round_trip_avoids_counter_decrement_and_db_writes ... ok
+test tiered_scheduler_honors_focus_pause_and_foreground_bypass ... ok
+test notifications_change_detector_honors_headers_and_emits_refetch_targets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
+
+     Running tests/token_safety.rs (target/debug/deps/token_safety-742314427a953fe5)
+
+running 1 test
+test token_safety_guards_all_auth_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+   Doc-tests desktop_lib
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[exit=0]

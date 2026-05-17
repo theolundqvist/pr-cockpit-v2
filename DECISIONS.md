@@ -1,9 +1,39 @@
 # Decisions
 
-## M2+ contract decisions (promoted)
+## M2 contract decisions (promoted for M3+)
 
-These are the M1 decisions that downstream milestones must preserve unless
-explicitly superseded in this file:
+These are the non-obvious M2 contracts that downstream milestones should treat
+as stable unless explicitly superseded:
+
+1. **Mutation surface tracks the full enumerated set (27 kinds, despite "~25" wording).**
+   Source of truth is `MutationKind` + handler dispatch, not the rough count in
+   milestone prose.
+2. **Optimism policy is handler-defined and must stay aligned with PLAN §3.2 intent.**
+   `merge`/`enable_auto_merge`/`disable_auto_merge` are `OptimismLevel::None`;
+   `submit_review`/`set_project`/`convert_to_draft`/`mark_ready_for_review`/`update_branch`
+   are `OptimismLevel::Cautious`; other shipped M2 kinds are `OptimismLevel::Full`.
+3. **Reconciliation contract is mandatory after successful apply.**
+   Every success path upserts returned server nodes, writes temp→server `id_mappings`,
+   schedules targeted PR refetch, and preserves markdown parity through
+   `body_server_adjusted` affordances when server normalization differs.
+4. **Offline queue semantics are deterministic and durable.**
+   Submissions persist before apply, replay in submission order on reconnect, and
+   retain explicit operator gating via `requires_connection_confirmation` for
+   non-optimistic kinds.
+5. **Renderer markdown parity is single-path by IPC.**
+   Composer preview and timeline/comment rendering share `render_preview`/comrak;
+   renderer-side markdown libraries and direct GitHub fetches remain lint-forbidden.
+6. **Hard conflicts are explicit UX events, never silent drops.**
+   Engine emits structured conflict payloads (`server_snapshot_json`, `predicted_snapshot_json`,
+   and diff summary/fields), and UI surfaces a diff modal with retry/discard actions.
+7. **M2 quality bars are hard gates, not advisory.**
+   Property tests over mutation/conflict sequences, airplane drill replay proofs, perf
+   budgets (including `mutation_submit_visible_ms < 16`), and markdown corpus regression
+   remain required.
+
+## M1 carry-forward contract decisions
+
+These M1 contracts continue to apply in M2+ unless explicitly superseded:
 
 1. **Token safety is fail-closed and keychain-only** (`2026-05-17: Auth tokens
    are keychain-only...`, `2026-05-17: Token safety regression is enforced by
@@ -11,7 +41,8 @@ explicitly superseded in this file:
    absence is an explicit error, not a storage fallback.
 2. **GraphQL surface is intentionally narrow and pinned** (`2026-05-17:
    Canonical GraphQL schema revision is pinned in query artifacts`): only
-   `PrDetail` + `InboxRefresh` query files are allowed for M1/M2 fan-in.
+   canonical query/mutation artifacts under the pinned API query paths are
+   allowed; no ad-hoc renderer GraphQL drift.
 3. **Diff/thread anchoring uses GitHub coordinates verbatim** (`2026-05-17:
    Schema mappings for non-obvious PR cockpit fields`): both current and
    original coordinates are stored without local re-anchoring.
@@ -321,3 +352,158 @@ Reason: some environments cannot boot a GUI/webview stack; the synthetic harness
 Decision: `pnpm corpus` now runs fully offline against committed corpus/oracle fixtures and hard-fails when weighted regression exceeds 2%; optional corpus refresh remains behind `GITHUB_TOKEN` via `pnpm corpus:fetch` and never gates CI.
 
 Reason: M1 requires deterministic offline verification while still supporting periodic oracle refresh when maintainers intentionally opt in.
+
+### 2026-05-17: M2 optimistic write algebra stores row-level before/after patch ops with explicit pending overlay metadata
+
+Decision: the mutation projector consumes a JSON-stable patch schema that models each operation as a row mutation:
+
+- `table`: target table name
+- `pk`: primary-key column/value map
+- `before`: previous column map (`null` for insert)
+- `after`: next column map (`null` for delete)
+- optional patch-level `pending_overlay_kind` (`full` or `cautious`)
+
+Example:
+
+```json
+{
+  "operations": [
+    {
+      "table": "comments",
+      "pk": { "id": { "type": "text", "value": "local-comment-42" } },
+      "before": null,
+      "after": {
+        "id": { "type": "text", "value": "local-comment-42" },
+        "account_id": { "type": "text", "value": "github.com:demo" },
+        "pr_id": { "type": "text", "value": "pr_1" },
+        "body": { "type": "text", "value": "hello" }
+      }
+    }
+  ],
+  "pending_overlay_kind": "full"
+}
+```
+
+Reason: row-level before/after ops keep forward/inverse derivation deterministic (`inverse == reverse + swap(before, after)`) while still allowing single-column and multi-column changes without separate op types.
+
+### 2026-05-17: `body_server_adjusted` marks normalization deltas after server reconcile
+
+Decision: reconciliation compares predicted markdown to the server-normalized body for comments, reviews, and PR descriptions:
+
+- when equal: write server body, keep `body_server_adjusted = 0`, clear `server_adjusted_at`,
+- when different: write server body, set `body_server_adjusted = 1`, set `server_adjusted_at = <epoch seconds>`.
+
+UI contract: renderer shows the normal rendered markdown in all cases; when `body_server_adjusted = 1` it adds a subtle \"server adjusted\" affordance next to the body.
+
+Reason: preserves user-visible text parity with server truth while giving an explicit, queryable signal for non-lossless markdown normalization.
+
+### 2026-05-17: Mutation retry/backoff policy is exponential with deterministic jitter; only network failures silently revert
+
+Decision: mutation runtime classifies failures into `ErrorKind` and applies:
+
+- `Network`: retry silently with backoff `50ms * 2^attempt + jitter(0..30ms)` (capped at 500ms),
+- `RateLimited`: surfaced as failed/retryable,
+- `Conflict` (`409`/`422`): non-retryable failure with hard-conflict payload,
+- other `4xx`: failed/retryable,
+- `5xx`/unknown: failed/retryable.
+
+Silent revert rule: only `ErrorKind::Network` failures are retried without emitting visible rollback UX; all other terminal failures emit `MutationEvent::Failed` (and rollback) for the sync-errors tray/inline controls.
+
+Reason: keeps offline/transient disconnect behavior low-noise while preserving explicit operator action for semantic and authorization failures.
+
+### 2026-05-17: Proptest deterministic seed reproduction for mutation engine
+
+Decision: mutation proptests use `TestRunner::new_with_rng` + `TestRng::from_seed(RngAlgorithm::ChaCha, seed)` with fixed per-test seeds.
+
+Seed reproduction recipe:
+
+1. run `cargo test -p desktop --test mutation_engine_proptest -- --nocapture`,
+2. if a property fails, note the test name and seed literal in `deterministic_runner(...)`,
+3. rerun the single test with the same seed by temporarily reducing `cases` to `1` and preserving that seed,
+4. once fixed, restore the original case count.
+
+Reason: deterministic seeds eliminate shrinking nondeterminism across CI/local runs and make mutation-state bugs reproducible from one failing transcript.
+
+### 2026-05-17: M2 mutation transport split, idempotency policy, and optimism tiers for real handlers
+
+Decision:
+
+- Per-kind transport:
+  - **REST**: `addComment` (non-thread reply), `editComment`, `deleteComment`,
+    `addReaction`, `removeReaction`, `addLabel`, `removeLabel`, `setAssignees`,
+    `requestReview`, `removeReviewRequest`, `markFileViewed`, `unmarkFileViewed`,
+    `updatePrTitle`, `updatePrDescription`, `setMilestone`, `updateBranch`,
+    `merge`, `closePr`, `reopenPr`.
+  - **GraphQL**: `addComment` (thread reply via
+    `addPullRequestReviewThreadReply`), `submitReview`,
+    `resolveThread`, `unresolveThread`, `setProject`,
+    `convertToDraft`, `markReadyForReview`,
+    `enableAutoMerge`, `disableAutoMerge`.
+- Canonical request shape remains centralized in
+  `apps/desktop/src-tauri/src/api/queries/mutations/*.graphql`
+  (one file per mutation).
+- Idempotency policy:
+  - Client always stores and reuses `pending_mutations.idempotency_key`.
+  - Requests include `Idempotency-Key` header on mutation calls where transport
+    allows custom headers.
+  - Kinds with naturally idempotent server semantics (set/replace style ops,
+    state toggles, add/remove endpoints with stable target identifiers) rely on
+    server-side repeat-safe behavior plus client dedupe on
+    `pending_mutations.idempotency_key`.
+- Optimism policy:
+  - `submitReview` remains **Cautious** and predicts `reviews.state =
+    "SUBMITTING"` (pending affordance only; not treated as finalized review
+    decision).
+  - `updateBranch`, `convertToDraft`, `markReadyForReview`, `setProject` are
+    **Cautious**.
+  - Merge-family controls `merge`, `enableAutoMerge`, `disableAutoMerge` are
+    **No optimism** (confirm-and-wait server truth).
+  - Remaining listed M2 write kinds are **Full optimism** with inverse-patch
+    rollback.
+
+Reason: this keeps mutation UX aligned with PLAN §3.2 risk tiers while allowing
+one dispatch/runtime path across mixed REST/GraphQL write surfaces.
+
+### 2026-05-17: M2 offline queue monitor, confirmation gating, hard-conflict payload, and airplane drill contract
+
+Decision:
+
+- `mutations::net::NetworkMonitor` is the single connectivity source for optimistic writes. It publishes a `watch::Receiver<NetState>` and uses:
+  - a HEAD probe against the configured GitHub API origin every 15s,
+  - probe execution only when mutation traffic-in-flight is zero,
+  - immediate `Offline { error_kind }` on any API 4xx/5xx/transport error reported by the engine,
+  - transition to `Online` on the first subsequent probe that returns `200 OK`.
+  Transition threshold is `1` failure (`any error`), because write replays should stop immediately when the API starts rejecting traffic.
+- `pending_mutations.requires_connection_confirmation` gates non-optimistic write kinds (`OptimismLevel::None`): `merge`, `enable_auto_merge`, `disable_auto_merge`. During drain, these remain `status='pending'`, are not auto-applied, and are surfaced to UI as “requires connection/confirmation”.
+- Hard-conflict event schema is emitted as `MutationEvent::HardConflict` and mirrored for IPC as `mutation:<id> hard-conflict` with payload:
+  - `mutation_id`,
+  - `kind`,
+  - `target_id`,
+  - `server_snapshot_json`,
+  - `predicted_snapshot_json`,
+  - `diff { summary, local_body, server_body, changed_fields[] }`.
+  UI consumption contract: render the summary immediately, show body diff for composer/conflict modals, and use `changed_fields` for structured badges (state/title/body/draft drift).
+- Airplane drill recipe lives in `apps/desktop/src-tauri/tests/airplane_drill.rs`:
+  1. Start from `Db::open_fixture()`, seed two PRs + four threads for a dedicated account.
+  2. Force monitor Offline via injected `NetProbe` kill-switch.
+  3. Queue offline writes in this order: 10 `addComment`, 3 `addLabel`, 3 `removeLabel`, 4 `resolveThread`, 1 `merge`.
+  4. Assert optimistic read models + queue + draft persistence survive engine reboot.
+  5. Flip probe Online and call `engine.drain()`.
+  6. Verify ordered replay, reconcile completion, temp→server `id_mappings`, converged read models, and exactly one remaining pending row (the unconfirmed merge).
+  To add new mutation kinds to the drill, append submissions in the same explicit order list and update the expected wiremock request sequence vector in the test.
+
+Reason: M2 needs deterministic offline durability and explicit operator control for non-optimistic operations without regressing submit latency or read-model consistency.
+
+### 2026-05-17: M2 frontend mutation UX uses one IPC markdown renderer, live sync-error surfaces, and offline safety gating
+
+Decision:
+
+- Composer preview and timeline markdown rendering both call the same renderer path through IPC (`render_preview`/comrak); no JS markdown libraries are allowed in renderer code.
+- Mutation failures surface in two coordinated views:
+  - local inline banner near the affected target with Retry/Discard,
+  - global slide-in sync-errors tray grouped by PR and live-updated from `mutation:failed` / `mutation:rolled-back`.
+- `mutation:hard-conflict` always opens an explicit diff modal with `Refresh and retry` + `Discard`; conflicts are never silently dropped.
+- Network event `network:<account_id> changed` drives an offline status pill (`Offline — queued: N`), and connection-required actions remain disabled with `requires connection` affordance while offline.
+- ESLint enforces renderer boundaries by blocking JS markdown parser imports (`marked`, `markdown-it`, `remark*`, `unified`) and direct `fetch(...)` usage under `apps/desktop/src/**`, forcing all GitHub/DB access through typed IPC.
+
+Reason: the UI must preserve optimistic responsiveness while preventing renderer-side drift from server truth and preserving strict architecture boundaries (single markdown renderer, no direct network/database access, explicit recovery for conflicts/failures).

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::{Context, Result as AnyResult};
@@ -14,6 +15,11 @@ use crate::db::{
     PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrReviewerRow,
     RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
 };
+use crate::mutations::{
+    ErrorKind, HardConflictDiff, HardConflictPayload, MutationEngine, MutationEvent, MutationKind,
+    NetState, OptimismLevel, Patch, PendingMutationView, PendingOverlay, SubmitPayload,
+    SubmittedMutation,
+};
 use crate::render::{self, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
 
@@ -27,6 +33,13 @@ impl IpcError {
     fn db(error: anyhow::Error) -> Self {
         Self {
             code: "DatabaseFailure".to_string(),
+            message: error.to_string(),
+        }
+    }
+
+    fn mutation(error: anyhow::Error) -> Self {
+        Self {
+            code: "MutationFailure".to_string(),
             message: error.to_string(),
         }
     }
@@ -71,6 +84,7 @@ pub struct InboxItem {
     pub author_login: String,
     pub unread_notification_count: i64,
     pub latest_notification_at: Option<i64>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -104,6 +118,8 @@ pub struct PrDetailSummary {
     pub check_run_count: i64,
     pub file_count: i64,
     pub updated_at: i64,
+    pub body_server_adjusted: bool,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -123,6 +139,8 @@ pub struct TimelineItem {
     pub created_at: i64,
     pub updated_at: i64,
     pub review_state: Option<String>,
+    pub body_server_adjusted: bool,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -144,6 +162,7 @@ pub struct ReviewThread {
     pub resolved_by_login: Option<String>,
     pub updated_at: i64,
     pub comment_count: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -200,6 +219,7 @@ pub struct PrFile {
     pub patch_blob_sha: Option<String>,
     pub viewed_by_account_id: Option<String>,
     pub viewed_at_head_sha: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -308,12 +328,14 @@ pub struct PrLabel {
     pub label_name: String,
     pub label_color: String,
     pub description: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct PrParticipant {
     pub user_id: String,
     pub login: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -323,6 +345,7 @@ pub struct PrReviewer {
     pub reviewer_type: String,
     pub reviewer_state: String,
     pub requested_at: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -332,6 +355,7 @@ pub struct PrProject {
     pub item_id: Option<String>,
     pub status: Option<String>,
     pub updated_at: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -341,6 +365,73 @@ pub struct PrMilestone {
     pub state: String,
     pub due_on: Option<i64>,
     pub description: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SubmitMutationInput {
+    pub account_id: String,
+    pub kind: MutationKind,
+    pub payload_json: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct ListPendingMutationsInput {
+    pub account_id: String,
+    pub include_pending: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RetryMutationInput {
+    pub mutation_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct DiscardMutationInput {
+    pub mutation_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct Draft {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct ListDraftsInput {
+    pub account_id: String,
+    pub target_type: Option<String>,
+    pub target_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SaveDraftInput {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct DeleteDraftInput {
+    pub draft_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RenderPreviewCtx {
+    pub repo: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RenderPreviewInput {
+    pub body: String,
+    pub ctx: RenderPreviewCtx,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -397,6 +488,74 @@ impl tauri_specta::Event for NotificationsChangedEventPayload {
     const NAME: &'static str = "notifications:account:<id> changed";
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct NetworkChangedEventPayload {
+    pub account_id: String,
+    pub state: NetState,
+}
+
+impl tauri_specta::Event for NetworkChangedEventPayload {
+    const NAME: &'static str = "network:<account_id> changed";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MutationHardConflictEventPayload {
+    pub mutation_id: String,
+    pub conflict: HardConflictPayload,
+}
+
+impl tauri_specta::Event for MutationHardConflictEventPayload {
+    const NAME: &'static str = "mutation:hard-conflict";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+pub struct MutationSubmittedEventPayload {
+    pub mutation: PendingMutationView,
+}
+
+impl tauri_specta::Event for MutationSubmittedEventPayload {
+    const NAME: &'static str = "mutation:submitted";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MutationAppliedEventPayload {
+    pub mutation_id: String,
+}
+
+impl tauri_specta::Event for MutationAppliedEventPayload {
+    const NAME: &'static str = "mutation:applied";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MutationReconciledEventPayload {
+    pub mutation_id: String,
+}
+
+impl tauri_specta::Event for MutationReconciledEventPayload {
+    const NAME: &'static str = "mutation:reconciled";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+pub struct MutationFailedEventPayload {
+    pub mutation_id: String,
+    pub error_kind: ErrorKind,
+    pub retryable: bool,
+    pub hard_conflict: Option<HardConflictDiff>,
+}
+
+impl tauri_specta::Event for MutationFailedEventPayload {
+    const NAME: &'static str = "mutation:failed";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MutationRolledBackEventPayload {
+    pub mutation_id: String,
+}
+
+impl tauri_specta::Event for MutationRolledBackEventPayload {
+    const NAME: &'static str = "mutation:rolled-back";
+}
+
 fn normalize_page(input_limit: Option<i64>, input_offset: Option<i64>) -> (i64, i64) {
     let limit = input_limit.unwrap_or(50).clamp(1, 200);
     let offset = input_offset.unwrap_or(0).max(0);
@@ -426,6 +585,10 @@ fn map_inbox_row(row: InboxRow) -> InboxItem {
         author_login: row.author_login,
         unread_notification_count: row.unread_notification_count,
         latest_notification_at: row.latest_notification_at,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -454,6 +617,11 @@ fn map_pr_detail_summary(row: PrDetailSummaryRow) -> PrDetailSummary {
         check_run_count: row.check_run_count,
         file_count: row.file_count,
         updated_at: row.updated_at,
+        body_server_adjusted: row.body_server_adjusted == 1,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -466,6 +634,11 @@ fn map_timeline_row(row: TimelineRow) -> TimelineItem {
         created_at: row.created_at,
         updated_at: row.updated_at,
         review_state: row.review_state,
+        body_server_adjusted: row.body_server_adjusted == 1,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -482,6 +655,10 @@ fn map_review_thread_row(row: ReviewThreadRow) -> ReviewThread {
         resolved_by_login: row.resolved_by_login,
         updated_at: row.updated_at,
         comment_count: row.comment_count,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -512,6 +689,10 @@ fn map_pr_file_row(row: PrFileRow) -> PrFile {
         patch_blob_sha: row.patch_blob_sha,
         viewed_by_account_id: row.viewed_by_account_id,
         viewed_at_head_sha: row.viewed_at_head_sha,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -557,6 +738,10 @@ fn map_pr_label_row(row: PrLabelRow) -> PrLabel {
         label_name: row.label_name,
         label_color: row.label_color,
         description: row.description,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -564,6 +749,10 @@ fn map_pr_assignee_row(row: PrAssigneeRow) -> PrParticipant {
     PrParticipant {
         user_id: row.user_id,
         login: row.login,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -574,6 +763,10 @@ fn map_pr_reviewer_row(row: PrReviewerRow) -> PrReviewer {
         reviewer_type: row.reviewer_type,
         reviewer_state: row.reviewer_state,
         requested_at: row.requested_at,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -584,6 +777,10 @@ fn map_pr_project_row(row: PrProjectRow) -> PrProject {
         item_id: row.item_id,
         status: row.status,
         updated_at: row.updated_at,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
 }
 
@@ -594,7 +791,69 @@ fn map_pr_milestone_row(row: PrMilestoneRow) -> PrMilestone {
         state: row.state,
         due_on: row.due_on,
         description: row.description,
+        pending_overlay: row.pending_overlay.map(|overlay| PendingOverlay {
+            mutation_id: overlay.mutation_id,
+            kind: overlay.kind,
+        }),
     }
+}
+
+fn map_draft_row(row: crate::db::DraftRow) -> Draft {
+    Draft {
+        id: row.id,
+        account_id: row.account_id,
+        target_type: row.target_type,
+        target_id: row.target_id,
+        body: row.body,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+    }
+}
+
+fn optimism_from_raw(value: Option<&str>) -> OptimismLevel {
+    match value {
+        Some("none") => OptimismLevel::None,
+        Some("cautious") => OptimismLevel::Cautious,
+        _ => OptimismLevel::Full,
+    }
+}
+
+fn projected_overlay(
+    mutation_id: &str,
+    optimistic_patch_json: &str,
+) -> Result<Option<PendingOverlay>, IpcError> {
+    let patch: Patch = serde_json::from_str(optimistic_patch_json).map_err(|error| IpcError {
+        code: "InvalidPendingPatch".to_string(),
+        message: error.to_string(),
+    })?;
+    Ok(patch.pending_overlay_kind.map(|kind| PendingOverlay {
+        mutation_id: mutation_id.to_string(),
+        kind,
+    }))
+}
+
+fn map_pending_mutation_row(
+    row: crate::db::PendingMutationRow,
+) -> Result<PendingMutationView, IpcError> {
+    let kind = MutationKind::from_str(&row.kind).map_err(|error| IpcError {
+        code: "InvalidMutationKind".to_string(),
+        message: error.to_string(),
+    })?;
+    Ok(PendingMutationView {
+        id: row.id.clone(),
+        account_id: row.account_id,
+        kind,
+        optimism: optimism_from_raw(row.optimism_level.as_deref()),
+        target_type: row.target_type,
+        target_id: row.target_id,
+        status: row.status,
+        retries: row.retries,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        last_error: row.last_error,
+        pending_overlay: projected_overlay(&row.id, &row.optimistic_patch_json)?,
+        requires_connection_confirmation: row.requires_connection_confirmation == 1,
+    })
 }
 
 fn map_rate_limit_bucket(row: RateLimitBucketRow) -> RateLimitBucket {
@@ -624,6 +883,14 @@ pub fn notifications_changed_event_name(account_id: &str) -> String {
     format!("notifications:account:{account_id} changed")
 }
 
+pub fn network_changed_event_name(account_id: &str) -> String {
+    format!("network:{account_id} changed")
+}
+
+pub fn mutation_hard_conflict_event_name(mutation_id: &str) -> String {
+    format!("mutation:{mutation_id} hard-conflict")
+}
+
 #[derive(Clone)]
 pub struct TauriCacheInvalidationEmitter<R: tauri::Runtime> {
     app: tauri::AppHandle<R>,
@@ -632,6 +899,110 @@ pub struct TauriCacheInvalidationEmitter<R: tauri::Runtime> {
 impl<R: tauri::Runtime> TauriCacheInvalidationEmitter<R> {
     pub fn new(app: tauri::AppHandle<R>) -> Self {
         Self { app }
+    }
+
+    pub fn emit_network_changed(&self, account_id: &str, state: NetState) {
+        let payload = NetworkChangedEventPayload {
+            account_id: account_id.to_string(),
+            state,
+        };
+        let _ = self
+            .app
+            .emit(&network_changed_event_name(account_id), payload.clone());
+        let _ = self.app.emit(
+            <NetworkChangedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_hard_conflict(&self, mutation_id: &str, conflict: HardConflictPayload) {
+        let payload = MutationHardConflictEventPayload {
+            mutation_id: mutation_id.to_string(),
+            conflict,
+        };
+        let _ = self.app.emit(
+            &mutation_hard_conflict_event_name(mutation_id),
+            payload.clone(),
+        );
+        let _ = self.app.emit(
+            <MutationHardConflictEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_submitted(&self, mutation: PendingMutationView) {
+        let payload = MutationSubmittedEventPayload { mutation };
+        let _ = self.app.emit(
+            <MutationSubmittedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_applied(&self, mutation_id: String) {
+        let payload = MutationAppliedEventPayload { mutation_id };
+        let _ = self.app.emit(
+            <MutationAppliedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_reconciled(&self, mutation_id: String) {
+        let payload = MutationReconciledEventPayload { mutation_id };
+        let _ = self.app.emit(
+            <MutationReconciledEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_failed(
+        &self,
+        mutation_id: String,
+        error_kind: ErrorKind,
+        retryable: bool,
+        hard_conflict: Option<HardConflictDiff>,
+    ) {
+        let payload = MutationFailedEventPayload {
+            mutation_id,
+            error_kind,
+            retryable,
+            hard_conflict,
+        };
+        let _ = self.app.emit(
+            <MutationFailedEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mutation_rolled_back(&self, mutation_id: String) {
+        let payload = MutationRolledBackEventPayload { mutation_id };
+        let _ = self.app.emit(
+            <MutationRolledBackEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+}
+
+pub fn fanout_mutation_event<R: tauri::Runtime>(
+    emitter: &TauriCacheInvalidationEmitter<R>,
+    event: MutationEvent,
+) {
+    match event {
+        MutationEvent::Submitted { mutation } | MutationEvent::Queued { mutation, .. } => {
+            emitter.emit_mutation_submitted(mutation);
+        }
+        MutationEvent::Applied { mutation_id } => emitter.emit_mutation_applied(mutation_id),
+        MutationEvent::Reconciled { mutation_id } => emitter.emit_mutation_reconciled(mutation_id),
+        MutationEvent::Failed {
+            mutation_id,
+            error_kind,
+            retryable,
+            hard_conflict,
+        } => emitter.emit_mutation_failed(mutation_id, error_kind, retryable, hard_conflict),
+        MutationEvent::HardConflict { payload } => {
+            let mutation_id = payload.mutation_id.clone();
+            emitter.emit_mutation_hard_conflict(&mutation_id, payload);
+        }
+        MutationEvent::RolledBack { mutation_id } => emitter.emit_mutation_rolled_back(mutation_id),
     }
 }
 
@@ -1006,6 +1377,169 @@ pub async fn ipc_init_inbox_impl(
     })
 }
 
+fn derive_target_id(payload_json: &serde_json::Value) -> String {
+    payload_json
+        .get("target_id")
+        .and_then(serde_json::Value::as_str)
+        .or_else(|| {
+            payload_json
+                .get("pr_id")
+                .and_then(serde_json::Value::as_str)
+        })
+        .or_else(|| {
+            payload_json
+                .get("comment_id")
+                .and_then(serde_json::Value::as_str)
+        })
+        .or_else(|| {
+            payload_json
+                .get("thread_id")
+                .and_then(serde_json::Value::as_str)
+        })
+        .or_else(|| payload_json.get("path").and_then(serde_json::Value::as_str))
+        .unwrap_or("unknown-target")
+        .to_string()
+}
+
+fn derive_target_type(payload_json: &serde_json::Value) -> String {
+    payload_json
+        .get("target_type")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("pull_request")
+        .to_string()
+}
+
+fn derive_idempotency_key(kind: MutationKind, payload_json: &serde_json::Value) -> String {
+    if let Some(value) = payload_json
+        .get("idempotency_key")
+        .and_then(serde_json::Value::as_str)
+    {
+        return value.to_string();
+    }
+    let millis = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_millis())
+        .unwrap_or_default();
+    format!("{}-{millis}", kind.as_str())
+}
+
+pub async fn submit_mutation_impl(
+    engine: &MutationEngine,
+    account_id: String,
+    kind: MutationKind,
+    payload_json: String,
+) -> Result<SubmittedMutation, IpcError> {
+    let payload_value: serde_json::Value =
+        serde_json::from_str(&payload_json).map_err(|error| IpcError {
+            code: "InvalidMutationPayload".to_string(),
+            message: error.to_string(),
+        })?;
+    engine
+        .submit(
+            &account_id,
+            SubmitPayload {
+                kind,
+                target_type: derive_target_type(&payload_value),
+                target_id: derive_target_id(&payload_value),
+                idempotency_key: derive_idempotency_key(kind, &payload_value),
+                input_json: payload_value,
+            },
+        )
+        .await
+        .map_err(IpcError::mutation)
+}
+
+pub async fn list_pending_mutations_impl(
+    db: &Db,
+    account_id: String,
+    include_pending: Option<bool>,
+) -> Result<Vec<PendingMutationView>, IpcError> {
+    db.list_pending_mutations(&account_id, include_pending.unwrap_or(true))
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pending_mutation_row)
+        .collect()
+}
+
+pub async fn retry_mutation_impl(
+    engine: &MutationEngine,
+    mutation_id: String,
+) -> Result<(), IpcError> {
+    engine
+        .retry(&mutation_id)
+        .await
+        .map_err(IpcError::mutation)?;
+    Ok(())
+}
+
+pub async fn discard_mutation_impl(
+    engine: &MutationEngine,
+    mutation_id: String,
+) -> Result<(), IpcError> {
+    engine
+        .discard(&mutation_id)
+        .await
+        .map_err(IpcError::mutation)?;
+    Ok(())
+}
+
+pub async fn list_drafts_impl(db: &Db, input: ListDraftsInput) -> Result<Vec<Draft>, IpcError> {
+    db.list_drafts(
+        &input.account_id,
+        input.target_type.as_deref(),
+        input.target_id.as_deref(),
+    )
+    .await
+    .map_err(IpcError::db)
+    .map(|rows| rows.into_iter().map(map_draft_row).collect())
+}
+
+pub async fn save_draft_impl(db: &Db, input: SaveDraftInput) -> Result<Draft, IpcError> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| IpcError {
+            code: "InvalidSystemClock".to_string(),
+            message: error.to_string(),
+        })?
+        .as_secs();
+    let now = i64::try_from(now).map_err(|error| IpcError {
+        code: "TimestampOverflow".to_string(),
+        message: error.to_string(),
+    })?;
+    let row = crate::db::DraftRecord {
+        id: input.id,
+        account_id: input.account_id,
+        target_type: input.target_type,
+        target_id: input.target_id,
+        body: input.body,
+        created_at: now,
+        updated_at: now,
+    };
+    db.upsert_draft(&row).await.map_err(IpcError::db)?;
+    Ok(Draft {
+        id: row.id,
+        account_id: row.account_id,
+        target_type: row.target_type,
+        target_id: row.target_id,
+        body: row.body,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+    })
+}
+
+pub async fn delete_draft_impl(db: &Db, draft_id: String) -> Result<(), IpcError> {
+    db.delete_draft(&draft_id).await.map_err(IpcError::db)?;
+    Ok(())
+}
+
+pub fn render_preview_impl(input: RenderPreviewInput) -> RenderedCommentHtml {
+    ipc_rendered_comment_html_impl(RenderedCommentInput {
+        body: input.body,
+        repo: input.ctx.repo,
+    })
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn ipc_accounts_list(
@@ -1141,6 +1675,75 @@ pub async fn ipc_init_inbox(
     ipc_init_inbox_impl(db.inner(), auth.inner(), sync.inner()).await
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn submit_mutation(
+    engine: tauri::State<'_, Arc<MutationEngine>>,
+    account_id: String,
+    kind: MutationKind,
+    payload_json: String,
+) -> Result<SubmittedMutation, IpcError> {
+    submit_mutation_impl(engine.inner(), account_id, kind, payload_json).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_pending_mutations(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    include_pending: Option<bool>,
+) -> Result<Vec<PendingMutationView>, IpcError> {
+    list_pending_mutations_impl(db.inner(), account_id, include_pending).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn retry_mutation(
+    engine: tauri::State<'_, Arc<MutationEngine>>,
+    mutation_id: String,
+) -> Result<(), IpcError> {
+    retry_mutation_impl(engine.inner(), mutation_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn discard_mutation(
+    engine: tauri::State<'_, Arc<MutationEngine>>,
+    mutation_id: String,
+) -> Result<(), IpcError> {
+    discard_mutation_impl(engine.inner(), mutation_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_drafts(
+    db: tauri::State<'_, Arc<Db>>,
+    input: ListDraftsInput,
+) -> Result<Vec<Draft>, IpcError> {
+    list_drafts_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn save_draft(
+    db: tauri::State<'_, Arc<Db>>,
+    input: SaveDraftInput,
+) -> Result<Draft, IpcError> {
+    save_draft_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_draft(db: tauri::State<'_, Arc<Db>>, draft_id: String) -> Result<(), IpcError> {
+    delete_draft_impl(db.inner(), draft_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn render_preview(input: RenderPreviewInput) -> Result<RenderedCommentHtml, IpcError> {
+    Ok(render_preview_impl(input))
+}
+
 pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .dangerously_cast_bigints_to_number()
@@ -1159,13 +1762,28 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             ipc_system_status,
             ipc_repo_subscriptions,
             ipc_pr_metadata,
-            ipc_init_inbox
+            ipc_init_inbox,
+            submit_mutation,
+            list_pending_mutations,
+            retry_mutation,
+            discard_mutation,
+            list_drafts,
+            save_draft,
+            delete_draft,
+            render_preview
         ])
         .events(tauri_specta::collect_events![
             PrChangedEventPayload,
             InboxChangedEventPayload,
             RateLimitChangedEventPayload,
-            NotificationsChangedEventPayload
+            NotificationsChangedEventPayload,
+            NetworkChangedEventPayload,
+            MutationHardConflictEventPayload,
+            MutationSubmittedEventPayload,
+            MutationAppliedEventPayload,
+            MutationReconciledEventPayload,
+            MutationFailedEventPayload,
+            MutationRolledBackEventPayload
         ])
 }
 
@@ -1204,5 +1822,13 @@ pub fn command_names() -> &'static [&'static str] {
         "ipc_repo_subscriptions",
         "ipc_pr_metadata",
         "ipc_init_inbox",
+        "submit_mutation",
+        "list_pending_mutations",
+        "retry_mutation",
+        "discard_mutation",
+        "list_drafts",
+        "save_draft",
+        "delete_draft",
+        "render_preview",
     ]
 }

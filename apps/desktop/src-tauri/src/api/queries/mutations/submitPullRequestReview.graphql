@@ -1,0 +1,29 @@
+mutation SubmitPullRequestReview(
+  $pullRequestId: ID!
+  $event: PullRequestReviewEvent!
+  $body: String
+) {
+  submitPullRequestReview(input: { pullRequestId: $pullRequestId, event: $event, body: $body }) {
+    pullRequestReview {
+      id
+      state
+      body
+      createdAt
+      updatedAt
+      submittedAt
+      author {
+        ... on User {
+          id
+        }
+      }
+      comments(first: 100) {
+        nodes {
+          id
+          body
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }
+}

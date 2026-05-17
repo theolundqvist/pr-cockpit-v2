@@ -28,7 +28,9 @@ describe('reduceConversationTimeline', () => {
         thread_count: 1,
         check_run_count: 1,
         file_count: 1,
-        updated_at: 100
+        updated_at: 100,
+        body_server_adjusted: false,
+        pending_overlay: null
       },
       [
         {
@@ -39,6 +41,8 @@ describe('reduceConversationTimeline', () => {
           created_at: 101,
           updated_at: 101,
           review_state: null,
+          body_server_adjusted: false,
+          pending_overlay: null,
           rendered_html: '<p>hello</p>',
           renderer_version: 'v1'
         }
@@ -55,19 +59,28 @@ describe('reduceConversationTimeline', () => {
           is_resolved: false,
           resolved_by_login: null,
           updated_at: 102,
-          comment_count: 3
+          comment_count: 3,
+          pending_overlay: null
         }
       ],
       {
-        labels: [{ label_name: 'needs-review', label_color: 'fbca04', description: null }],
-        assignees: [{ user_id: 'u1', login: 'alice' }],
+        labels: [
+          {
+            label_name: 'needs-review',
+            label_color: 'fbca04',
+            description: null,
+            pending_overlay: null
+          }
+        ],
+        assignees: [{ user_id: 'u1', login: 'alice', pending_overlay: null }],
         requested_reviewers: [
           {
             user_id: 'u2',
             login: 'bob',
             reviewer_type: 'user',
             reviewer_state: 'requested',
-            requested_at: 99
+            requested_at: 99,
+            pending_overlay: null
           }
         ],
         projects: [],

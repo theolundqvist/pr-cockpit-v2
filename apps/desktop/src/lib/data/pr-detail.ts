@@ -15,7 +15,7 @@ import {
   getPrSummary,
   getPrTimeline,
   getReviewThreads,
-  renderCommentHtml
+  renderPreview
 } from '$lib/ipc/client';
 
 export type RenderedTimelineItem = TimelineItem & {
@@ -43,7 +43,7 @@ function key(accountId: string, prId: string): string {
 async function hydrateTimeline(timeline: TimelineItem[]): Promise<RenderedTimelineItem[]> {
   return Promise.all(
     timeline.map(async (item) => {
-      const rendered = await renderCommentHtml(item.body, null);
+      const rendered = await renderPreview(item.body, null);
       return {
         ...item,
         rendered_html: rendered.html,
@@ -51,6 +51,11 @@ async function hydrateTimeline(timeline: TimelineItem[]): Promise<RenderedTimeli
       };
     })
   );
+}
+
+export async function renderTimelineBody(body: string, repo: string | null): Promise<string> {
+  const rendered = await renderPreview(body, repo);
+  return rendered.html;
 }
 
 async function loadBundle(accountId: string, prId: string): Promise<PrDetailBundle | null> {

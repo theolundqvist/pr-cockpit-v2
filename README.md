@@ -13,8 +13,17 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: **M1 read-only cockpit complete**. Milestones M2 → M6 continue per the
+Status: **M2 optimistic writes complete**. Milestones M3 → M6 continue per the
 brief and `PLAN.md`.
+
+## Feature highlights
+
+- Local-first PR cockpit backed by SQLite denormalized read models.
+- Optimistic mutation pipeline with replay-safe queueing and inverse-patch rollback.
+- Composer with textarea + Preview parity via the shared comrak renderer path.
+- Offline/airplane behavior: queued safe mutations replay on reconnect with
+  explicit connection-required affordances for unsafe writes (proof drill:
+  `apps/desktop/src-tauri/tests/airplane_drill.rs`).
 
 ## Quick start (desktop cockpit)
 
@@ -25,7 +34,7 @@ pnpm --filter desktop tauri dev
 
 ## Offline fixtures mode
 
-M1 supports deterministic offline verification against committed fixtures:
+Deterministic offline verification is supported against committed fixtures:
 
 - Fixture generator and assets:
   `apps/desktop/src-tauri/fixtures/README.md`
@@ -38,7 +47,7 @@ For headless checks without a desktop display server, run:
 pnpm --filter desktop test:smoke
 ```
 
-## CI quality gates (M1)
+## CI quality gates (M2)
 
 The required local/CI gate matrix is:
 

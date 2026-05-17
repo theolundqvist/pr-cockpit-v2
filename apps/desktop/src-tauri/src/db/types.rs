@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct PendingOverlay {
+    pub mutation_id: String,
+    pub kind: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BlobKind {
     Patch,
@@ -20,7 +26,7 @@ impl BlobKind {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InboxRow {
     pub account_id: String,
     pub pr_id: String,
@@ -39,9 +45,10 @@ pub struct InboxRow {
     pub author_login: String,
     pub unread_notification_count: i64,
     pub latest_notification_at: Option<i64>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrDetailSummaryRow {
     pub account_id: String,
     pub pr_id: String,
@@ -66,17 +73,20 @@ pub struct PrDetailSummaryRow {
     pub check_run_count: i64,
     pub file_count: i64,
     pub updated_at: i64,
+    pub body_server_adjusted: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct UnreadCountsRow {
     pub account_id: String,
     pub total_notifications: i64,
     pub unread_notifications: i64,
     pub prs_with_unread: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FileTreeSummaryRow {
     pub account_id: String,
     pub pr_id: String,
@@ -85,9 +95,10 @@ pub struct FileTreeSummaryRow {
     pub file_count: i64,
     pub additions: i64,
     pub deletions: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PrFileRow {
     pub account_id: String,
     pub pr_id: String,
@@ -101,6 +112,7 @@ pub struct PrFileRow {
     pub patch_blob_sha: Option<String>,
     pub viewed_by_account_id: Option<String>,
     pub viewed_at_head_sha: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -112,6 +124,8 @@ pub struct TimelineRow {
     pub created_at: i64,
     pub updated_at: i64,
     pub review_state: Option<String>,
+    pub body_server_adjusted: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -127,6 +141,7 @@ pub struct ReviewThreadRow {
     pub resolved_by_login: Option<String>,
     pub updated_at: i64,
     pub comment_count: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -169,6 +184,7 @@ pub struct PrLabelRow {
     pub label_name: String,
     pub label_color: String,
     pub description: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -176,6 +192,7 @@ pub struct PrAssigneeRow {
     pub user_id: String,
     pub login: Option<String>,
     pub assigned_at: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -185,6 +202,7 @@ pub struct PrReviewerRow {
     pub reviewer_type: String,
     pub reviewer_state: String,
     pub requested_at: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -194,6 +212,7 @@ pub struct PrProjectRow {
     pub item_id: Option<String>,
     pub status: Option<String>,
     pub updated_at: i64,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -203,6 +222,7 @@ pub struct PrMilestoneRow {
     pub state: String,
     pub due_on: Option<i64>,
     pub description: Option<String>,
+    pub pending_overlay: Option<PendingOverlay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -534,6 +554,45 @@ pub struct WorktreeRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DraftRecord {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct DraftRow {
+    pub id: String,
+    pub account_id: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub body: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PendingMutationRow {
+    pub id: String,
+    pub account_id: String,
+    pub kind: String,
+    pub target_type: String,
+    pub target_id: String,
+    pub status: String,
+    pub retries: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
+    pub last_error: Option<String>,
+    pub optimism_level: Option<String>,
+    pub optimistic_patch_json: String,
+    pub requires_connection_confirmation: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingMutationRecord {
     pub id: String,
     pub account_id: String,
@@ -549,6 +608,7 @@ pub struct PendingMutationRecord {
     pub created_at: i64,
     pub updated_at: i64,
     pub last_error: Option<String>,
+    pub requires_connection_confirmation: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
