@@ -32,6 +32,8 @@ export const commands = {
 	check_run_count: number,
 	file_count: number,
 	updated_at: number,
+	body_server_adjusted: boolean,
+	pending_overlay: PendingOverlay | null,
 } | null, IpcError>(__TAURI_INVOKE("ipc_pr_detail_summary", { input })),
 	ipcPrTimeline: (input: PagedPrInput) => typedError<TimelinePage, IpcError>(__TAURI_INVOKE("ipc_pr_timeline", { input })),
 	ipcPrReviewThreads: (input: PagedPrInput) => typedError<ReviewThreadsPage, IpcError>(__TAURI_INVOKE("ipc_pr_review_threads", { input })),
@@ -44,12 +46,25 @@ export const commands = {
 	ipcRepoSubscriptions: (input: RepoSubscriptionsInput) => typedError<RepoSubscriptionItem[], IpcError>(__TAURI_INVOKE("ipc_repo_subscriptions", { input })),
 	ipcPrMetadata: (input: PrHandleInput) => typedError<PrMetadataResponse, IpcError>(__TAURI_INVOKE("ipc_pr_metadata", { input })),
 	ipcInitInbox: () => typedError<InitInboxResponse, IpcError>(__TAURI_INVOKE("ipc_init_inbox")),
+	submitMutation: (accountId: string, kind: MutationKind, payloadJson: string) => typedError<SubmittedMutation, IpcError>(__TAURI_INVOKE("submit_mutation", { accountId, kind, payloadJson })),
+	listPendingMutations: (accountId: string, includePending: boolean | null) => typedError<PendingMutationView[], IpcError>(__TAURI_INVOKE("list_pending_mutations", { accountId, includePending })),
+	retryMutation: (mutationId: string) => typedError<null, IpcError>(__TAURI_INVOKE("retry_mutation", { mutationId })),
+	discardMutation: (mutationId: string) => typedError<null, IpcError>(__TAURI_INVOKE("discard_mutation", { mutationId })),
+	listDrafts: (input: ListDraftsInput) => typedError<Draft[], IpcError>(__TAURI_INVOKE("list_drafts", { input })),
+	saveDraft: (input: SaveDraftInput) => typedError<Draft, IpcError>(__TAURI_INVOKE("save_draft", { input })),
+	deleteDraft: (draftId: string) => typedError<null, IpcError>(__TAURI_INVOKE("delete_draft", { draftId })),
+	renderPreview: (input: RenderPreviewInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("render_preview", { input })),
 };
 
 /** Events */
 export const events = {
 	inboxAccountIdChanged: makeEvent<InboxChangedEventPayload>("inbox:account:<id> changed"),
-	mutationIdHardConflict: makeEvent<MutationHardConflictEventPayload>("mutation:<id> hard-conflict"),
+	mutationApplied: makeEvent<MutationAppliedEventPayload>("mutation:applied"),
+	mutationFailed: makeEvent<MutationFailedEventPayload>("mutation:failed"),
+	mutationHardConflict: makeEvent<MutationHardConflictEventPayload>("mutation:hard-conflict"),
+	mutationReconciled: makeEvent<MutationReconciledEventPayload>("mutation:reconciled"),
+	mutationRolledBack: makeEvent<MutationRolledBackEventPayload>("mutation:rolled-back"),
+	mutationSubmitted: makeEvent<MutationSubmittedEventPayload>("mutation:submitted"),
 	networkAccountIdChanged: makeEvent<NetworkChangedEventPayload>("network:<account_id> changed"),
 	notificationsAccountIdChanged: makeEvent<NotificationsChangedEventPayload>("notifications:account:<id> changed"),
 	prIdChanged: makeEvent<PrChangedEventPayload>("pr:<id> changed"),
@@ -96,6 +111,16 @@ export type CheckRunSummary = {
 export type CheckSummaryInput = {
 	account_id: string,
 	pr_id: string,
+};
+
+export type Draft = {
+	id: string,
+	account_id: string,
+	target_type: string,
+	target_id: string,
+	body: string,
+	created_at: number,
+	updated_at: number,
 };
 
 export type ErrorKind = { kind: "network" } | { kind: "rate_limited" } | { kind: "auth" } | { kind: "not_found" } | { kind: "conflict" } | { kind: "server" } | { kind: "other"; detail: string };
@@ -148,6 +173,7 @@ export type InboxItem = {
 	author_login: string,
 	unread_notification_count: number,
 	latest_notification_at: number | null,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type InboxListInput = {
@@ -167,12 +193,41 @@ export type IpcError = {
 	message: string,
 };
 
+export type ListDraftsInput = {
+	account_id: string,
+	target_type: string | null,
+	target_id: string | null,
+};
+
+export type MutationAppliedEventPayload = {
+	mutation_id: string,
+};
+
+export type MutationFailedEventPayload = {
+	mutation_id: string,
+	error_kind: ErrorKind,
+	retryable: boolean,
+	hard_conflict: HardConflictDiff | null,
+};
+
 export type MutationHardConflictEventPayload = {
 	mutation_id: string,
 	conflict: HardConflictPayload,
 };
 
 export type MutationKind = "add_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "close_pr" | "reopen_pr";
+
+export type MutationReconciledEventPayload = {
+	mutation_id: string,
+};
+
+export type MutationRolledBackEventPayload = {
+	mutation_id: string,
+};
+
+export type MutationSubmittedEventPayload = {
+	mutation: PendingMutationView,
+};
 
 export type NetState = { state: "online" } | { state: "offline"; error_kind: ErrorKind };
 
@@ -202,11 +257,34 @@ export type NotificationsListInput = {
 	offset: number | null,
 };
 
+export type OptimismLevel = "full" | "cautious" | "none";
+
 export type PagedPrInput = {
 	account_id: string,
 	pr_id: string,
 	limit: number | null,
 	offset: number | null,
+};
+
+export type PendingMutationView = {
+	id: string,
+	account_id: string,
+	kind: MutationKind,
+	optimism: OptimismLevel,
+	target_type: string,
+	target_id: string,
+	status: string,
+	retries: number,
+	created_at: number,
+	updated_at: number,
+	last_error: string | null,
+	pending_overlay: PendingOverlay | null,
+	requires_connection_confirmation: boolean,
+};
+
+export type PendingOverlay = {
+	mutation_id: string,
+	kind: string,
 };
 
 export type PrChangedEventPayload = {
@@ -245,6 +323,8 @@ export type PrDetailSummary = {
 	check_run_count: number,
 	file_count: number,
 	updated_at: number,
+	body_server_adjusted: boolean,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrFile = {
@@ -260,6 +340,7 @@ export type PrFile = {
 	patch_blob_sha: string | null,
 	viewed_by_account_id: string | null,
 	viewed_at_head_sha: string | null,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrFilesInput = {
@@ -282,6 +363,7 @@ export type PrLabel = {
 	label_name: string,
 	label_color: string,
 	description: string | null,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrMetadataResponse = {
@@ -298,11 +380,13 @@ export type PrMilestone = {
 	state: string,
 	due_on: number | null,
 	description: string | null,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrParticipant = {
 	user_id: string,
 	login: string | null,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrPatchInput = {
@@ -322,6 +406,7 @@ export type PrProject = {
 	item_id: string | null,
 	status: string | null,
 	updated_at: number,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type PrReviewer = {
@@ -330,6 +415,7 @@ export type PrReviewer = {
 	reviewer_type: string,
 	reviewer_state: string,
 	requested_at: number,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type RateLimitBucket = {
@@ -343,6 +429,15 @@ export type RateLimitBucket = {
 
 export type RateLimitChangedEventPayload = {
 	account_id: string,
+};
+
+export type RenderPreviewCtx = {
+	repo: string | null,
+};
+
+export type RenderPreviewInput = {
+	body: string,
+	ctx: RenderPreviewCtx,
 };
 
 export type RenderedCommentHtml = {
@@ -384,11 +479,28 @@ export type ReviewThread = {
 	resolved_by_login: string | null,
 	updated_at: number,
 	comment_count: number,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type ReviewThreadsPage = {
 	threads: ReviewThread[],
 	next_offset: number | null,
+};
+
+export type SaveDraftInput = {
+	id: string,
+	account_id: string,
+	target_type: string,
+	target_id: string,
+	body: string,
+};
+
+export type SubmittedMutation = {
+	mutation_id: string,
+	deduped: boolean,
+	requires_confirmation: boolean,
+	optimism_level: OptimismLevel,
+	projected_changes: string[],
 };
 
 export type SyncSystemSnapshot = {
@@ -420,6 +532,8 @@ export type TimelineItem = {
 	created_at: number,
 	updated_at: number,
 	review_state: string | null,
+	body_server_adjusted: boolean,
+	pending_overlay: PendingOverlay | null,
 };
 
 export type TimelinePage = {

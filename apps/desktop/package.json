@@ -12,6 +12,7 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . && prettier --check .",
     "test": "vitest run",
     "test:smoke": "bash -lc 'if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a playwright test tests/smoke.spec.ts; else playwright test tests/smoke.spec.ts; fi'",
+    "test:airplane": "bash -lc 'if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a playwright test playwright/airplane.spec.ts; else playwright test playwright/airplane.spec.ts; fi'",
     "bench": "node ../../tools/perf-bench/run-all.mjs",
     "corpus": "node ../../tools/markdown-corpus/score.mjs",
     "tauri": "tauri"

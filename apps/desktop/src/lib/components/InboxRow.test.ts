@@ -20,7 +20,8 @@ const row: InboxItem = {
   updated_at: 1_715_000_100,
   author_login: 'fixture-user-01',
   unread_notification_count: 2,
-  latest_notification_at: 1_715_000_100
+  latest_notification_at: 1_715_000_100,
+  pending_overlay: null
 };
 
 describe('InboxRow', () => {

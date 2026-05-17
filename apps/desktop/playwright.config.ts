@@ -1,13 +1,14 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: '.',
+  testMatch: ['tests/**/*.spec.ts', 'playwright/**/*.spec.ts'],
   timeout: 120_000,
   outputDir: './artifacts/playwright',
   preserveOutput: 'always',
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    browserName: 'webkit',
+    browserName: process.env.PLAYWRIGHT_BROWSER ?? 'webkit',
     headless: true,
     video: 'on',
     trace: 'on'

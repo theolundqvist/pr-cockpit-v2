@@ -154,12 +154,18 @@ impl MutationEngine {
             .lookup_by_idempotency_key(&payload.idempotency_key)
             .await?
         {
-            let requires_confirmation = existing.optimism_level() == OptimismLevel::None
-                || existing.requires_connection_confirmation;
+            let optimism_level = existing.optimism_level();
+            let requires_confirmation =
+                optimism_level == OptimismLevel::None || existing.requires_connection_confirmation;
+            let projected_changes = serde_json::from_str::<Patch>(&existing.optimistic_patch_json)
+                .map(|patch| projected_change_summary(&patch))
+                .unwrap_or_default();
             return Ok(SubmittedMutation {
                 mutation_id: existing.id,
                 deduped: true,
                 requires_confirmation,
+                optimism_level,
+                projected_changes,
             });
         }
 
@@ -248,7 +254,14 @@ impl MutationEngine {
             created_at: now_epoch_seconds()?,
             updated_at: now_epoch_seconds()?,
             last_error: None,
-            pending_overlay: None,
+            pending_overlay: predicted
+                .forward_patch
+                .pending_overlay_kind
+                .clone()
+                .map(|kind| super::PendingOverlay {
+                    mutation_id: mutation_id.clone(),
+                    kind,
+                }),
             requires_connection_confirmation: false,
         };
         if is_offline {
@@ -266,6 +279,8 @@ impl MutationEngine {
             mutation_id,
             deduped: false,
             requires_confirmation: optimism == OptimismLevel::None,
+            optimism_level: optimism,
+            projected_changes: projected_change_summary(&predicted.forward_patch),
         })
     }
 
@@ -1120,6 +1135,27 @@ fn compute_conflict_diff(
         server_body,
         changed_fields,
     }
+}
+
+fn projected_change_summary(patch: &Patch) -> Vec<String> {
+    patch
+        .operations
+        .iter()
+        .map(|operation| {
+            let mut keys = operation
+                .pk
+                .iter()
+                .map(|(key, value)| {
+                    format!(
+                        "{key}={}",
+                        serde_json::to_string(value).unwrap_or_else(|_| "null".to_string())
+                    )
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            format!("{}({})", operation.table, keys.join(","))
+        })
+        .collect()
 }
 
 trait ErrorKindExt {

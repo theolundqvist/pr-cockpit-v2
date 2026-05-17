@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { InboxItem } from '$lib/ipc/bindings';
   import { checkLabel, syntheticLabels } from '$lib/components/inbox-row';
+  import PendingAffordance from '$lib/components/PendingAffordance.svelte';
   import { formatRelative } from '$lib/utils/time';
 
   export let item: InboxItem;
@@ -25,6 +26,7 @@
               ●
             </span>
           {/if}
+          <PendingAffordance overlay={item.pending_overlay} optimism="full" />
           <strong class="text-bold text-truncate">{item.title}</strong>
           <span class="color-fg-muted">#{item.pr_number}</span>
         </div>
