@@ -54,12 +54,12 @@
       "agentId": "bc-e8a8ce6e-a734-4076-b77a-09cacc21f9f5",
       "runId": "run-0329751e-ab6a-4198-beef-8adc9f532364",
       "parentAgentId": "bc-f868f69e-ef2d-4534-a00f-f560772f9614",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m3-notifications.md",
       "startedAt": "2026-05-17T20:58:11.668Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:58:14.324Z",
+      "finishedAt": "2026-05-17T21:47:18.762Z",
+      "lastUpdate": "2026-05-17T21:47:18.762Z",
       "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -81,13 +81,13 @@
       "handoffPath": "handoffs/m3-corpus-tighten.md",
       "startedAt": "2026-05-17T20:56:44.496Z",
       "finishedAt": "2026-05-17T21:30:31.198Z",
-      "lastUpdate": "2026-05-17T21:30:31.198Z",
+      "lastUpdate": "2026-05-17T21:30:32.634Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m3-finalize-merge",
@@ -171,6 +171,30 @@
     {
       "at": "2026-05-17T21:24:09.916Z",
       "message": "m3-corpus-tighten: tool_call idle 336342ms; last=2026-05-17T21:18:33.573Z"
+    },
+    {
+      "at": "2026-05-17T21:30:32.633Z",
+      "message": "m3-corpus-tighten: measurement_mismatch corpus_weighted_mean [command-failed] exit=1; stderr: node:internal/modules/package_json_reader:314\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package 'jsdom' imported from /tmp/orch-measure-xnQlmY/tools/markdown-corpus/score.mjs\n    at Object.getPackageJSONURL (node:in…"
+    },
+    {
+      "at": "2026-05-17T21:30:32.634Z",
+      "message": "m3-corpus-tighten: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T21:41:18.921Z",
+      "message": "m3-notifications: SSE idle 330579ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T21:41:18.922Z",
+      "message": "m3-notifications: tool_call idle 330580ms; last=2026-05-17T21:35:48.342Z"
+    },
+    {
+      "at": "2026-05-17T21:42:15.810Z",
+      "message": "m3-worktree-read: SSE idle 326235ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T21:42:15.811Z",
+      "message": "m3-worktree-read: tool_call idle 326236ms; last=2026-05-17T21:36:49.575Z"
     }
   ]
 }
