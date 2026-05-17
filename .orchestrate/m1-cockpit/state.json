@@ -113,11 +113,11 @@
       "finishedAt": "2026-05-17T07:34:12.789Z",
       "lastUpdate": "2026-05-17T07:34:15.586Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "m1-ipc-types",
@@ -137,11 +137,11 @@
       "finishedAt": "2026-05-17T08:07:34.448Z",
       "lastUpdate": "2026-05-17T08:07:35.347Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "m1-frontend",
@@ -154,18 +154,18 @@
       "agentId": "bc-1c38d5d3-3dd9-4145-8bcd-d3f9ef9d5004",
       "runId": "run-a32ccee0-8854-4438-9468-41502c07f1a1",
       "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-frontend.md",
       "startedAt": "2026-05-17T08:07:37.634Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T08:07:39.983Z",
+      "finishedAt": "2026-05-17T09:02:42.559Z",
+      "lastUpdate": "2026-05-17T09:02:42.559Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m1-perf-corpus",
@@ -269,6 +269,14 @@
     {
       "at": "2026-05-17T08:07:35.347Z",
       "message": "m1-ipc-types: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T08:56:36.478Z",
+      "message": "m1-frontend: SSE idle 328298ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T08:56:36.480Z",
+      "message": "m1-frontend: tool_call idle 328300ms; last=2026-05-17T08:51:08.180Z"
     }
   ]
 }
