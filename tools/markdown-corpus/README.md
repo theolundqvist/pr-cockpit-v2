@@ -19,9 +19,13 @@ Each `corpus.json` entry has:
   "source_url": "https://api.github.com/repos/cli/cli/issues/comments/123456",
   "body": "markdown body",
   "oracle_html_sha": "sha256 of oracle/<id>.html",
-  "repo": "cli/cli"
+  "repo": "cli/cli",
+  "accepted_drift": 0.0
 }
 ```
+
+`accepted_drift` is optional and defaults to `0`. When present, it is subtracted
+from the entry's visible-text distance before contributing to `weighted_mean`.
 
 ## Refresh corpus snapshot
 
@@ -60,4 +64,13 @@ The scorer reports:
 - Visible-character mismatch ratio (text-only distance).
 - Weighted score over the full corpus.
 
-CI fails if weighted score is `> 0.02` (2%) for M1.
+CI fails if weighted score is `> 0.015` (1.5%) for M3.
+
+### Top-drift diagnostics
+
+Use `--dump-csv <path>` to export per-entry weighted contribution rows sorted
+by contribution descending:
+
+```bash
+pnpm corpus -- --dump-csv tools/markdown-corpus/top-drift.csv
+```

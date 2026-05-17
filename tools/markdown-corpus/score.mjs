@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { JSDOM } from "jsdom";
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CORPUS_JSON = path.join(__dirname, "corpus.json");
 const ORACLE_DIR = path.join(__dirname, "oracle");
-const GATE = 0.02;
+const GATE = 0.015;
 
 function sha256(input) {
   return createHash("sha256").update(input).digest("hex");
@@ -119,6 +119,26 @@ async function loadCorpus() {
   return JSON.parse(raw);
 }
 
+function parseArgs(argv) {
+  let csvPath = null;
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--dump-csv") {
+      csvPath = argv[index + 1] ?? null;
+      index += 1;
+    }
+  }
+  return { csvPath };
+}
+
+function toCsv(value) {
+  const text = String(value ?? "");
+  if (text.includes(",") || text.includes('"') || text.includes("\n")) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+  return text;
+}
+
 async function loadOracle(entry) {
   const file = path.join(ORACLE_DIR, `${entry.id}.html`);
   const html = await readFile(file, "utf8");
@@ -156,6 +176,7 @@ function renderCockpit(entries) {
 }
 
 async function main() {
+  const { csvPath } = parseArgs(process.argv.slice(2));
   const entries = await loadCorpus();
   if (!entries.length) {
     throw new Error("corpus.json is empty");
@@ -165,6 +186,7 @@ async function main() {
   let structuralTotal = 0;
   let visibleTotal = 0;
   let weightedTotal = 0;
+  const perEntry = [];
 
   for (const entry of entries) {
     const oracle = await loadOracle(entry);
@@ -175,23 +197,76 @@ async function main() {
 
     const structural = ratioDistance(normalizeHtml(oracle), normalizeHtml(cockpit));
     const visible = ratioDistance(visibleText(oracle), visibleText(cockpit));
-    const weighted = visible;
+    const acceptedDrift = Number(entry.accepted_drift ?? 0);
+    if (!Number.isFinite(acceptedDrift) || acceptedDrift < 0) {
+      throw new Error(`invalid accepted_drift for ${entry.id}: ${entry.accepted_drift}`);
+    }
+    const weighted = Math.max(0, visible - acceptedDrift);
 
     structuralTotal += structural;
     visibleTotal += visible;
     weightedTotal += weighted;
+    perEntry.push({
+      id: entry.id,
+      repo: entry.repo ?? "",
+      source_url: entry.source_url ?? "",
+      structural,
+      visible,
+      accepted_drift: acceptedDrift,
+      weighted,
+    });
   }
 
   const count = entries.length;
   const structuralMean = structuralTotal / count;
   const visibleMean = visibleTotal / count;
   const weightedMean = weightedTotal / count;
+  const ranked = [...perEntry]
+    .map((row) => ({
+      ...row,
+      contribution: row.weighted / count,
+    }))
+    .sort((a, b) => b.contribution - a.contribution);
 
   console.log(`entries=${count}`);
   console.log(`structural_mean=${structuralMean.toFixed(6)}`);
   console.log(`visible_mean=${visibleMean.toFixed(6)}`);
   console.log(`weighted_mean=${weightedMean.toFixed(6)}`);
   console.log(`gate=${GATE}`);
+  for (const [index, row] of ranked.slice(0, 3).entries()) {
+    console.log(
+      `top${index + 1}=${row.id},weighted=${row.weighted.toFixed(6)},accepted_drift=${row.accepted_drift.toFixed(6)},contribution=${row.contribution.toFixed(6)}`,
+    );
+  }
+
+  if (csvPath) {
+    const header = [
+      "rank",
+      "id",
+      "repo",
+      "source_url",
+      "structural",
+      "visible",
+      "accepted_drift",
+      "weighted",
+      "contribution",
+    ].join(",");
+    const lines = ranked.map((row, index) =>
+      [
+        index + 1,
+        toCsv(row.id),
+        toCsv(row.repo),
+        toCsv(row.source_url),
+        row.structural.toFixed(6),
+        row.visible.toFixed(6),
+        row.accepted_drift.toFixed(6),
+        row.weighted.toFixed(6),
+        row.contribution.toFixed(6),
+      ].join(","),
+    );
+    await writeFile(csvPath, `${header}\n${lines.join("\n")}\n`, "utf8");
+    console.log(`debug_csv=${csvPath}`);
+  }
 
   if (weightedMean > GATE) {
     throw new Error(`markdown corpus regression ${weightedMean.toFixed(6)} exceeds ${GATE}`);
