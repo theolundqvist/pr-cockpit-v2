@@ -88,6 +88,7 @@ pub mod api;
 pub mod auth;
 pub mod db;
 pub mod ipc;
+pub mod mutations;
 pub mod render;
 pub mod storage;
 pub mod sync;

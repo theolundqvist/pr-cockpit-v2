@@ -41,6 +41,8 @@ async function main() {
     "file_open_in_diff_cached",
     "--bench",
     "comrak_render_throughput",
+    "--bench",
+    "mutation_submit_visible",
     "--",
     "--noplot",
   ]);
@@ -50,12 +52,14 @@ async function main() {
   const coldNs = await readEstimate("target/criterion/pr_detail_open_cold_cache/new/estimates.json");
   const fileOpenNs = await readEstimate("target/criterion/file_open_in_diff_cached/new/estimates.json");
   const comrakNs = await readEstimate("target/criterion/comrak_render_throughput/comrak_render_throughput/new/estimates.json");
+  const mutationSubmitVisibleNs = await readEstimate("target/criterion/mutation_submit_visible/new/estimates.json");
 
   const metrics = {
     inbox_first_paint_ms: inboxNs / 1e6,
     pr_detail_open_preloaded_ms: preloadedNs / 1e6,
     pr_detail_open_cold_ms: coldNs / 1e6,
     file_open_in_diff_cached_ms: fileOpenNs / 1e6,
+    mutation_submit_visible_ms: mutationSubmitVisibleNs / 1e6,
     comrak_render_throughput_ops_per_sec: 1e9 / comrakNs,
   };
 

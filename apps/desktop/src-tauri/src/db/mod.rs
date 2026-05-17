@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Context, Result};
 use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
-use sqlx::SqlitePool;
+use sqlx::{Row, SqlitePool};
 use tempfile::TempDir;
 use tokio::fs;
 
@@ -79,10 +79,10 @@ impl Db {
     }
 
     pub async fn list_inbox(&self, account_id: &str) -> Result<Vec<InboxRow>> {
-        let rows = sqlx::query_as::<_, InboxRow>(
+        let rows = sqlx::query(
             "SELECT account_id, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state,
                     draft, head_sha, base_sha, mergeable_state, merge_state_status, updated_at,
-                    author_login, unread_notification_count, latest_notification_at
+                    author_login, unread_notification_count, latest_notification_at, pending_overlay
              FROM pr_inbox_rows
              WHERE account_id = ?1
              ORDER BY unread_notification_count DESC, updated_at DESC",
@@ -90,7 +90,30 @@ impl Db {
         .bind(account_id)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(InboxRow {
+                    account_id: row.try_get("account_id")?,
+                    pr_id: row.try_get("pr_id")?,
+                    repo_id: row.try_get("repo_id")?,
+                    repo_owner: row.try_get("repo_owner")?,
+                    repo_name: row.try_get("repo_name")?,
+                    pr_number: row.try_get("pr_number")?,
+                    title: row.try_get("title")?,
+                    state: row.try_get("state")?,
+                    draft: row.try_get("draft")?,
+                    head_sha: row.try_get("head_sha")?,
+                    base_sha: row.try_get("base_sha")?,
+                    mergeable_state: row.try_get("mergeable_state")?,
+                    merge_state_status: row.try_get("merge_state_status")?,
+                    updated_at: row.try_get("updated_at")?,
+                    author_login: row.try_get("author_login")?,
+                    unread_notification_count: row.try_get("unread_notification_count")?,
+                    latest_notification_at: row.try_get("latest_notification_at")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_detail_summary(
@@ -98,11 +121,11 @@ impl Db {
         account_id: &str,
         pr_id: &str,
     ) -> Result<Option<PrDetailSummaryRow>> {
-        let row = sqlx::query_as::<_, PrDetailSummaryRow>(
+        let row = sqlx::query(
             "SELECT account_id, pr_id, repo_id, pr_number, title, body, state, draft, base_ref,
                     base_sha, head_ref, head_sha, mergeable_state, merge_state_status, additions,
                     deletions, changed_files, comment_count, review_count, thread_count,
-                    check_run_count, file_count, updated_at
+                    check_run_count, file_count, updated_at, pending_overlay
              FROM pr_detail_summary
              WHERE account_id = ?1 AND pr_id = ?2",
         )
@@ -110,7 +133,35 @@ impl Db {
         .bind(pr_id)
         .fetch_optional(&self.pool)
         .await?;
-        Ok(row)
+        row.map(|row| {
+            Ok(PrDetailSummaryRow {
+                account_id: row.try_get("account_id")?,
+                pr_id: row.try_get("pr_id")?,
+                repo_id: row.try_get("repo_id")?,
+                pr_number: row.try_get("pr_number")?,
+                title: row.try_get("title")?,
+                body: row.try_get("body")?,
+                state: row.try_get("state")?,
+                draft: row.try_get("draft")?,
+                base_ref: row.try_get("base_ref")?,
+                base_sha: row.try_get("base_sha")?,
+                head_ref: row.try_get("head_ref")?,
+                head_sha: row.try_get("head_sha")?,
+                mergeable_state: row.try_get("mergeable_state")?,
+                merge_state_status: row.try_get("merge_state_status")?,
+                additions: row.try_get("additions")?,
+                deletions: row.try_get("deletions")?,
+                changed_files: row.try_get("changed_files")?,
+                comment_count: row.try_get("comment_count")?,
+                review_count: row.try_get("review_count")?,
+                thread_count: row.try_get("thread_count")?,
+                check_run_count: row.try_get("check_run_count")?,
+                file_count: row.try_get("file_count")?,
+                updated_at: row.try_get("updated_at")?,
+                pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+            })
+        })
+        .transpose()
     }
 
     pub async fn pr_files(
@@ -119,9 +170,10 @@ impl Db {
         pr_id: &str,
         head_sha: &str,
     ) -> Result<Vec<PrFileRow>> {
-        let rows = sqlx::query_as::<_, PrFileRow>(
+        let rows = sqlx::query(
             "SELECT account_id, pr_id, head_sha, path, old_path, status, additions, deletions,
-                    is_binary, patch_blob_sha, viewed_by_account_id, viewed_at_head_sha
+                    is_binary, patch_blob_sha, viewed_by_account_id, viewed_at_head_sha,
+                    pending_state AS pending_overlay
              FROM pr_files
              WHERE account_id = ?1 AND pr_id = ?2 AND head_sha = ?3
              ORDER BY path ASC",
@@ -131,7 +183,25 @@ impl Db {
         .bind(head_sha)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(PrFileRow {
+                    account_id: row.try_get("account_id")?,
+                    pr_id: row.try_get("pr_id")?,
+                    head_sha: row.try_get("head_sha")?,
+                    path: row.try_get("path")?,
+                    old_path: row.try_get("old_path")?,
+                    status: row.try_get("status")?,
+                    additions: row.try_get("additions")?,
+                    deletions: row.try_get("deletions")?,
+                    is_binary: row.try_get("is_binary")?,
+                    patch_blob_sha: row.try_get("patch_blob_sha")?,
+                    viewed_by_account_id: row.try_get("viewed_by_account_id")?,
+                    viewed_at_head_sha: row.try_get("viewed_at_head_sha")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_patch(
@@ -177,15 +247,24 @@ impl Db {
     }
 
     pub async fn unread_counts(&self, account_id: &str) -> Result<Option<UnreadCountsRow>> {
-        let row = sqlx::query_as::<_, UnreadCountsRow>(
-            "SELECT account_id, total_notifications, unread_notifications, prs_with_unread
+        let row = sqlx::query(
+            "SELECT account_id, total_notifications, unread_notifications, prs_with_unread, pending_overlay
              FROM unread_counts
              WHERE account_id = ?1",
         )
         .bind(account_id)
         .fetch_optional(&self.pool)
         .await?;
-        Ok(row)
+        row.map(|row| {
+            Ok(UnreadCountsRow {
+                account_id: row.try_get("account_id")?,
+                total_notifications: row.try_get("total_notifications")?,
+                unread_notifications: row.try_get("unread_notifications")?,
+                prs_with_unread: row.try_get("prs_with_unread")?,
+                pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+            })
+        })
+        .transpose()
     }
 
     pub async fn file_tree_summary(
@@ -194,8 +273,8 @@ impl Db {
         pr_id: &str,
         head_sha: &str,
     ) -> Result<Vec<FileTreeSummaryRow>> {
-        let rows = sqlx::query_as::<_, FileTreeSummaryRow>(
-            "SELECT account_id, pr_id, head_sha, directory, file_count, additions, deletions
+        let rows = sqlx::query(
+            "SELECT account_id, pr_id, head_sha, directory, file_count, additions, deletions, pending_overlay
              FROM file_tree_summary
              WHERE account_id = ?1 AND pr_id = ?2 AND head_sha = ?3
              ORDER BY directory ASC",
@@ -205,7 +284,20 @@ impl Db {
         .bind(head_sha)
         .fetch_all(&self.pool)
         .await?;
-        Ok(rows)
+        rows.into_iter()
+            .map(|row| {
+                Ok(FileTreeSummaryRow {
+                    account_id: row.try_get("account_id")?,
+                    pr_id: row.try_get("pr_id")?,
+                    head_sha: row.try_get("head_sha")?,
+                    directory: row.try_get("directory")?,
+                    file_count: row.try_get("file_count")?,
+                    additions: row.try_get("additions")?,
+                    deletions: row.try_get("deletions")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
     }
 
     pub async fn pr_timeline_page(
@@ -1723,6 +1815,15 @@ fn bool_to_i64(value: bool) -> i64 {
     } else {
         0
     }
+}
+
+fn parse_pending_overlay(value: Option<String>) -> Result<Option<PendingOverlay>> {
+    value
+        .map(|raw| {
+            serde_json::from_str::<PendingOverlay>(&raw)
+                .with_context(|| format!("parsing pending overlay json `{raw}`"))
+        })
+        .transpose()
 }
 
 fn account_id_from_host_login(host: &str, login: &str) -> String {

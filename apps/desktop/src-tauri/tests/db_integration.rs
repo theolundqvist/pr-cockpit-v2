@@ -36,6 +36,7 @@ async fn migrations_apply_cleanly_to_empty_file() -> Result<()> {
         "notifications",
         "worktrees",
         "pending_mutations",
+        "mutation_attempts",
         "id_mappings",
         "sync_cursors",
         "rate_limit_buckets",

@@ -40,6 +40,10 @@ harness = false
 name = "comrak_render_throughput"
 harness = false
 
+[[bench]]
+name = "mutation_submit_visible"
+harness = false
+
 [build-dependencies]
 tauri-build = { workspace = true }
 
@@ -84,3 +88,4 @@ regex = "1.12.2"
 wiremock = "0.6.5"
 tokio = { workspace = true, features = ["test-util"] }
 mockito = "1.7.2"
+proptest = "1"
