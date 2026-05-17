@@ -183,13 +183,13 @@
       "handoffPath": "handoffs/m1-perf-corpus.md",
       "startedAt": "2026-05-17T09:02:43.413Z",
       "finishedAt": "2026-05-17T09:59:43.614Z",
-      "lastUpdate": "2026-05-17T09:59:43.615Z",
+      "lastUpdate": "2026-05-17T10:00:16.805Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m1-finalize",
@@ -202,17 +202,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T10:00:16.811Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T10:00:16.811Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m1-verify",
@@ -290,6 +291,14 @@
     {
       "at": "2026-05-17T09:18:44.327Z",
       "message": "m1-perf-corpus: tool_call idle 343160ms; last=2026-05-17T09:13:01.167Z"
+    },
+    {
+      "at": "2026-05-17T10:00:16.805Z",
+      "message": "m1-perf-corpus: measurement_mismatch inbox first paint (synthetic) [parse-failed] regex did not match command stdout"
+    },
+    {
+      "at": "2026-05-17T10:00:16.806Z",
+      "message": "m1-perf-corpus: verification self-reported (unit-test-verified)"
     }
   ]
 }
