@@ -687,6 +687,98 @@ impl Db {
         Ok(())
     }
 
+    pub async fn replace_pr_labels(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        labels: &[PrLabelRecord],
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("DELETE FROM pr_labels WHERE account_id = ?1 AND pr_id = ?2")
+            .bind(account_id)
+            .bind(pr_id)
+            .execute(tx.as_mut())
+            .await?;
+
+        for label in labels {
+            sqlx::query(
+                "INSERT INTO pr_labels(account_id, pr_id, label_name, label_color, description)
+                 VALUES (?1, ?2, ?3, ?4, ?5)",
+            )
+            .bind(&label.account_id)
+            .bind(&label.pr_id)
+            .bind(&label.label_name)
+            .bind(&label.label_color)
+            .bind(&label.description)
+            .execute(tx.as_mut())
+            .await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn replace_pr_assignees(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        assignees: &[PrAssigneeRecord],
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("DELETE FROM pr_assignees WHERE account_id = ?1 AND pr_id = ?2")
+            .bind(account_id)
+            .bind(pr_id)
+            .execute(tx.as_mut())
+            .await?;
+
+        for assignee in assignees {
+            sqlx::query(
+                "INSERT INTO pr_assignees(account_id, pr_id, user_id, assigned_at)
+                 VALUES (?1, ?2, ?3, ?4)",
+            )
+            .bind(&assignee.account_id)
+            .bind(&assignee.pr_id)
+            .bind(&assignee.user_id)
+            .bind(assignee.assigned_at)
+            .execute(tx.as_mut())
+            .await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn replace_pr_reviewers(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        reviewers: &[PrReviewerRecord],
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("DELETE FROM pr_reviewers WHERE account_id = ?1 AND pr_id = ?2")
+            .bind(account_id)
+            .bind(pr_id)
+            .execute(tx.as_mut())
+            .await?;
+
+        for reviewer in reviewers {
+            sqlx::query(
+                "INSERT INTO pr_reviewers(
+                   account_id, pr_id, user_id, reviewer_type, reviewer_state, requested_at
+                 )
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            )
+            .bind(&reviewer.account_id)
+            .bind(&reviewer.pr_id)
+            .bind(&reviewer.user_id)
+            .bind(&reviewer.reviewer_type)
+            .bind(&reviewer.reviewer_state)
+            .bind(reviewer.requested_at)
+            .execute(tx.as_mut())
+            .await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
     pub async fn upsert_commit(&self, commit: &CommitRecord) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
@@ -1218,6 +1310,23 @@ impl Db {
         Ok(true)
     }
 
+    pub async fn sync_cursor(
+        &self,
+        account_id: &str,
+        resource: &str,
+    ) -> Result<Option<SyncCursorRow>> {
+        let row = sqlx::query_as::<_, SyncCursorRow>(
+            "SELECT account_id, resource, cursor, etag, last_fetched_at, updated_at
+             FROM sync_cursors
+             WHERE account_id = ?1 AND resource = ?2",
+        )
+        .bind(account_id)
+        .bind(resource)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
     pub async fn update_rate_limit_bucket(&self, bucket: &RateLimitBucketUpdate) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
@@ -1239,6 +1348,23 @@ impl Db {
         .await?;
         tx.commit().await?;
         Ok(())
+    }
+
+    pub async fn rate_limit_bucket(
+        &self,
+        account_id: &str,
+        resource: &str,
+    ) -> Result<Option<RateLimitBucketRow>> {
+        let row = sqlx::query_as::<_, RateLimitBucketRow>(
+            "SELECT account_id, resource, remaining, limit_total, reset_at, updated_at
+             FROM rate_limit_buckets
+             WHERE account_id = ?1 AND resource = ?2",
+        )
+        .bind(account_id)
+        .bind(resource)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
     }
 
     async fn open_with_paths(

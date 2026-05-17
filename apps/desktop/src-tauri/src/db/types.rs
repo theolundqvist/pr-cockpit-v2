@@ -219,6 +219,33 @@ pub struct PullRequestRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrLabelRecord {
+    pub account_id: String,
+    pub pr_id: String,
+    pub label_name: String,
+    pub label_color: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrAssigneeRecord {
+    pub account_id: String,
+    pub pr_id: String,
+    pub user_id: String,
+    pub assigned_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrReviewerRecord {
+    pub account_id: String,
+    pub pr_id: String,
+    pub user_id: String,
+    pub reviewer_type: String,
+    pub reviewer_state: String,
+    pub requested_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitRecord {
     pub id: String,
     pub account_id: String,
@@ -441,8 +468,28 @@ pub struct SyncCursorUpdate {
     pub fetched_at: i64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct SyncCursorRow {
+    pub account_id: String,
+    pub resource: String,
+    pub cursor: Option<String>,
+    pub etag: Option<String>,
+    pub last_fetched_at: i64,
+    pub updated_at: i64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitBucketUpdate {
+    pub account_id: String,
+    pub resource: String,
+    pub remaining: i64,
+    pub limit_total: i64,
+    pub reset_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct RateLimitBucketRow {
     pub account_id: String,
     pub resource: String,
     pub remaining: i64,
