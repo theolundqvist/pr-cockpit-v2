@@ -10,14 +10,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T05:56:01.240Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T05:56:00.066Z",
+      "lastUpdate": "2026-05-17T05:56:01.240Z",
       "note": "respawned by self-planner (was error; attempts=2)",
-      "attempts": 2,
+      "attempts": 3,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -59,6 +59,10 @@
     {
       "at": "2026-05-17T05:55:10.688Z",
       "message": "m1-cockpit: spawn failed after 3 transient sub-attempts: l: [validation_error] Branch 'orch/pr-cockpit/m1-cockpit' does not exist in repository theolundqvist/pr-cockpit-v2."
+    },
+    {
+      "at": "2026-05-17T05:56:00.879Z",
+      "message": "m1-cockpit: respawned by self-planner (was error); resuming from orch/pr-cockpit/m1-cockpit"
     }
   ]
 }
