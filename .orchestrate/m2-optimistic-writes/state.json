@@ -63,13 +63,13 @@
       "handoffPath": "handoffs/m2-offline-and-queue.md",
       "startedAt": "2026-05-17T16:32:37.491Z",
       "finishedAt": "2026-05-17T17:13:32.794Z",
-      "lastUpdate": "2026-05-17T17:13:32.795Z",
+      "lastUpdate": "2026-05-17T17:13:33.652Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m2-ipc-and-frontend",
@@ -82,17 +82,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T17:13:34.961Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T17:13:34.961Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m2-finalize",
@@ -173,6 +174,10 @@
     {
       "at": "2026-05-17T17:08:56.892Z",
       "message": "m2-offline-and-queue: tool_call idle 350607ms; last=2026-05-17T17:03:06.285Z"
+    },
+    {
+      "at": "2026-05-17T17:13:33.653Z",
+      "message": "m2-offline-and-queue: verification self-reported (unit-test-verified)"
     }
   ]
 }
