@@ -37,7 +37,7 @@
     {
       "name": "m3-diff-polish",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "pathsAllowed": [
@@ -110,7 +110,7 @@
     {
       "name": "m3-worktree-read",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "pathsAllowed": [
@@ -173,7 +173,7 @@
     {
       "name": "m3-notifications",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "pathsAllowed": [
@@ -296,7 +296,7 @@
     {
       "name": "m3-finalize-merge",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": [
         "m3-diff-polish",
