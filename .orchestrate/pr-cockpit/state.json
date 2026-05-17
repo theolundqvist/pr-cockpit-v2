@@ -175,6 +175,14 @@
     {
       "at": "2026-05-17T09:08:12.108Z",
       "message": "m1-cockpit: tool_call idle 304827ms; last=2026-05-17T09:03:07.281Z"
+    },
+    {
+      "at": "2026-05-17T09:18:26.504Z",
+      "message": "m1-cockpit: SSE idle 324946ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T09:18:26.505Z",
+      "message": "m1-cockpit: tool_call idle 324947ms; last=2026-05-17T09:13:01.558Z"
     }
   ]
 }
