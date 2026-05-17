@@ -51,15 +51,15 @@
       "branch": "orch/m3-diff-worktree-notifs/m3-notifications",
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-e8a8ce6e-a734-4076-b77a-09cacc21f9f5",
+      "runId": "run-0329751e-ab6a-4198-beef-8adc9f532364",
+      "parentAgentId": "bc-f868f69e-ef2d-4534-a00f-f560772f9614",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-17T20:58:11.668Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:58:11.668Z",
+      "lastUpdate": "2026-05-17T20:58:14.324Z",
       "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -76,12 +76,12 @@
       "agentId": "bc-c907a6b9-d2a7-4f93-b339-5cc26446bbbc",
       "runId": "run-aa593827-efb4-4bb0-9618-5dbe2ac37814",
       "parentAgentId": "bc-f868f69e-ef2d-4534-a00f-f560772f9614",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m3-corpus-tighten.md",
       "startedAt": "2026-05-17T20:56:44.496Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:56:47.348Z",
+      "finishedAt": "2026-05-17T21:30:31.198Z",
+      "lastUpdate": "2026-05-17T21:30:31.198Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
@@ -163,6 +163,14 @@
     {
       "at": "2026-05-17T20:57:53.883Z",
       "message": "m3-notifications: respawned by local-cli (was error)"
+    },
+    {
+      "at": "2026-05-17T21:24:09.915Z",
+      "message": "m3-corpus-tighten: SSE idle 336342ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T21:24:09.916Z",
+      "message": "m3-corpus-tighten: tool_call idle 336342ms; last=2026-05-17T21:18:33.573Z"
     }
   ]
 }
