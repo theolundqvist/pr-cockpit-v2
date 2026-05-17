@@ -238,6 +238,53 @@
       "prNumber": null,
       "failureMode": null,
       "verification": null
+    },
+    {
+      "name": "m1-fix-gates",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-fix-gates",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-verify"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-05-17T11:31:19.608Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-05-17T11:31:19.608Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
+    },
+    {
+      "name": "m1-reverify",
+      "type": "verifier",
+      "branch": "orch/m1-cockpit/m1-reverify",
+      "startingRef": "orch/m1-cockpit/m1-fix-gates",
+      "dependsOn": [
+        "m1-fix-gates"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
     }
   ],
   "attention": [
