@@ -303,13 +303,13 @@
       "handoffPath": "handoffs/m1-bench-baselines.md",
       "startedAt": "2026-05-17T12:35:37.307Z",
       "finishedAt": "2026-05-17T13:38:39.962Z",
-      "lastUpdate": "2026-05-17T13:38:39.963Z",
+      "lastUpdate": "2026-05-17T13:38:40.795Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     }
   ],
   "attention": [
@@ -416,6 +416,10 @@
     {
       "at": "2026-05-17T12:15:36.326Z",
       "message": "m1-reverify: tool_call idle 300997ms; last=2026-05-17T12:10:35.329Z"
+    },
+    {
+      "at": "2026-05-17T13:38:40.795Z",
+      "message": "m1-bench-baselines: verification self-reported (unit-test-verified)"
     }
   ]
 }
