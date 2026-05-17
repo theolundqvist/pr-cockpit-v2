@@ -8,6 +8,8 @@ pub fn run() {
         .expect("error while running desktop app");
 }
 
+pub mod db;
+
 #[cfg(test)]
 mod tests {
     #[test]
