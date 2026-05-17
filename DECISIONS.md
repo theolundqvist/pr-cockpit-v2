@@ -64,3 +64,61 @@ SHA-256 checks:
 
 Reason: binaries stay out of git while still being reproducible and integrity
 checked in CI and local setup.
+
+### 2026-05-17: Denormalized read models implemented as SQL views for M1 data layer
+
+Decision: `pr_inbox_rows`, `pr_detail_summary`, `unread_counts`, and
+`file_tree_summary` are plain SQLite views computed on read, not trigger-backed
+materialized projection tables.
+
+Reason: this keeps M1 read-only state derivation deterministic and easy to
+verify against hand-rolled SQL while sync ingestion is still stabilizing.
+Projection tables can be introduced in a later milestone if profiling shows the
+view cost is material.
+
+### 2026-05-17: FTS uses external-content pattern via `search_documents`
+
+Decision: M1 search uses a normalized `search_documents` content table and an
+FTS5 virtual table (`search_fts`) with `content='search_documents'`. Source
+table triggers upsert/delete rows into `search_documents`, and rebuild is
+explicitly supported by clearing `search_documents` and issuing
+`INSERT INTO search_fts(search_fts) VALUES ('rebuild')`.
+
+Reason: external-content FTS avoids duplicate source-of-truth storage while
+keeping index maintenance transparent and testable.
+
+### 2026-05-17: Blob LRU eviction favors single-reference blobs
+
+Decision: blob eviction sorts by `(last_accessed_at ASC, ref_count ASC)` and
+only evicts entries with `ref_count <= 1` until `SUM(blob_refs.size) <=
+target_bytes`.
+
+Reason: this preserves heavily shared blobs (large ref-count fan-out) while
+still bounding disk usage in local-first operation.
+
+### 2026-05-17: Fixture build pipeline uses deterministic Rust generator
+
+Decision: fixtures are generated with
+`cargo run -p desktop --bin fixture-build`, which runs migrations into a fresh
+SQLite file, inserts deterministic records (200 inbox PRs/notifications plus
+active PR timeline/checks), writes `fixtures/seed.sql`, and copies the resulting
+`cockpit_fixture.db` + content-addressed `blobs/` payloads into versioned
+fixtures.
+
+Reason: one canonical generator prevents drift between migration evolution,
+fixture SQL, and binary fixture blobs.
+
+### 2026-05-17: Schema mappings for non-obvious PR cockpit fields
+
+Decision:
+- `comments.kind` maps to `issue | review | review_thread_reply`.
+- `review_threads` stores both current coordinates
+  (`path`, `line`, `side`, `start_line`, `start_side`) and original GitHub
+  coordinates (`original_commit_sha`, `original_path`, `original_position`,
+  `original_line`) without local re-anchoring.
+- `id_mappings` is keyed by `(account_id, kind, local_id)` with unique
+  `(account_id, kind, server_id)` to reconcile optimistic temp IDs to server
+  IDs safely.
+
+Reason: these mappings encode PLAN §4 invariants directly in schema constraints
+and avoid ambiguity during optimistic reconciliation.
