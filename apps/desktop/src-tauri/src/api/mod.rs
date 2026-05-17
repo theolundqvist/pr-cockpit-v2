@@ -15,6 +15,26 @@ use crate::db::{Db, PrPatchRecord, SyncCursorUpdate};
 
 pub const PR_DETAIL_QUERY: &str = include_str!("queries/PrDetail.graphql");
 pub const INBOX_REFRESH_QUERY: &str = include_str!("queries/InboxRefresh.graphql");
+pub const ADD_PULL_REQUEST_REVIEW_THREAD_REPLY_MUTATION: &str =
+    include_str!("queries/mutations/addPullRequestReviewThreadReply.graphql");
+pub const SUBMIT_PULL_REQUEST_REVIEW_MUTATION: &str =
+    include_str!("queries/mutations/submitPullRequestReview.graphql");
+pub const RESOLVE_REVIEW_THREAD_MUTATION: &str =
+    include_str!("queries/mutations/resolveReviewThread.graphql");
+pub const UNRESOLVE_REVIEW_THREAD_MUTATION: &str =
+    include_str!("queries/mutations/unresolveReviewThread.graphql");
+pub const ADD_PROJECT_V2_ITEM_MUTATION: &str =
+    include_str!("queries/mutations/addProjectV2ItemById.graphql");
+pub const UPDATE_PROJECT_V2_ITEM_FIELD_VALUE_MUTATION: &str =
+    include_str!("queries/mutations/updateProjectV2ItemFieldValue.graphql");
+pub const CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION: &str =
+    include_str!("queries/mutations/convertPullRequestToDraft.graphql");
+pub const MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION: &str =
+    include_str!("queries/mutations/markPullRequestReadyForReview.graphql");
+pub const ENABLE_PULL_REQUEST_AUTOMERGE_MUTATION: &str =
+    include_str!("queries/mutations/enablePullRequestAutoMerge.graphql");
+pub const DISABLE_PULL_REQUEST_AUTOMERGE_MUTATION: &str =
+    include_str!("queries/mutations/disablePullRequestAutoMerge.graphql");
 pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-17.m1.v1";
 pub const INBOX_REFRESH_QUERY_REVISION: &str = "2026-05-17.m1.v1";
 
@@ -154,6 +174,141 @@ impl GithubClient {
             .data
             .ok_or_else(|| anyhow!("graphql response missing data"))?;
         Ok((data, rate_limit))
+    }
+
+    pub async fn graphql_mutation<T: DeserializeOwned>(
+        &self,
+        account_id: &str,
+        query: &str,
+        variables: serde_json::Value,
+        idempotency_key: Option<&str>,
+    ) -> Result<(T, Option<RateLimitSnapshot>)> {
+        let locator = self.account_locator(account_id).await?;
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        if let Some(idempotency_key) = idempotency_key {
+            headers.insert(
+                "Idempotency-Key",
+                HeaderValue::from_str(idempotency_key).context("invalid idempotency key header")?,
+            );
+        }
+
+        let body = serde_json::to_vec(&json!({
+            "query": query,
+            "variables": variables
+        }))?;
+        let response = self
+            .token_client
+            .request_with(
+                &locator,
+                reqwest::Method::POST,
+                &self.config.graphql_origin,
+                headers,
+                Some(body),
+            )
+            .await?;
+        let rate_limit = parse_rate_limit_headers(response.headers());
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<body unavailable>".to_string());
+            return Err(anyhow!("graphql mutation failed ({status}): {body}"));
+        }
+
+        let envelope: GraphqlEnvelope<T> = response.json().await?;
+        if let Some(errors) = envelope.errors {
+            return Err(anyhow!(
+                "graphql mutation errors: {}",
+                serde_json::to_string(&errors)?
+            ));
+        }
+        let data = envelope
+            .data
+            .ok_or_else(|| anyhow!("graphql mutation response missing data"))?;
+        Ok((data, rate_limit))
+    }
+
+    pub async fn rest_mutation_json<T: DeserializeOwned>(
+        &self,
+        account_id: &str,
+        method: reqwest::Method,
+        path: &str,
+        body: Option<serde_json::Value>,
+        idempotency_key: Option<&str>,
+    ) -> Result<(Option<T>, Option<RateLimitSnapshot>)> {
+        let locator = self.account_locator(account_id).await?;
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        if body.is_some() {
+            headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+        }
+        if let Some(idempotency_key) = idempotency_key {
+            headers.insert(
+                "Idempotency-Key",
+                HeaderValue::from_str(idempotency_key).context("invalid idempotency key header")?,
+            );
+        }
+
+        let url = format!("{}{}", self.config.api_origin, path);
+        let payload = body
+            .as_ref()
+            .map(serde_json::to_vec)
+            .transpose()
+            .context("serializing mutation payload")?;
+        let response = self
+            .token_client
+            .request_with(&locator, method, &url, headers, payload)
+            .await?;
+        let rate_limit = parse_rate_limit_headers(response.headers());
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<body unavailable>".to_string());
+            return Err(anyhow!("rest mutation failed ({status}): {body}"));
+        }
+
+        if response.status() == reqwest::StatusCode::NO_CONTENT {
+            return Ok((None, rate_limit));
+        }
+        let bytes = response.bytes().await?;
+        if bytes.is_empty() {
+            return Ok((None, rate_limit));
+        }
+        let payload = serde_json::from_slice::<T>(&bytes)
+            .with_context(|| format!("decoding mutation response for `{path}`"))?;
+        Ok((Some(payload), rate_limit))
+    }
+
+    pub async fn rest_mutation_no_response(
+        &self,
+        account_id: &str,
+        method: reqwest::Method,
+        path: &str,
+        body: Option<serde_json::Value>,
+        idempotency_key: Option<&str>,
+    ) -> Result<Option<RateLimitSnapshot>> {
+        let (_payload, rate_limit) = self
+            .rest_mutation_json::<serde_json::Value>(
+                account_id,
+                method,
+                path,
+                body,
+                idempotency_key,
+            )
+            .await?;
+        Ok(rate_limit)
     }
 
     pub async fn get_json_conditional<T: DeserializeOwned>(
@@ -389,6 +544,18 @@ impl GithubClient {
         let metadata = parse_response_metadata(response.headers(), true);
         let payload = response.json::<T>().await?;
         Ok(RawResponse::Modified { payload, metadata })
+    }
+
+    async fn account_locator(&self, account_id: &str) -> Result<AccountLocator> {
+        let account = self
+            .db
+            .auth_account_by_id(account_id)
+            .await?
+            .ok_or_else(|| anyhow!("account not found for id `{account_id}`"))?;
+        Ok(AccountLocator {
+            host: account.host,
+            login: account.login,
+        })
     }
 }
 

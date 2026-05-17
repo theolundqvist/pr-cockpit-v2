@@ -14,12 +14,13 @@ use crate::db::{
 };
 use crate::sync::{CacheInvalidationEmitter, SyncHandle};
 
+pub mod dispatch;
 pub mod engine;
+pub mod handlers;
 pub mod ipc_types;
 pub mod patch;
 pub mod projector;
 pub mod reconciler;
-pub mod stub_handlers;
 
 pub use engine::MutationEngine;
 pub use ipc_types::*;
