@@ -218,7 +218,7 @@
     {
       "name": "m1-verify",
       "type": "verifier",
-      "branch": "orch/m1-cockpit/m1-verify",
+      "branch": "`cursor/verify-m1-finalize-6204` (verifier-only; pushed to origin with all execution logs and a one-shot lint reproducer under `verify/`)",
       "startingRef": "orch/m1-cockpit/m1-finalize",
       "dependsOn": [
         "m1-finalize"
@@ -226,18 +226,18 @@
       "agentId": "bc-d0525f4c-97c5-4583-bf7a-ebda7c836204",
       "runId": "run-b14696d3-c661-4a9d-83fa-ce5bed4b9484",
       "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-verify.md",
       "startedAt": "2026-05-17T10:46:27.374Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T10:46:29.694Z",
+      "finishedAt": "2026-05-17T11:28:52.819Z",
+      "lastUpdate": "2026-05-17T11:28:52.820Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
