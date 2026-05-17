@@ -39,12 +39,12 @@
       "handoffPath": "handoffs/m2-mutation-handlers.md",
       "startedAt": "2026-05-17T15:53:44.480Z",
       "finishedAt": "2026-05-17T16:32:29.541Z",
-      "lastUpdate": "2026-05-17T16:32:29.542Z",
+      "lastUpdate": "2026-05-17T16:32:30.432Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -58,17 +58,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T16:32:37.491Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T16:32:37.491Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m2-ipc-and-frontend",
@@ -160,6 +161,10 @@
     {
       "at": "2026-05-17T15:53:37.871Z",
       "message": "m2-mutation-engine: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T16:32:30.432Z",
+      "message": "m2-mutation-handlers: verification self-reported (unit-test-verified)"
     }
   ]
 }
