@@ -247,15 +247,15 @@
       "dependsOn": [
         "m1-verify"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-585e1af4-c02c-4f1c-982c-6df6dfbaeeef",
+      "runId": "run-06f3bee7-48c9-4d09-b368-8b88b82cdadf",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-fix-gates.md",
       "startedAt": "2026-05-17T11:31:19.608Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T11:31:19.608Z",
+      "finishedAt": "2026-05-17T11:56:29.494Z",
+      "lastUpdate": "2026-05-17T11:56:29.494Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -371,6 +371,14 @@
     {
       "at": "2026-05-17T11:28:53.642Z",
       "message": "m1-finalize: verification recorded (verifier-failed) by verifier m1-verify"
+    },
+    {
+      "at": "2026-05-17T11:50:24.364Z",
+      "message": "m1-fix-gates: SSE idle 317124ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T11:50:24.365Z",
+      "message": "m1-fix-gates: tool_call idle 317125ms; last=2026-05-17T11:45:07.240Z"
     }
   ]
 }
