@@ -54,17 +54,17 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "error",
+      "status": "pending",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": "2026-05-17T20:56:43.561Z",
+      "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T20:56:43.712Z",
-      "note": "spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.",
+      "lastUpdate": "2026-05-17T20:57:53.092Z",
+      "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
+      "failureMode": null,
       "verification": null
     },
     {
@@ -155,6 +155,10 @@
     {
       "at": "2026-05-17T20:57:51.543Z",
       "message": "m3-diff-polish: respawned by local-cli (was error)"
+    },
+    {
+      "at": "2026-05-17T20:57:52.657Z",
+      "message": "m3-worktree-read: respawned by local-cli (was error)"
     }
   ]
 }
