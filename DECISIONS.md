@@ -321,3 +321,74 @@ Reason: some environments cannot boot a GUI/webview stack; the synthetic harness
 Decision: `pnpm corpus` now runs fully offline against committed corpus/oracle fixtures and hard-fails when weighted regression exceeds 2%; optional corpus refresh remains behind `GITHUB_TOKEN` via `pnpm corpus:fetch` and never gates CI.
 
 Reason: M1 requires deterministic offline verification while still supporting periodic oracle refresh when maintainers intentionally opt in.
+
+### 2026-05-17: M2 optimistic write algebra stores row-level before/after patch ops with explicit pending overlay metadata
+
+Decision: the mutation projector consumes a JSON-stable patch schema that models each operation as a row mutation:
+
+- `table`: target table name
+- `pk`: primary-key column/value map
+- `before`: previous column map (`null` for insert)
+- `after`: next column map (`null` for delete)
+- optional patch-level `pending_overlay_kind` (`full` or `cautious`)
+
+Example:
+
+```json
+{
+  "operations": [
+    {
+      "table": "comments",
+      "pk": { "id": { "type": "text", "value": "local-comment-42" } },
+      "before": null,
+      "after": {
+        "id": { "type": "text", "value": "local-comment-42" },
+        "account_id": { "type": "text", "value": "github.com:demo" },
+        "pr_id": { "type": "text", "value": "pr_1" },
+        "body": { "type": "text", "value": "hello" }
+      }
+    }
+  ],
+  "pending_overlay_kind": "full"
+}
+```
+
+Reason: row-level before/after ops keep forward/inverse derivation deterministic (`inverse == reverse + swap(before, after)`) while still allowing single-column and multi-column changes without separate op types.
+
+### 2026-05-17: `body_server_adjusted` marks normalization deltas after server reconcile
+
+Decision: reconciliation compares predicted markdown to the server-normalized body for comments, reviews, and PR descriptions:
+
+- when equal: write server body, keep `body_server_adjusted = 0`, clear `server_adjusted_at`,
+- when different: write server body, set `body_server_adjusted = 1`, set `server_adjusted_at = <epoch seconds>`.
+
+UI contract: renderer shows the normal rendered markdown in all cases; when `body_server_adjusted = 1` it adds a subtle \"server adjusted\" affordance next to the body.
+
+Reason: preserves user-visible text parity with server truth while giving an explicit, queryable signal for non-lossless markdown normalization.
+
+### 2026-05-17: Mutation retry/backoff policy is exponential with deterministic jitter; only network failures silently revert
+
+Decision: mutation runtime classifies failures into `ErrorKind` and applies:
+
+- `Network`: retry silently with backoff `50ms * 2^attempt + jitter(0..30ms)` (capped at 500ms),
+- `RateLimited`: surfaced as failed/retryable,
+- `Conflict` (`409`/`422`): non-retryable failure with hard-conflict payload,
+- other `4xx`: failed/retryable,
+- `5xx`/unknown: failed/retryable.
+
+Silent revert rule: only `ErrorKind::Network` failures are retried without emitting visible rollback UX; all other terminal failures emit `MutationEvent::Failed` (and rollback) for the sync-errors tray/inline controls.
+
+Reason: keeps offline/transient disconnect behavior low-noise while preserving explicit operator action for semantic and authorization failures.
+
+### 2026-05-17: Proptest deterministic seed reproduction for mutation engine
+
+Decision: mutation proptests use `TestRunner::new_with_rng` + `TestRng::from_seed(RngAlgorithm::ChaCha, seed)` with fixed per-test seeds.
+
+Seed reproduction recipe:
+
+1. run `cargo test -p desktop --test mutation_engine_proptest -- --nocapture`,
+2. if a property fails, note the test name and seed literal in `deterministic_runner(...)`,
+3. rerun the single test with the same seed by temporarily reducing `cases` to `1` and preserving that seed,
+4. once fixed, restore the original case count.
+
+Reason: deterministic seeds eliminate shrinking nondeterminism across CI/local runs and make mutation-state bugs reproducible from one failing transcript.
