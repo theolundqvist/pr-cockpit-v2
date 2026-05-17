@@ -1,0 +1,51 @@
+[package]
+name = "desktop"
+version = "0.1.0"
+description = "PR Cockpit desktop shell"
+edition = "2021"
+
+[lib]
+name = "desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "desktop"
+path = "src/main.rs"
+
+[[bench]]
+name = "scaffold_bench"
+harness = false
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true }
+octocrab = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+specta = { workspace = true }
+specta-typescript = { workspace = true }
+sqlx = { workspace = true }
+tauri = { workspace = true }
+tauri-plugin-clipboard-manager = { workspace = true }
+tauri-plugin-fs = { workspace = true }
+tauri-plugin-os = { workspace = true }
+tauri-specta = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tree-sitter = { workspace = true }
+tree-sitter-highlight = { workspace = true }
+ammonia = { workspace = true }
+comrak = { workspace = true }
+git2 = { workspace = true }
+keyring = { workspace = true }
+notify = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+zstd = { workspace = true }
+
+[dev-dependencies]
+criterion = "0.8.2"

@@ -1,0 +1,30 @@
+{
+  "name": "pr-cockpit",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.3",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "pnpm --filter desktop typecheck",
+    "svelte-check": "pnpm --filter desktop svelte-check",
+    "lint": "pnpm --filter desktop lint",
+    "test": "pnpm --filter desktop test",
+    "bench": "pnpm --filter desktop bench",
+    "corpus": "pnpm --filter desktop corpus",
+    "rust:fmt": "cargo fmt --check",
+    "rust:clippy": "cargo clippy --workspace --all-targets -- -D warnings",
+    "rust:test": "cargo test --workspace",
+    "rust:bench-check": "cargo bench --workspace --no-run",
+    "rust:check": "cargo check --workspace --all-targets",
+    "prepare": "husky || true",
+    "commitlint": "commitlint --from HEAD~1 --to HEAD"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7"
+  }
+}
