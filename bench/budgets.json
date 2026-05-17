@@ -36,6 +36,20 @@
       "budget": 16,
       "baseline": 4
     },
+    "mutation_submit_visible_online_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 16,
+      "baseline": 4
+    },
+    "mutation_submit_visible_offline_ms": {
+      "source": "rust",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 16,
+      "baseline": 4
+    },
     "comrak_render_throughput_ops_per_sec": {
       "source": "rust",
       "kind": "min",

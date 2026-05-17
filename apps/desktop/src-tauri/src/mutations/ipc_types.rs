@@ -32,6 +32,7 @@ pub struct PendingMutationView {
     pub updated_at: i64,
     pub last_error: Option<String>,
     pub pending_overlay: Option<PendingOverlay>,
+    pub requires_connection_confirmation: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -39,6 +40,24 @@ pub struct HardConflictDiff {
     pub summary: String,
     pub local_body: Option<String>,
     pub server_body: Option<String>,
+    pub changed_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum QueueReason {
+    Offline,
+    RequiresConnectionConfirmation,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct HardConflictPayload {
+    pub mutation_id: String,
+    pub kind: MutationKind,
+    pub target_id: String,
+    pub server_snapshot_json: String,
+    pub predicted_snapshot_json: String,
+    pub diff: HardConflictDiff,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
@@ -46,6 +65,10 @@ pub struct HardConflictDiff {
 pub enum MutationEvent {
     Submitted {
         mutation: PendingMutationView,
+    },
+    Queued {
+        mutation: PendingMutationView,
+        reason: QueueReason,
     },
     Applied {
         mutation_id: String,
@@ -58,6 +81,9 @@ pub enum MutationEvent {
         error_kind: ErrorKind,
         retryable: bool,
         hard_conflict: Option<HardConflictDiff>,
+    },
+    HardConflict {
+        payload: HardConflictPayload,
     },
     RolledBack {
         mutation_id: String,

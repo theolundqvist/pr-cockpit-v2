@@ -112,6 +112,7 @@ impl Mutation for AddCommentStub {
                             summary: "stub conflict diff".to_string(),
                             local_body: Some("local".to_string()),
                             server_body: Some("server".to_string()),
+                            changed_fields: vec!["body".to_string()],
                         }),
                     ),
                     "not_found" => MutationApplyError::http(404, "stub not found"),
