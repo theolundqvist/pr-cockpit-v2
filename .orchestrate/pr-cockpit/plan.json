@@ -46,6 +46,135 @@
       "verifies": "m1-cockpit",
       "model": "claude-opus-4-7",
       "scopedGoal": "Verify the m1-cockpit deliverable branch satisfies every M1 acceptance criterion from AUTONOMY_BRIEF.md §M1, PLAN.md §12 M1, and the m1-cockpit task acceptance list. Run the recipe in the inherited `verify` plan: clone the branch, install toolchains, run CI steps locally (cargo fmt/clippy/test, pnpm typecheck/test, markdown corpus regression, headless perf benchmark, token-leak test), and exercise the app manually against the pre-seeded SQLite fixtures. Confirm: cold inbox paint < 100 ms warm cache; diff scroll 60 fps on 5k-line fixture; markdown corpus regression ≤ 2%; keychain-only tokens. Emit a verifier handoff with one of `live-ui-verified` / `unit-test-verified` / `type-check-only` / `verifier-blocked` / `verifier-failed` and a per-criterion findings list."
+    },
+    {
+      "name": "m2-optimistic-writes",
+      "type": "subplanner",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "dependsOn": ["verify-m1-cockpit"],
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "scopedGoal": "Own milestone M2 (Optimistic writes) end-to-end per AUTONOMY_BRIEF.md §M2 and PLAN.md §3 + §12 M2. Branch from the M1 deliverable on `orch/pr-cockpit/m1-cockpit`; do not redo M1's work. Decompose into your own workers; default to fewer broader workers; merges are tasks. Deliverables: (1) `pending_mutations` table + `id_mappings` already exist (M1); add the projector that applies inverse-patch optimism into the denormalized read models so the UI renders pending state in O(1). (2) Implement the 25 mutation-kind handlers from PLAN.md §3.1 verbatim — `addComment`, `editComment`, `deleteComment`, `addReaction`, `removeReaction`, `addLabel`, `removeLabel`, `setAssignees`, `requestReview`, `removeReviewRequest`, `submitReview`, `resolveThread`, `unresolveThread`, `markFileViewed`, `unmarkFileViewed`, `updatePrTitle`, `updatePrDescription`, `setMilestone`, `setProject`, `convertToDraft`, `markReadyForReview`, `enableAutoMerge`, `disableAutoMerge`, `updateBranch`, `merge`, `closePr`, `reopenPr` — each with predict / apply / rollback / reconcile and the right optimism level (full / cautious / none) per PLAN.md §3.2. (3) Property-based tests (proptest in Rust) over `(mutation_sequence × server_response_sequence × conflict_sequence)` covering the matrix from PLAN.md §3.6. (4) Reconciliation: every successful response upserts returned nodes, schedules a targeted timeline refetch, swaps temp local IDs to server IDs via `id_mappings`, and overlays server-normalized markdown with a subtle 'server adjusted' affordance. (5) Composer: textarea + Preview tab feeding the same comrak pipeline as the timeline; render parity by construction. (6) Rollback UX: inline error banner near the affected control + global 'sync errors' tray; one-click retry/discard; silent revert only for transient network errors. (7) Offline / airplane-mode behavior: queue persists to disk; safe mutations replay in submission order on reconnect; unsafe mutations are blocked with a clear 'requires connection' state; hard conflicts (PR closed while composing) prompt with a diff modal. (8) Airplane-mode drill: a scripted test that composes 10 comments, changes labels, resolves threads while offline, then on reconnect verifies everything replays and there is no data loss. M2 acceptance is met when all 25 mutation-kind handlers exist with predict/apply/rollback/reconcile, property tests pass, the airplane drill passes, and the composer textarea+Preview is wired through comrak. Read AUTONOMY_BRIEF.md §M2 + PLAN.md §3 + §12 M2 verbatim into your subplanner plan.json `acceptanceCriteria`. Commit the deliverable to the bookkeeping branch `orch/pr-cockpit/m2-optimistic-writes`; the parent will use that branch as the starting ref for M3.",
+      "acceptance": [
+        "All 25 mutation kinds in PLAN.md §3.1 implemented with predict / apply / rollback / reconcile and correct optimism level per §3.2",
+        "Property-based tests over (mutation_sequence × server_response_sequence × conflict_sequence) pass",
+        "Airplane-mode scripted drill: 10 comments + label changes + thread resolutions offline; on reconnect everything replays in order with no data loss",
+        "Composer: textarea + Preview tab rendered through the same comrak pipeline as the timeline; parity test passes",
+        "Rollback UX: inline error banner + global sync-errors tray; transient network errors silent-revert, others surface",
+        "Reconciliation: successful responses upsert returned nodes, schedule targeted refetch, swap temp local IDs via id_mappings; server-normalized markdown overwrites local prediction with `server adjusted` affordance",
+        "Offline queue persists to disk; safe mutations replay in submission order on reconnect; unsafe mutations blocked with `requires connection` state",
+        "Hard-conflict modal (PR closed while composing) appears; never silently dropped",
+        "All M1 perf budgets (PLAN.md §10) still green; comment submit visible < 16 ms (single frame)",
+        "Markdown corpus regression still ≤ 2%; rust + frontend test suites + property tests all green in CI on ubuntu + macos"
+      ],
+      "verify": "## Setup\n- Clone the deliverable branch (`orch/pr-cockpit/m2-optimistic-writes`).\n- Same toolchain as M1.\n\n## Automated\n- `cargo fmt --check` / `cargo clippy --workspace -- -D warnings` clean.\n- `cargo test --workspace` green incl. property tests over the mutation matrix.\n- `pnpm typecheck` / `pnpm svelte-check` / `pnpm lint` / `pnpm test` green.\n- Airplane-mode drill: scripted test runs offline (network blocked), composes 10 comments + changes labels + resolves threads, then reconnects; assert all 10 replay in order, server IDs reconcile, no data loss.\n- Comment-submit latency benchmark < 16 ms on the bench fixture.\n- Markdown corpus regression still ≤ 2%.\n- All M1 perf budgets still green.\n\n## Manual\n- Open the seeded fixture, post a comment offline → it appears instantly with a pending affordance; reconnect → server adjusted markdown + temp ID swap is invisible.\n- Resolve a thread, change labels, request a review while offline → all queue with pending markers; reconnect → all reconcile.\n- Force a hard conflict (close PR via fixture mutation) → diff modal appears.\n\n## Gotchas\n- Optimism level per mutation kind is non-negotiable (PLAN.md §3.2). Don't promote merge / squash / rebase to optimistic.\n- Composer textarea + Preview must use comrak only. No JS markdown.\n- Inverse-patch projection must run on the SQLite-side; the UI subscribes."
+    },
+    {
+      "name": "verify-m2-optimistic-writes",
+      "type": "verifier",
+      "verifies": "m2-optimistic-writes",
+      "model": "claude-opus-4-7",
+      "scopedGoal": "Verify m2-optimistic-writes against AUTONOMY_BRIEF.md §M2 + PLAN.md §3 + §12 M2 + the task acceptance list. Run the recipe in the inherited `verify` plan: cargo + pnpm gates, property tests, airplane-mode drill, comment-submit latency bench, M1 perf budgets still green, markdown corpus still ≤ 2%. Confirm 25 mutation handlers exist with the right optimism level, the composer is textarea+Preview through comrak, and offline queue persists + replays. Emit `live-ui-verified` / `unit-test-verified` / `type-check-only` / `verifier-blocked` / `verifier-failed` with a per-criterion findings list."
+    },
+    {
+      "name": "m3-diff-worktree-notifs",
+      "type": "subplanner",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "dependsOn": ["verify-m2-optimistic-writes"],
+      "startingRef": "orch/pr-cockpit/m2-optimistic-writes",
+      "scopedGoal": "Own milestone M3 (Diff polish + worktree read + notifications) end-to-end per AUTONOMY_BRIEF.md §M3 + PLAN.md §6 + §7 + §8 + §12 M3. Branch from `orch/pr-cockpit/m2-optimistic-writes`. Decompose into your own workers; merges are tasks. Deliverables: (1) Diff polish: multi-line review comments (compute target `(file, side, line, start_line)` and post via GraphQL `addReviewComment`), suggestion-block compose (codeblock with ```suggestion fence), viewed checkboxes per file (head_sha-scoped via `pr_files.viewed_by_account_id` + `viewed_at_head_sha`), images and binary file rendering (placeholder for binary, inline for images via Tauri local-asset protocol), rename detection. (2) Worktree read: discovery against configured root dirs (`~/dev`, `~/code`, `~/src`, `~/repos`) per PLAN.md §8 — `git worktree list --porcelain` is authoritative; optional `.github-pr-cockpit.toml` per worktree for overrides; no `$HOME` autoscan. `notify` watchers on `.git/HEAD` / `.git/refs/` / `.git/index` / working tree with 200–500 ms debounce, then `git status --porcelain=v2 --branch` + `git rev-list --left-right --count`. Multi-signal confidence-scored PR mapping (remote URL, branch upstream, `gh pr status`, exact head SHA, fork-owner/branch / pr/123 conventions, head-SHA ancestry); UI shows confidence + manual override. App-created vs user-managed flag; cleanup blocked on user-managed; never delete uncommitted work. (3) Notifications: native OS notifications via Tauri's notification plugin; the local rule engine fires post-reconcile so dedup works on `(account, repo, pr, event_type, actor, server_event_id)`; configurable triggers — review requested / changes requested / approved / mention / CI fail / CI recover / merge conflict / mutation failure; quiet hours + focus mode + per-repo filters. (4) Markdown corpus regression ≤ 1.5% (a tightening pass; the M6 target is ≤ 1%). M3 acceptance: multi-line + suggestion + viewed + images/binary + renames render correctly in the seeded diff corpus; worktrees are discovered, mapped with confidence + manual override works; OS notifications fire with quiet hours + dedup; corpus tightening passes. Read AUTONOMY_BRIEF.md §M3 + PLAN.md §6/§7/§8/§12 M3 verbatim into your subplanner plan.json. Commit to `orch/pr-cockpit/m3-diff-worktree-notifs`.",
+      "acceptance": [
+        "Multi-line review comments compose & post; suggestion-block fence renders & posts; viewed checkboxes per file persist via head_sha; images & binary render; renames detected and shown",
+        "Worktree discovery via configured roots + `git worktree list --porcelain`; per-worktree override file honored; no $HOME autoscan",
+        "`notify` watchers + 200–500 ms debounce; status pulled via `git status --porcelain=v2 --branch` + `git rev-list --left-right --count`",
+        "Confidence-scored PR mapping with manual override; app-created vs user-managed tracked; cleanup never touches user-managed worktrees or uncommitted work",
+        "Native OS notifications fire post-reconcile; dedup on (account, repo, pr, event_type, actor, server_event_id); configurable triggers; quiet hours + focus mode + per-repo filters",
+        "All M1 + M2 acceptance and perf budgets still green; markdown corpus regression ≤ 1.5%",
+        "Accessibility screen-reader pass on PR detail (per AUTONOMY_BRIEF Quality Bars)"
+      ],
+      "verify": "## Automated\n- All M1 + M2 gates (clippy, typecheck, svelte-check, lint, vitest, cargo test, property tests, perf bench).\n- Markdown corpus regression ≤ 1.5% on the existing 200 entries.\n- Worktree integration test: spin up a temp git repo with a worktree, verify discovery, mapping, watcher debounce, dirty-state.\n- Notification rule-engine unit tests + dedup test with synthetic (account, repo, pr, event_type, actor, server_event_id) tuples.\n- Multi-line + suggestion + viewed + image/binary + rename render correctly on the seeded diff corpus (extend corpus to include at least one .md and one binary).\n\n## Manual\n- Open a real local worktree → mapping + confidence shown; toggle override.\n- Trigger a CI fail/recover via fixtures; OS notification fires; quiet-hours window suppresses; focus-mode suppresses.\n- Compose a suggestion block in the composer; it renders in Preview matching github.com.\n\n## Gotchas\n- Trust GitHub's `isOutdated` for review threads; never re-anchor locally.\n- Worktree cleanup gated on confirmation + dirty-state snapshot."
+    },
+    {
+      "name": "verify-m3-diff-worktree-notifs",
+      "type": "verifier",
+      "verifies": "m3-diff-worktree-notifs",
+      "model": "claude-opus-4-7",
+      "scopedGoal": "Verify m3-diff-worktree-notifs satisfies AUTONOMY_BRIEF.md §M3 + PLAN.md §6/§7/§8/§12 M3 + task acceptance. Run the inherited `verify` recipe. Confirm: M1+M2 gates still green; corpus ≤ 1.5%; multi-line + suggestion + viewed + images/binary + renames work; worktree discovery + watchers + confidence mapping + manual override; OS notifications + dedup + quiet hours + focus mode; screen-reader pass on PR detail. Emit a verifier verdict + per-criterion findings."
+    },
+    {
+      "name": "m4-merge-multiaccount",
+      "type": "subplanner",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "dependsOn": ["verify-m3-diff-worktree-notifs"],
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "scopedGoal": "Own milestone M4 (Merge surface + force-push range-diff + multi-account UI) end-to-end per AUTONOMY_BRIEF.md §M4 + PLAN.md §5 + §9 + §12 M4. Branch from `orch/pr-cockpit/m3-diff-worktree-notifs`. Decompose. Deliverables: (1) Merge surface respecting repo settings: merge / squash / rebase, branch-protection-aware UI; auto-merge enable/disable; merge queue enqueue / dequeue / reorder via GraphQL; `updateBranch` mutation; delete-branch on merge with confirmation. All as no-optimism per PLAN.md §3.2 — confirm + spinner + server confirmation. (2) `mergeable: null` re-poll backoff verified live (2s/5s/15s/45s/2min, max 5min) with a recorded session showing the meter ticking. (3) Force-push range-diff: prefer local `git range-diff` if a worktree exists for the PR; else fetch two head diffs via REST `/compare` and compute a Rust-side range-diff. UI shows old vs new commit ranges side-by-side with intra-line highlights. (4) Multi-account UI: account switcher in sidebar; per-row badge in the multi-account aggregated inbox; mutation composer shows posting identity with quick-switch before submission; per-account rate-limit meter (GraphQL points + REST remaining + reset time) visible in the status bar; foreground bypass demonstrated under low-budget conditions. (5) GHE schema readiness: host + per-host endpoint config exercised end-to-end against a stubbed GHE host (recorded session); not full feature parity yet — just enough that the schema + auth flow doesn't break. M4 acceptance: merge / squash / rebase / auto-merge / merge queue / update branch all work and respect repo settings; force-push range-diff renders for both worktree-present and worktree-absent paths; multi-account inbox + posting-identity quick-switch + rate meter all live; `mergeable: null` backoff verified. Read AUTONOMY_BRIEF.md §M4 + PLAN.md §5/§9/§12 M4 verbatim into your subplanner plan.json. Commit to `orch/pr-cockpit/m4-merge-multiaccount`.",
+      "acceptance": [
+        "Merge / squash / rebase respect repo branch-protection + allowed methods; auto-merge enable/disable + merge queue + delete-branch all live",
+        "Force-push range-diff: local-git path when worktree present, else REST `/compare` + Rust-side range-diff; both paths render correctly",
+        "Multi-account UI: account switcher + multi-account inbox + posting-identity quick-switch + per-account rate-limit meter live",
+        "`mergeable: null` backoff verified live with a recorded session (2/5/15/45/120/300s, max 5min)",
+        "GHE schema + per-host endpoint config exercised end-to-end against a stubbed GHE host (no feature parity needed yet)",
+        "All prior milestone gates + perf budgets still green; markdown corpus ≤ 1.5%"
+      ],
+      "verify": "## Automated\n- All prior gates green.\n- Merge surface integration tests against wiremock — merge / squash / rebase / auto-merge / merge queue / delete-branch / update-branch with branch-protection variations.\n- `mergeable: null` backoff: simulate the null-state response and assert the timing schedule.\n- Force-push range-diff: separate tests for the local-git path (with a temp worktree) and the REST `/compare` path.\n- Multi-account: rate-limit meter test with two stubbed accounts; foreground bypass under low-budget.\n- GHE: stub host + endpoint config; the auth + sync round-trips against the stub.\n\n## Manual\n- Walk through the merge controls on a fixture PR; confirm + spinner appears; merge queue enqueue/dequeue is reflected.\n- Toggle accounts in the sidebar; the inbox segments change; rate meter updates.\n- Force-push a fixture branch; range-diff renders both paths side-by-side."
+    },
+    {
+      "name": "verify-m4-merge-multiaccount",
+      "type": "verifier",
+      "verifies": "m4-merge-multiaccount",
+      "model": "claude-opus-4-7",
+      "scopedGoal": "Verify m4-merge-multiaccount per AUTONOMY_BRIEF.md §M4 + PLAN.md §5/§9/§12 M4 + task acceptance. Run the inherited `verify` recipe. Confirm: merge / squash / rebase / auto-merge / merge queue / update-branch / delete-branch live; force-push range-diff (both paths); multi-account UI + per-account rate meter + quick-switch posting identity; mergeable-null backoff; GHE stub round-trips. Emit verdict + findings."
+    },
+    {
+      "name": "m5-editor-power-worktree-write",
+      "type": "subplanner",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "dependsOn": ["verify-m4-merge-multiaccount"],
+      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
+      "scopedGoal": "Own milestone M5 (Editor power + worktree write + check annotations) end-to-end per AUTONOMY_BRIEF.md §M5 + PLAN.md §5.4 + §8 + §12 M5. Branch from `orch/pr-cockpit/m4-merge-multiaccount`. Decompose. Deliverables: (1) Suggestion apply: single-suggestion via the GitHub mutation (or REST equivalent) when available; batched-suggestion-apply gated on a clean worktree, with a local commit on the PR's head branch then push (the worktree-write side from PLAN.md §8). (2) Saved replies: text-insert presets stored per-account; configurable; surfaced via the composer + a quick-switch palette. (3) Command palette: full keyboard layer; commands cover `Open inbox`, `Open PR by number`, `Switch account`, `Compose comment`, `Apply suggestion`, `Resolve thread`, `Mark file viewed`, `Open in github.com`, etc.; PLAN.md §10 budget — palette open < 75 ms, result < 150 ms. (4) Paste-image upload: clipboard image → upload via GitHub's user-content endpoint (or `octocrab` equivalent), insert markdown image link in the composer; preserves textarea+Preview parity. (5) Check annotations on diff: separate REST call per check-run; cached in `check_annotations`; rendered inline in the diff viewer at the right line; failed-job log tail (Tauri-side stream the check log endpoint) and rerun checks via the GraphQL `rerunCheckSuite` / REST `/check-runs/{id}/rerequest`. M5 acceptance: suggestion apply (both single + batched-clean-worktree) works; saved replies + command palette + keyboard layer fully usable; paste-image-upload works; check annotations render on diff with failed-job log tail and rerun-checks; perf budgets still green. Read AUTONOMY_BRIEF.md §M5 + PLAN.md §5.4/§8/§12 M5. Commit to `orch/pr-cockpit/m5-editor-power-worktree-write`.",
+      "acceptance": [
+        "Single-suggestion apply via API; batched-suggestion-apply via clean-worktree commit + push (worktree-write path)",
+        "Saved replies (per-account, text-insert, palette quick-switch)",
+        "Command palette + full keyboard layer; PLAN.md §10 palette open < 75 ms / result < 150 ms",
+        "Paste-image-upload: clipboard image lands in the composer as a markdown image link via GitHub user-content endpoint",
+        "Check annotations on diff (per-line); failed-job log tail; rerun-checks (single check-run + suite)",
+        "All prior milestone gates + perf budgets still green; markdown corpus ≤ 1.5%; accessibility keyboard-navigable for every action"
+      ],
+      "verify": "## Automated\n- All prior gates green.\n- Suggestion apply: both paths (API + clean-worktree commit) tested with wiremock + temp git worktree.\n- Command palette: open + result-render benchmarks; assert < 75 ms / < 150 ms.\n- Saved replies: per-account isolation + insertion via the palette.\n- Paste-image-upload: stub the upload endpoint, assert the resulting markdown link.\n- Check annotations: REST stub + render on diff at correct line; rerun-check + rerun-suite mutations posted.\n\n## Manual\n- Compose a comment, paste an image, post → image renders in timeline.\n- Apply a single suggestion on a fixture PR → API path; clean a worktree, apply a batch → commit appears on the head branch.\n- Walk the keyboard layer end-to-end without the mouse for one full PR cycle."
+    },
+    {
+      "name": "verify-m5-editor-power-worktree-write",
+      "type": "verifier",
+      "verifies": "m5-editor-power-worktree-write",
+      "model": "claude-opus-4-7",
+      "scopedGoal": "Verify m5-editor-power-worktree-write per AUTONOMY_BRIEF.md §M5 + PLAN.md §5.4/§8/§12 M5 + task acceptance. Run the inherited `verify` recipe. Confirm: suggestion-apply (single + batched), saved replies, command palette + perf budgets, keyboard layer, paste-image-upload, check annotations + log tail + rerun. Emit verdict + findings."
+    },
+    {
+      "name": "m6-stacks-relay-polish",
+      "type": "subplanner",
+      "model": "claude-opus-4-7-thinking-xhigh",
+      "dependsOn": ["verify-m5-editor-power-worktree-write"],
+      "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
+      "scopedGoal": "Own milestone M6 (Stacked PRs + webhook relay + GHE compatibility + polish + v1.0 tag) end-to-end per AUTONOMY_BRIEF.md §M6 + PLAN.md §11 + §2.5 + §12 M6 + the v1.0 'Done' definition. Branch from `orch/pr-cockpit/m5-editor-power-worktree-write`. Decompose. Deliverables: (1) Stack detection: walk PRs where `base.ref == another_open_pr.head.ref` in the same repo at sync time; cache `stack_id` + `stack_position`; render diamond / ambiguous graphs as a DAG with a warning. (2) Stack tree UI: linear-stack-first sidebar tree, per-PR review/CI/conflict state, blocked-by reasons, explicit base/head SHAs. (3) Stack operations: `rebase stack` (sequential `git rebase` via local git), `merge stack` (sequential merges in order); on conflict, pause and surface the worktree to the user; retarget base via GraphQL `updatePullRequest(baseRefName:…)` after each merge. Optional Graphite (`gt`) integration when the CLI is installed and the user opts in. (4) Webhook relay: self-deploy Cloudflare Worker recipe (a Wrangler config + a single TS handler that signs and forwards GitHub webhooks to the local desktop) — never SaaS. Document deploy + revoke. (5) GHE compatibility pass: full schema + auth + sync feature parity against a stubbed GHE host fixture (and a real GHE if available; not blocking). (6) Polish & v1.0 tag: tighten markdown corpus regression to ≤ 1%; verify all PLAN.md §10 perf budgets still green on the latest CI run; produce `PERF_REPORT.md` from the latest benchmark; update `README.md` with a short demo gif (recorded via the existing Playwright + xvfb pipeline); add `LICENSE` (MIT) and `CHANGELOG.md` summarizing M1–M6; tag `v1.0.0` once the verifier returns success. Read AUTONOMY_BRIEF.md §M6 + the 'Done' section + PLAN.md §11/§2.5/§12 M6. Commit to `orch/pr-cockpit/m6-stacks-relay-polish`.",
+      "acceptance": [
+        "Stack detection at sync time; stack_id + stack_position cached; DAG warning for diamond/ambiguous",
+        "Stack tree UI with per-PR review/CI/conflict state + blocked-by reasons + explicit base/head SHAs",
+        "Sequential rebase-stack + merge-stack via local git; on conflict, worktree surfaces; base retarget via GraphQL after merge",
+        "Optional Graphite (`gt`) integration when CLI is installed and user opts in",
+        "Webhook relay: Cloudflare Worker recipe with Wrangler config + signed-forwarding handler; deploy + revoke documented; never SaaS",
+        "GHE compatibility pass: schema + auth + sync against stubbed GHE host green",
+        "Markdown corpus regression ≤ 1% (M6 tightening)",
+        "All PLAN.md §10 perf budgets green on latest CI run; `PERF_REPORT.md` generated from latest bench",
+        "`README.md` updated with demo gif; `LICENSE` (MIT); `CHANGELOG.md` summarizing M1–M6",
+        "`v1.0.0` git tag pushed after verifier passes"
+      ],
+      "verify": "## Automated\n- All prior gates green.\n- Stack detection unit tests on synthesized PR graphs (linear, diamond, ambiguous).\n- Stack ops: temp git repo with a 3-PR stack; `rebase stack` + `merge stack` sequence; conflict surfaces; base retargets correctly.\n- Cloudflare Worker recipe: `wrangler deploy --dry-run` succeeds; signed-forwarding handler unit tests pass with a fake GitHub webhook payload.\n- GHE: stubbed host runs the full M1+M2+M3+M4+M5 happy paths.\n- Markdown corpus regression ≤ 1%.\n- All PLAN.md §10 perf budgets green; `PERF_REPORT.md` generated and committed.\n- `pnpm` + `cargo` + Playwright + xvfb full suite green on ubuntu + macos in CI.\n\n## Manual\n- Open a real 3-PR stack; the tree renders; rebase-stack and merge-stack walk through correctly with confirmations.\n- Deploy the Cloudflare Worker to a personal account; revoke it; document both flows in DECISIONS.md.\n- Demo gif appears in the README.\n\n## Gotchas\n- Don't ship the relay as SaaS. Self-deploy only.\n- v1.0 tag only after the verifier returns success."
+    },
+    {
+      "name": "verify-m6-stacks-relay-polish",
+      "type": "verifier",
+      "verifies": "m6-stacks-relay-polish",
+      "model": "claude-opus-4-7",
+      "scopedGoal": "Verify m6-stacks-relay-polish per AUTONOMY_BRIEF.md §M6 + 'Done' section + PLAN.md §11/§2.5/§12 M6 + task acceptance. Run the inherited `verify` recipe + final v1.0 sweep: stack detection + ops + Graphite, webhook-relay recipe, GHE round-trip, corpus ≤ 1%, all §10 perf budgets green, PERF_REPORT.md + README demo gif + LICENSE + CHANGELOG, `v1.0.0` tag. Emit final verdict + per-criterion findings; signal whether the parent should tag v1.0."
     }
   ]
 }
