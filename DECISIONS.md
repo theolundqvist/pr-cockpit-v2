@@ -249,3 +249,25 @@ Decision:
 Reason: this keeps first paint and navigation latency predictable in offline
 fixture mode while containing syntax/highlighting work to visible content and
 avoiding repeated tokenization for large diffs.
+
+### 2026-05-17: Perf CI uses Linux WebKit headless harness with strict PLAN §10 budgets
+
+Decision: M1 perf gating now runs in CI via `pnpm bench`, combining Rust Criterion benches and a Playwright WebKit harness under `xvfb-run` on Ubuntu.
+
+- Runner setup installs `xvfb`, `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libsoup-3.0-dev`, `libssl-dev`, `pkg-config`.
+- Playwright uses `PERF_BROWSER=webkit` to approximate the production Linux WebKit rendering stack while still running deterministically in CI.
+- `bench/budgets.json` enforces PLAN §10 hard limits (no relaxed hard budgets) and an additional 10% regression tolerance versus committed baselines.
+
+Reason: this keeps M1 perf checks aligned with PLAN budgets while still catching significant drift from known-good baselines.
+
+### 2026-05-17: Synthetic headless perf smoke complements full webview perf runs
+
+Decision: `apps/desktop/src-tauri/tests/perf_smoke.rs` provides a no-display-server timing gate for fixture inbox cold paint and emits `## Measurements`-compatible output.
+
+Reason: some environments cannot boot a GUI/webview stack; the synthetic harness preserves a minimum perf signal in those contexts, while the full WebKit/Playwright gate remains the authoritative UX performance check in CI.
+
+### 2026-05-17: Markdown corpus gate stays offline-by-default with optional online refresh
+
+Decision: `pnpm corpus` now runs fully offline against committed corpus/oracle fixtures and hard-fails when weighted regression exceeds 2%; optional corpus refresh remains behind `GITHUB_TOKEN` via `pnpm corpus:fetch` and never gates CI.
+
+Reason: M1 requires deterministic offline verification while still supporting periodic oracle refresh when maintainers intentionally opt in.

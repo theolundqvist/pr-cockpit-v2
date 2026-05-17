@@ -1,0 +1,1402 @@
+[
+  {
+    "id": "cli-cli-4468329275",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4468329275",
+    "body": "Every coding LLM in the world asks to add Check to PAT permission, and each time I reply, there is no \"Check\" option available.\n\nGitHub folks - you need to either update your documentation or fix this issue finally!",
+    "oracle_html_sha": "4e64418c07a8d4150a36f542f2bb11615e9b041c6a8c36be5318ddfa9372f8e8",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4462842549",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4462842549",
+    "body": "Thanks for confirming! There is no further investigation needed, so I will close this issue as completed. ",
+    "oracle_html_sha": "6c16ac2443d17718c73a117024b9105096669d34fb60cc0a1e74045a27a595c5",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4462101669",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4462101669",
+    "body": "clearer warnings and confirmation steps will be great.\n\nI have another propose. I’m not sure whether you would consider preventing this command from running in the default repository, and instead requiring users to explicitly specify the repository when executing the command.",
+    "oracle_html_sha": "e7df7087c7b651012857b857f1f9453f0eb6666ff19752e700ad1088c4724d75",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4460522096",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4460522096",
+    "body": "Thanks for reporting this, @SonkeWohler! 🙏\n\nYeah, this has been caused by stripping out ANSI escape codes from the stream. I think for now we should just remove them.",
+    "oracle_html_sha": "89c4f06719731d43b4b241da517de616b1a0f7593090386886de09adb657930b",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4460459346",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4460459346",
+    "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
+    "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4459415189",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4459415189",
+    "body": "This has become a critical requirement since there have been multiple supply chain attacks in the last few weeks with stolen or leaked long lived tokens.\nThis is a serious security oversight on Microosfts' part and not addressing this will lead to more supply chain attacks.\n+1\n",
+    "oracle_html_sha": "c740b5931c2377cd738446156feba9265b5086ac3d1228fc63029213ff1a9f04",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4458926226",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4458926226",
+    "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
+    "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4454831158",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4454831158",
+    "body": "Hi @mxie - Encountered the same issue today, can confirm it is now fixed from my side, thank you so much!",
+    "oracle_html_sha": "370d5b919500493e00c7fe768897cb17d7664fda3dcf184243fcfcc0d566cc93",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4454660117",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4454660117",
+    "body": "Hi @avioing - would you mind retrying your commands? They should be working now. ",
+    "oracle_html_sha": "7c91595967277319bb96dd17260b1528a56d35529db55285394d85fa07bda59c",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4454504759",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4454504759",
+    "body": "Thanks for reporting this @avioing! I was able to reproduce this reliably and can confirm that it's a server side issue. A patch is already on its way ✨ ",
+    "oracle_html_sha": "5f387bbdedd04d0a1e0f144bf592bfb7cc8c04b2d2818ee9cfc5c2c03d4a055f",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4453803629",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4453803629",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4453802328",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4453802328",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4453802170",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4453802170",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4449737101",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4449737101",
+    "body": "对不起，是我自己误信了AI了，命令全面了解后我前面说的问题解决了。给您造成的打扰表示不好意思了。\r\n\r\n\r\n\r\n\r\nfirelong\r\n***@***.***",
+    "oracle_html_sha": "ff5f13315f2acc7f28e95f67d6b8a0d4d35e68e83675fb92abfca8ab95fafe8d",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4446606151",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4446606151",
+    "body": "我说了那么多都能认为是机器人？这机器人的水平太一般了吧。\r\n如果是说设计时就是要这样的话我很理解；但这样的回答我不满意。\r\n\r\n\r\n\r\n\r\nfirelong\r\n***@***.***",
+    "oracle_html_sha": "57015ae969abb6c3e2fed87a34c7afe980a157a5ef116cb9d3a6ab583b897394",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4446012932",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4446012932",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4446011436",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4446011436",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4446010431",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4446010431",
+    "body": "Opened by mistake — wrong repository.",
+    "oracle_html_sha": "7462eeec818531407ebdb1b64f2cca620d843e574d5b63ecdbb0bed449406161",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4444031753",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4444031753",
+    "body": "@babakks I've requested your review on this, but I haven't made it ready for review. That is because honestly, this got a bit out of hand and maybe it just needs a different approach to get the main juice (errors in telemetry). So please give it some eyes and let me know whether you think it's worth pursuing this any further.",
+    "oracle_html_sha": "a9e01fbb11c89d272f1c1b7ad1726f0ed10b629f8f158dda8d75583d99ecb21a",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4443798397",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443798397",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4443795732",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443795732",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4443795387",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443795387",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4443543350",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443543350",
+    "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
+    "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4443049669",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443049669",
+    "body": "This should be prioritized.  With agents running around on workstations the more likely issue here is an agent publishing a token.  ",
+    "oracle_html_sha": "305f9d8028e2f23318b9001dee6e89b494e8e7f8d979a89f4adae3c2856d60b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4441580188",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4441580188",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4441546964",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4441546964",
+    "body": "Thanks for putting this together, @devseunggwan! :pray:\r\n\r\nThis isn't quite the approach we want to take for this. I've shared my thoughts on what the fix should look like in https://github.com/cli/cli/issues/3442#issuecomment-4441477856. Have a look and feel free to chime in with your thoughts there!\r\n",
+    "oracle_html_sha": "d2984c9e8a6f78c7708ab9214516a3eda0a9561ffa22793de78f28089d569670",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4440882709",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4440882709",
+    "body": "I'm closing this PR in favour of #13348 as seems to be stale now.",
+    "oracle_html_sha": "f7a3349e91d6e11556d9cdc6a454cbffa7010bf77718fb45d540ad792f0dc629",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4440865412",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4440865412",
+    "body": "Closing this because #13347 is already open for the same issue. I missed the duplicate PR before opening this one.",
+    "oracle_html_sha": "77cdc410fb7112b12ebb132d54ddbb42caae2ce3721304990a5e3ee34ce6ddb9",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4440215669",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4440215669",
+    "body": "@adehad no worries, seems correct to me anyway. I've filed an upstream issue as well https://github.com/thlib/go-timezone-local/issues/16. Thanks.",
+    "oracle_html_sha": "714896045d8acd121c2ee4d10a0c80056ed9fff411814d6d322efc3d01e61e60",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4439059776",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4439059776",
+    "body": "Reopened as discussed in https://github.com/cli/cli/issues/13338#issuecomment-4439054677",
+    "oracle_html_sha": "7008a596877f63fc6b9347a8e484a6548089a1aed0dd34a77d7fe5c644a9ceb2",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4439054677",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4439054677",
+    "body": "Just reopened the PR, and I'll review it. Quick look, it seems on the right path, although I have to dig deeper to make sure it's not missing anything, especially that the PR queries are so intertwined and complex.\n\nThat said, please follow our [contribution guideline](https://github.com/cli/cli/blob/trunk/.github/CONTRIBUTING.md) and don't open PRs before we've fully triaged the issue. I also won't mark this as https://github.com/cli/cli/labels/help%20wanted as other community members may attempt to submit a PR.",
+    "oracle_html_sha": "5360f291c19f2bb72710638e1dbbac33207a43c06fc984b699adf530ec4a25dc",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4438501641",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4438501641",
+    "body": "https://github.com/cli/cli/actions/runs/25777278999/job/75712433157#step:1:1",
+    "oracle_html_sha": "7d74b58696ca125717ec5be3edbaa8e93ccc3048fb5f5bc14e9cc850233b9134",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4435065106",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4435065106",
+    "body": "Closing this as it's already done in the feature branch.",
+    "oracle_html_sha": "dc6b32144689416b942580dec2cbf3170291819ea1f6922dce564926a4f1feeb",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4434132547",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4434132547",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4434130871",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4434130871",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4434129200",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4434129200",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4434008525",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4434008525",
+    "body": "Thanks for sharing thoughts @JohnMcPMS and @sassdawe! 🙏 \n\nI'm happy with the changes. Ship it! 🛳️ ",
+    "oracle_html_sha": "7dc9c0efa7dc49d05691315a937393328d6eef1c252f6a3c1fe3891b7b3f93c9",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433797523",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433797523",
+    "body": "Pudranse en el infierno",
+    "oracle_html_sha": "893608480105152eb698dd15ae3f7efa408e8cc9ca2457e5e455aa62a843fce1",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433795378",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433795378",
+    "body": "Me robaron mi cuenta emmanuela486@gmail.com\nErnestoZuniga811@gmail.com \nTienen según fundaciones me tienen el celumar hakeado me robaron las fotos de la infancia de mi bebé y aún así apoyan a los rateros",
+    "oracle_html_sha": "49238da194e837066d7fe7a67025ddf9eaf82bf9c13b26782103fbb11ba39bcc",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433774324",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433774324",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433772514",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433772514",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433753766",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433753766",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433751727",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433751727",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433750483",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433750483",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433727345",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433727345",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433726172",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433726172",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433725839",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433725839",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433722639",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433722639",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error.\n",
+    "oracle_html_sha": "96015ddd54f4850f5b00b5b242c573dc95b6725a56b9341b8c560b5de72cee44",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433721711",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433721711",
+    "body": "Thank you for taking the time to create this issue.\n\nWe've automatically reviewed this issue and suspect it as potentially inauthentic or spam-like content. As a result, we're closing this issue.\n\n**If this was closed by mistake**, please don't hesitate to reach out to us by commenting on this issue with additional context.\n\nWe appreciate your understanding and apologize if this action was taken in error. Our automated systems help us manage the large volume of issues we receive, but we know they're not perfect.\n",
+    "oracle_html_sha": "25df7c360a223045b483e99aa0f18511abd503d84dac61a9b33b11733118a9c6",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "cli-cli-4433721661",
+    "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4433721661",
+    "body": "This issue may have been opened accidentally. I'm going to close it now, but feel free to open a new issue with a more descriptive title.",
+    "oracle_html_sha": "e995ad1adf70c7aa3f2fa2e7a096845fe895d87229d84e1f45155fb9c86ff0b4",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "microsoft-vscode-4469722258",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469722258",
+    "body": "Is this an intentional Copilot CLI differentiator, or just missing parity in the VS Code local agent? Worktree awareness feels like fundamental execution context, and when it varies by harness it creates inconsistent behaviors and workflows for essentially the same task.",
+    "oracle_html_sha": "45f8b5c6b2a6dafddc576bfbb840a1fa3826b708a8f0dddd9e58e1f8b0aac9a0",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469687874",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469687874",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469648581",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469648581",
+    "body": "Same problem with ghe.com. Models selector is always in 'Auto'. There are no models to select when Copilot CLI is selected in Agent window. However, Copilot Chat is working right and all models can be selected. I do not receive any error message. On the other hand, Claude is working right and shows their models. I have the last GitHub Copilot CLI instaled and working right. vscode insiders version is not working either.",
+    "oracle_html_sha": "92b559b39960c350cc7b8a8785ffc2a4af69de69fa91acf4b11d1ccc5279cc7b",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469613030",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469613030",
+    "body": "This occurs not only with OpenAI-compatible but also with OpenAI endpoints that use API.",
+    "oracle_html_sha": "c5f320cf38de7db6dff4ec1110f6cebaf25a7cceee5e622c02499d8daed431cb",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469566088",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469566088",
+    "body": "This issue is a duplicate of https://github.com/microsoft/vscode/issues/253124. Please refer to that issue for updates and discussions. Feel free to open a new issue if you think this is a different problem.",
+    "oracle_html_sha": "dcef749042c26786fa21b90268c3b93d8c061ec8c3e3bf37cbb2cd062fbcf41e",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469553952",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469553952",
+    "body": "Thanks for creating this issue! It looks like you may be using an old version of VS Code; the latest stable release is 1.120.0. Please try upgrading to the latest version and checking whether this issue remains.\n\nHappy Coding!",
+    "oracle_html_sha": "34cba72d09eaf277adc3cd734dcd585af800b162256945dcd4f700cba6912da6",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469519479",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469519479",
+    "body": "Why won't GitHub let us use even the code completion in github.dev?",
+    "oracle_html_sha": "335f6f5d227143d8d55edcc1ada80c44044fd2281914d82962060ba824c62988",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469512502",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469512502",
+    "body": "I looked at the raw request attached to the issue I mentioned as a similarity, and the tool output is present.\nHowever, it's not present in my request.",
+    "oracle_html_sha": "9222cfe995f0dafe620ffcd38d78c568a75dbdeede7d876f3497073d4f6f8f94",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469495711",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469495711",
+    "body": "Raw request data\n[raw_request_GPT-5.4.zip](https://github.com/user-attachments/files/27878453/raw_request_GPT-5.4.zip)\n[raw_request_GPT-5.5.zip](https://github.com/user-attachments/files/27878452/raw_request_GPT-5.5.zip)\n[raw_request_Sonnet-4.6.zip](https://github.com/user-attachments/files/27878451/raw_request_Sonnet-4.6.zip)\n[raw_request_Opus-4.7.zip](https://github.com/user-attachments/files/27878450/raw_request_Opus-4.7.zip)",
+    "oracle_html_sha": "f0ee82239d78376d67d508a7ad29fa1e07d0d309f5fb1705c27ba8be9856bce1",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469417022",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469417022",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469390132",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469390132",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469388776",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469388776",
+    "body": "This issue is a duplicate of https://github.com/microsoft/vscode/issues/253136. Please refer to that issue for updates and discussions. Feel free to open a new issue if you think this is a different problem.",
+    "oracle_html_sha": "b8410458979cc8f2f840d2a39609098c1a8ede9d67c67b5c96c964b97591b9b8",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469379602",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469379602",
+    "body": "Thanks for creating this issue! It looks like you may be using an old version of VS Code; the latest stable release is 1.120.0. Please try upgrading to the latest version and checking whether this issue remains.\n\nHappy Coding!",
+    "oracle_html_sha": "34cba72d09eaf277adc3cd734dcd585af800b162256945dcd4f700cba6912da6",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469379591",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469379591",
+    "body": "Thanks for creating this issue! It looks like you may be using an old version of VS Code; the latest stable release is 1.120.0. Please try upgrading to the latest version and checking whether this issue remains.\n\nHappy Coding!",
+    "oracle_html_sha": "34cba72d09eaf277adc3cd734dcd585af800b162256945dcd4f700cba6912da6",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469057329",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469057329",
+    "body": "@microsoft-github-policy-service agree",
+    "oracle_html_sha": "6063bfce5bb4f99c67a3037b83c3ab36070f3c14979bda7eedbd18beb1828b3b",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4469056230",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4469056230",
+    "body": "I have found a workaround for this issue. If your environment is running inside a Docker container, simply restarting the container resolves the problem. For other types of hosts (such as VMs or physical machines), rebooting the host directly will also do the trick.",
+    "oracle_html_sha": "295f89e7b54a3e11b2b23d339a4f286125d2f2bed88e9d3b9015322dc8b55bc4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468966007",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468966007",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468860758",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468860758",
+    "body": "@microsoft-github-policy-service agree",
+    "oracle_html_sha": "6063bfce5bb4f99c67a3037b83c3ab36070f3c14979bda7eedbd18beb1828b3b",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468844406",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468844406",
+    "body": "@curiousChris At least part of the icon issues may be related to Windows 10. Any plans to upgrade? :-)",
+    "oracle_html_sha": "6e18f42b83a1379187fa6f2f73b85426ef7bd602f3368c91a947d77242b1481b",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468823487",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468823487",
+    "body": "@copilot I think we don't like aria.alert, isn't that what's in the instructions?",
+    "oracle_html_sha": "d20547707c0fc95e3582c4827240c35e2be7c63a142f1bc3ec104d06584cd59d",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468817905",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468817905",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468757683",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468757683",
+    "body": "Got it passing for now: https://github.com/microsoft/vscode/pull/316566 + slack thread for context",
+    "oracle_html_sha": "31ae95876d0376e034719bc612b07c4b83e56182ce9bb729ddad4a76f2840a25",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468629386",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468629386",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468610889",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468610889",
+    "body": "Only happens when selection starts at index 0, if you select at \"let select = ...\", it works correctly.",
+    "oracle_html_sha": "28346fdb18282934c3993800350ae714c5c0bf304dc2a225dbebf145c1d851d2",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468570906",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468570906",
+    "body": "Yay!! 🎉 Thank you for the feedback and status @bhavyaus .",
+    "oracle_html_sha": "f14ac19abc63a7dd0e4c0196bd631e8fea154eb5c6090d0bc8ac287b580d3176",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468569094",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468569094",
+    "body": "Should be fixed with https://github.com/microsoft/vscode/pull/315444 since we switched over to using the reported usage to trigger compaction and not depend on the tokenizer",
+    "oracle_html_sha": "9c4911fcf85513b4cf51873ca14f349c7ead7b83e9d2dd5b168a08adc088b0a5",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468563261",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468563261",
+    "body": "Sounds similar to: https://github.com/microsoft/vscode/issues/315526\n\nCould you share your repro steps please?",
+    "oracle_html_sha": "90a88044058868aa94c544866951c79916c94fe44ba369d29c7faf6c0fce1ba5",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468559941",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468559941",
+    "body": "Use \"autopilot\"\nhttps://code.visualstudio.com/docs/copilot/agents/agent-tools#_how-autopilot-works",
+    "oracle_html_sha": "31169e5f5a5f30b02d70559674ef6f6bbd4531f122e0f289bebe25391672c8fc",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468553165",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468553165",
+    "body": "@copilot revert changes to snippets.tmlanguage.json as those get overriden on sync ",
+    "oracle_html_sha": "5a8cbba515c5ec8f429f295317665c77a5aa036f211c4801b68345f899e007fb",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468548972",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468548972",
+    "body": "Here is how bad it has become:\n\n1. Claude Opus 4.7 produced its response, showing 77% context window full.\n2. I switched to GPT-5.5, which **has a context window with double the capacity** of Claude Opus 4.7.\n\n**Expected:** The conversation would continue with no compaction.\n**Reality:** GitHub Copilot immediately showed \"Compacted conversation\".\n\n\nIf I only have 77% of the context window full, and I switch to a _twice as large_ context window, there is no reason whatsoever to compact—in the other model the context window should only be effectively ~38% full (half of 77%).",
+    "oracle_html_sha": "410b5b9f6b6f563462873c5de081169d14f80be3727fce348678573751ea103c",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468530625",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468530625",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468505850",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468505850",
+    "body": "Same here on Windows 11\n\nVersion: 1.120.0 (user setup)",
+    "oracle_html_sha": "d55aeb2c71aff4f08c041103701c4c14cdfc7abdf948ee6230f2e3bd39401dd3",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468496234",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468496234",
+    "body": "@d-Dony Does this still repro for you with VS Code 1.120?",
+    "oracle_html_sha": "4c21ea319f132d1f0c052e8e082d947e054cf74d5abf89dba818f6fe45927b4f",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468455350",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468455350",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468443404",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468443404",
+    "body": "@vritant24 I'm still experiencing this problem as well. I have #312910 open to try to fix this. Let me know if you want me to try to resolve the merge conflicts, or if you think we need to go down a different route.",
+    "oracle_html_sha": "f4aac987c26c2ee448fbfb60c1acc3ec32bd0d447bf13905290b7f3a54656daa",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468424666",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468424666",
+    "body": "This issue is a duplicate of https://github.com/microsoft/vscode/issues/253136. Please refer to that issue for updates and discussions. Feel free to open a new issue if you think this is a different problem.",
+    "oracle_html_sha": "b8410458979cc8f2f840d2a39609098c1a8ede9d67c67b5c96c964b97591b9b8",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468409356",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468409356",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468201206",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468201206",
+    "body": "@roblourens What is your definition of later, and how can I have this feature request left open for community vote?",
+    "oracle_html_sha": "90f475c2891145b2d3e84b8de323d566a555cd01815ec9bb28beaced611f0e67",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468144409",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468144409",
+    "body": "Well, I have a workaround at https://github.com/microsoft/vscode-cpptools/pull/14457 , but it's not an ideal experience in the manually invoked case, because users need to manually cancel the Find All References when a 2nd is made, because the 1st results won't appear in the UI so it'll be a waste of time computing them.\n\nAnd there are still bugs with our \"other references\" window being overwritten by the Copilot invoked Find All References and Cancel being used in our notification UI causing Copilot to think there are 0 references instead of the operation being cancelled -- I don't think our extension can fix those unless we know if the request is coming from Copilot (references UI not updated) or the user (references UI updated), maybe this can bug can be changed to a feature request for that?",
+    "oracle_html_sha": "62007897a6f716e2c73c46f029890fdc1e7515fc58a9898b77ed68561670a765",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468019651",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468019651",
+    "body": "I believe this comes from a different scenario, let me see if i can figure out a different repro steps using telemetry events.",
+    "oracle_html_sha": "ff0ed1a59bbed3613e1a448906f41100e8dbc9d3a7dbcdfbf284563891aef228",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4468004757",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4468004757",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467963899",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467963899",
+    "body": "Same issue here. \n\nIt's not that some configuration gear icon is missing, that's there, but there used to be an eye icon column too plus a hide/show option in the context menu, these are gone now.\n\n(And some custom providers are missing in the model selector now, even though they show up in the manage list.)",
+    "oracle_html_sha": "76a492639148c1743202c6ae15ac8873abb82bf603df855cf8c2e1b5c251d05e",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467954734",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467954734",
+    "body": "I guess I'll use my Claude subscription to fix it",
+    "oracle_html_sha": "d7d2290bbb40c3ebee9d38b78f3b5180e47014d0bf7893ad0548d4f1f04063d9",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467919494",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467919494",
+    "body": "Thanks for creating this issue! We figured it's missing some basic information or in some other way doesn't follow our [issue reporting guidelines](https://aka.ms/vscodeissuereporting). Please take the time to review these and update the issue.\n\nFor Copilot Issues, be sure to visit our [Copilot-specific guidelines](https://github.com/microsoft/vscode/wiki/Copilot-Issues) page for details on the necessary information.\n\nHappy Coding!",
+    "oracle_html_sha": "2aff12c0d37ea7bc28f9afbde6ccb4b081893cd79af1db5e8a83ec97a16c14d4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467901085",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467901085",
+    "body": "Thank you for your submission. This issue has been closed as it doesn't meet our community guidelines or appears to be spam.\n\n**If you believe this was closed in error:**\n- Please review our [Code of Conduct](https://opensource.microsoft.com/codeofconduct/)\n- Ensure your issue contains a clear description of the problem or feature request\n- Feel free to open a new issue with appropriate detail if this was a legitimate concern\n\n**For legitimate issues, please include:**\n- Clear description of the problem\n- Steps to reproduce (for bugs)\n- Expected vs actual behavior\n- VS Code version and environment details\n\nThank you for helping us maintain a welcoming and productive community.",
+    "oracle_html_sha": "4943e6338110e3ae55cc07537b3f05d6b65ff054d7e545c0d437a25a98452397",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467780639",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467780639",
+    "body": "I don't see how failing to match case is duplicate of failing to match whole words?",
+    "oracle_html_sha": "c75db48248c1b886d8c7638ca82072a0ac83ed5edbb1fa7684f58120f7ece974",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467735607",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467735607",
+    "body": "I think they don't want you to use copilot as a agent that they can't get your data for future training",
+    "oracle_html_sha": "cc474d589c0f558190dbed7dba035e3e04dcf5ca57c46e0f5cc3752d9257ddfd",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467694476",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467694476",
+    "body": "Workaround... tell the agent to run commands prefixed with \"; \"... initial syntax error, successful command afterwards... ",
+    "oracle_html_sha": "f8334e6fd415f62d820c76ddc5d6079c5baeea8063660d7133a578ceb9f113c1",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467691278",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467691278",
+    "body": "This thread is going off the rails. This is about copilot using local models in VSCode.\nLocal models have been working in copilot for a long time now!\nThe issue is/was that there was no way to decouple autocomplete or to make it also use your local models, and you have to sign in to a free copilot account which would get exhausted and then the free plan would get disabled until next month.\n\nSo to be clear autocomplete wouldn't use your local models and there wasn't an option to adjust that.\n\nThis may be fixed now at least from some news I read where you no longer have to log into copilot, if thats true then it will be good now.\n\nThis isn't the right thread to bring up continue or other extensions, those have been working.\n\nYou guys are having other kinds of technical issues.",
+    "oracle_html_sha": "24faf4c0ac8327e8874579233f42ac2f2afd768f30a4edcd62c2c160c5524c7b",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "microsoft-vscode-4467669805",
+    "source_url": "https://api.github.com/repos/microsoft/vscode/issues/comments/4467669805",
+    "body": "- Send a message to an agent host session in the agents window, ask for edits\n- Don't click away from the session\n- When it's done, you should see the diffs in the changes view. Previously they were not showing up until reopening the session",
+    "oracle_html_sha": "dc14ca786e00c139a5993981f1263ebc9decae1cb9b6381b2da0b2eb52c6e3c4",
+    "repo": "microsoft/vscode"
+  },
+  {
+    "id": "rust-lang-rust-4469751578",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469751578",
+    "body": "@bors r+ rollup=never p=4\r\n\r\nTrying commonly failed jobs\r\n@bors try jobs=dist-various-1,test-various,x86_64-gnu-aux,x86_64-gnu-llvm-21-3,x86_64-msvc-1,aarch64-apple,x86_64-mingw-1,i686-msvc-2",
+    "oracle_html_sha": "f1212bf950a35cca8fce0bb15e5a4feafdbcd1387a40749e35df3b0ea1b2d2bf",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469735505",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469735505",
+    "body": "Hi @niklasmarderx — are you still planning to work on this? I noticed the claim is from a couple months back with no linked PR, so I wanted to check in before stepping on anything in-flight. Happy to take it over if it's no longer on your plate.",
+    "oracle_html_sha": "d14d95768e7733456d47d7e8d02827ec85947fe067693bb32c44011e28fa9bd2",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469709763",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469709763",
+    "body": "Hi @Kohei316 — are you still planning to work on this? It's been a while since the issue was last active, so I wanted to check in before stepping on any in-flight work. If you've moved on or it's no longer on your plate, I'd be happy to take it over.",
+    "oracle_html_sha": "1f322362de352a94caf65423da85e7fa1bed7ed1588e3836b850006a6a1d101f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469646772",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469646772",
+    "body": "@bors r=JonathanBrouwer,jieyouxu  rollup=never p=5 (let's not roll this up)",
+    "oracle_html_sha": "841111f648c3843c50ac0137cfdf90e7ff227194e7366ff22ade6fa6637ef80f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469542490",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469542490",
+    "body": "This PR was rebased onto a different main commit. Here's a [range-diff](https://triagebot.infra.rust-lang.org/gh-range-diff/rust-lang/rust/f8704be04fe1150527fc2cf21dd44327f0fe87fb..647deadb137254629ec446735aa5b21d4c648b14/281c97c3240a9abd984ca0c6a2cd7389115e80d5..ee8949e513313e384a1ab7657eb2dd8f71b09163) highlighting what actually changed.\n\n*Rebasing is a normal part of keeping PRs up to date, so no action is needed—this note is just to help reviewers.*",
+    "oracle_html_sha": "a7ea2e8cebc21f5f35a7b9b10c3b06aa840f0437034874549a840d2e371eb71b",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469500218",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469500218",
+    "body": "@rustbot label -S-tracking-unimplemented",
+    "oracle_html_sha": "d4a98d639a634c64d19fddf36e985ad2c99290cc78314180e217997caf6ea6eb",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469403561",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469403561",
+    "body": ":umbrella: The latest upstream changes (presumably #156518) made this pull request unmergeable. Please [resolve the merge conflicts](https://rustc-dev-guide.rust-lang.org/git.html#rebasing-and-conflicts).",
+    "oracle_html_sha": "d80289ef9b8be99d8f67d5b42a23b6ecc92d9bf33490c8b8f3023b9e2799c52f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469402146",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469402146",
+    "body": ":umbrella: The latest upstream changes (presumably #156518) made this pull request unmergeable. Please [resolve the merge conflicts](https://rustc-dev-guide.rust-lang.org/git.html#rebasing-and-conflicts).",
+    "oracle_html_sha": "d80289ef9b8be99d8f67d5b42a23b6ecc92d9bf33490c8b8f3023b9e2799c52f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469398125",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469398125",
+    "body": ":umbrella: The latest upstream changes (presumably #156518) made this pull request unmergeable. Please [resolve the merge conflicts](https://rustc-dev-guide.rust-lang.org/git.html#rebasing-and-conflicts).",
+    "oracle_html_sha": "d80289ef9b8be99d8f67d5b42a23b6ecc92d9bf33490c8b8f3023b9e2799c52f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469370504",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469370504",
+    "body": ":hourglass: Testing commit 7ad60b654698fe8a7ec815c02ad45f85acc6b802 with merge ba0949ab745985a442e274ba52e8fb348cb0c662...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25981623936",
+    "oracle_html_sha": "2b6a94b80b7dc8646242ec8c5b2196511ae8e4a5c485e3c7abd5c3e8331ea959",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469368700",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469368700",
+    "body": "The last email I had received was the CI failure. I'll take a look when I can, but I'm busy in Europe at the moment.",
+    "oracle_html_sha": "311e2111e3fc37d5de6804a6a2eb01891e08c2f6224fd3c46a79e3e6d6ea03ce",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469200268",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469200268",
+    "body": "We are supposed to merge it right after beta branch. We missed the last window and are waiting on the next.",
+    "oracle_html_sha": "9ad2fee0ed6672115094f892c86d94393f889428a3c5e1d31583d27146982312",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469197907",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469197907",
+    "body": "@bors retry\r\n\r\nhttps://github.com/rust-lang/rust/issues/156460, rust-analyzer hir-def test failure.",
+    "oracle_html_sha": "c685002a0428c74c37f3a1f07135a9cb6d8041417fdd3ac4198fc7c446a6f6e3",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469192903",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469192903",
+    "body": "Nominating for beta since this occurs fairly often and can be difficult to get CI passing.\r\n",
+    "oracle_html_sha": "02cbbc2fb818f78e1473466ed9ec7d2eea3e6311f2423f54e48dcf4a2f2a472d",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4469002420",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4469002420",
+    "body": "@bors try @rust-timer queue",
+    "oracle_html_sha": "3bfeaf32a8921c7e84dda055b4a89bfed45d298f1f26058fb1823f26e3b89d10",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468943050",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468943050",
+    "body": "Do you happen to have some sort of antivirus (or other program) installed that injects itself into processes and detours Windows API functions? ",
+    "oracle_html_sha": "414e59dc8910e5878064c082b0593e98e4cf1cb63603cd9b87a898e798036dff",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468820750",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468820750",
+    "body": "Is there a way to add codegen test that checks that output has no loops?",
+    "oracle_html_sha": "2482c2429d0730f932815e39e27bbebdbe6dae5429f4a42ca92759812a3aa671",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468760146",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468760146",
+    "body": ":hourglass: Testing commit 5cd51c0edd2118b8799f6c8656e3753afd411e2f with merge 281c97c3240a9abd984ca0c6a2cd7389115e80d5...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25977994547",
+    "oracle_html_sha": "5da037fcf473d7e518044c4a49b7b1c9f3f24e8eba63dd21bc67e505734fe0df",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468723437",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468723437",
+    "body": ":warning: **Warning** :warning:\n\n* This PR is based on an [upstream commit](https://github.com/rust-lang/rust/commit/821537498d4f05f948fe4406aad99742f0e07618) that is older than 28 days.\n    \n    *It's recommended to update your branch according to the [rustc-dev-guide](https://rustc-dev-guide.rust-lang.org/contributing.html#keeping-your-branch-up-to-date).*",
+    "oracle_html_sha": "37aac85a3d623ed9db9406534ee9a1955dd8a5d35060141598cacec7af938d93",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468629309",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468629309",
+    "body": "Whoops, fixed!\r\n\r\n@rustbot ready",
+    "oracle_html_sha": "a745e949dab51cf4465d792d4c2928f0fce5eaa1ed6e79237972ef18f52ff335",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468613771",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468613771",
+    "body": ":hourglass: Testing commit e1941ffee672efea442b269011d6b40be6dbbff9 with merge c9ce8ae44956999417d4073e88082c4ab787996a...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25976688631",
+    "oracle_html_sha": "3617000e7b0263155bc844fddc9b6aec71625148ed004ea70d6f75e00fc2e812",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468605209",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468605209",
+    "body": ":hourglass: Testing commit 379caad45e1be85b384b578cc53d5f1b0e017782 with merge fd900000920740ac74b78f8737835898d811b2e4...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25976611094",
+    "oracle_html_sha": "f756bd72f12e7e750a183973302742678da7122a44387d79797f1ae1577f8f6d",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468598836",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468598836",
+    "body": "closing this because of inactivity, feel free to reopen",
+    "oracle_html_sha": "6e9c7584163f0fd447110d8711c844bd5ed91e8a847b9481e35506a2f47e1938",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468598068",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468598068",
+    "body": "closing this because of inactivity, feel free to reopen",
+    "oracle_html_sha": "6e9c7584163f0fd447110d8711c844bd5ed91e8a847b9481e35506a2f47e1938",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468596230",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468596230",
+    "body": "closing this because of inactivity, feel free to reopen",
+    "oracle_html_sha": "6e9c7584163f0fd447110d8711c844bd5ed91e8a847b9481e35506a2f47e1938",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468560621",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468560621",
+    "body": "nice\r\n\r\nr? me @bors r+ rollup",
+    "oracle_html_sha": "6461da7486fb15a9c350a2c56c7b475dac327a69bfc3d5bf6e96769d4b0a8bdf",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468481325",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468481325",
+    "body": "This pull request was unapproved due to being closed.",
+    "oracle_html_sha": "7613ee06f654c3ae0ff9a8df73001c0717734cb605dc2183c2b011edcf45595c",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468481207",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468481207",
+    "body": "I have no idea where the failure seems to come from. Closing and let's see which PR will fail...\r\n",
+    "oracle_html_sha": "fa49702fb11b8e04be6e26b73f42bf52a483769995658d7618d35146a9b91536",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468469473",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468469473",
+    "body": ":hourglass: Testing commit 7ad60b654698fe8a7ec815c02ad45f85acc6b802 with merge 3f417caf7034230b67cacf19b58bacbd7ace2a66...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25975221144",
+    "oracle_html_sha": "55d4a8f1af02a5a7dad35e9588a36df3c20617bd31ccdefe81a9781f68398201",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468468588",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468468588",
+    "body": "The impact is expected since we added some loops for iterating types for an item (even though 99.9% of the time, there is only one type).",
+    "oracle_html_sha": "29f071357a24b6b1740a1a3c8107ae2db9cfd6f6806395f9eeb3beae295b807d",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468453150",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468453150",
+    "body": "@bors r+\r\n\r\nI have no idea why bors said there is a merge conflict. GitHub does not claim that, and nothing has touched the submodule.\r\n",
+    "oracle_html_sha": "bb5a61eb31a98a8a7935418e5c2d93597e4e34aac8eefebdce9e4fae9bba0424",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468450156",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468450156",
+    "body": "Oops, sorry, I posted on the wrong PR. I meant for the beta one... Nevermind!",
+    "oracle_html_sha": "dae09236e6cbed673c7fbb2c984b0616d39f431594a71407b985f89edc3f7b62",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468448299",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468448299",
+    "body": "Approving this for beta. I've asked @weihanglo to include it in #156625.",
+    "oracle_html_sha": "b031c71396a61da52d6c2adb63b3c5ce4e510582667c2e0bf64768bf250e910b",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468446537",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468446537",
+    "body": "@weihanglo You'll need to cherry-pick the fix from https://github.com/rust-lang/rust/pull/156640 to allow the image to work on this branch. Can you include that here?",
+    "oracle_html_sha": "bc3ff681d74861fc5649ef20779791c02ae1147254769ee1923f7c7dae42e9ca",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468382236",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468382236",
+    "body": ":hourglass: Testing commit 069fdd2a2ccfd93ca2222124f35a6256c5fda7ec with merge 41c0bc74dd7b5bd8da197ceb38b3e30ec13b0fa9...\n\n**Workflow**: https://github.com/rust-lang/rust/actions/runs/25974342045",
+    "oracle_html_sha": "7c877446807b88a6fbcf5d9577412fbd889ee8c3af18c05b10e69311ee513685",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468258015",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468258015",
+    "body": "@durenzidu I don't have a Win machine at hand: when you have a chance, can you check if the issue reproduces with intermediate versions between 1.88 and 1.95 as well? 1.89, 1.90, etc.  I am curious to see a bisection and identify the first version that reproduces the issue for you.\n\nthanks",
+    "oracle_html_sha": "7f8681ef67ccd30e85dd2e589e06878c464449dd3550770aff1772b5ef336329",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468218146",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468218146",
+    "body": "Thanks!\r\n\r\n@bors r+ rollup",
+    "oracle_html_sha": "8daf460a02bf65efae6eccab65ca8e720b6fb80da5d90b298c11fd84f7094af8",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468214780",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468214780",
+    "body": "@bors r+ p=5 rollup=never",
+    "oracle_html_sha": "cc5f29dca4fe2e6c829c65c89a65b58b96099ee5164126b2faee096f4d8a2c5d",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468167745",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468167745",
+    "body": "That is a good point. Yeah, it will have to be integrated with this PR to fix CI.",
+    "oracle_html_sha": "80a975cc130b065149a0065593c0a8ef871040d9ee7b330d91880d8813379c9e",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468092499",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468092499",
+    "body": "@bors r=GuillaumeGomez",
+    "oracle_html_sha": "2e0e6fb8ae80097c2abb0ed8aa400efc13834cc0366768c57a214968ee3cfcf3",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468084949",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468084949",
+    "body": "@wesleywiser \r\n\r\nAm a bit busy, hopefully will have some free time soon",
+    "oracle_html_sha": "9189c5054a445f636e53d907a252e7aebfd473d07b20a3fb2c32a3662488b93b",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468080866",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468080866",
+    "body": "The final comment period, with a disposition to **merge**, as per the [review above](https://github.com/rust-lang/rust/pull/145108#issuecomment-4207942980), is now **complete**.\n\nAs the automated representative of the governance process, I would like to thank the author for their work and everyone else who contributed.",
+    "oracle_html_sha": "ff06de8865efd3a115779781ab1ef366127f433fbaf1529fb2d78324301f9a37",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468056517",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468056517",
+    "body": "This PR was rebased onto a different main commit. Here's a [range-diff](https://triagebot.infra.rust-lang.org/gh-range-diff/rust-lang/rust/29155a4cd6e9ecddf1ce1c539711df678923d69a..85b8257bd7292ba6393280851685ea3ab75c3bc9/be326a93323e9b929525b9298f43883ac66b3b2d..3032fafc833dbfb8c08d53f6ac447b8921d112b2) highlighting what actually changed.\n\n*Rebasing is a normal part of keeping PRs up to date, so no action is needed—this note is just to help reviewers.*",
+    "oracle_html_sha": "f824de5f872d49ccb9092431667f584f22808ea4682458bf6c2f4be9f4e098a4",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468013772",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468013772",
+    "body": "Tagging this as a regression, but feels like sth else is going on there",
+    "oracle_html_sha": "20a516248c968af24d40b5afc4b872366a5c59ddaac5e2b5d8d978b8793a139f",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4468007532",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4468007532",
+    "body": "Some changes occurred to MIR optimizations\n\ncc @rust-lang/wg-mir-opt",
+    "oracle_html_sha": "f6691e2461bb4dd557881fcd2a31e7f2dc68d43b228601fa385a247ec947d4ab",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4467977596",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4467977596",
+    "body": ":exclamation: You can only retry pull requests that are approved and have a previously failed auto build.",
+    "oracle_html_sha": "d9f0e3aeea69880cefb949a9403041bc1b2c3946313f403e7871f92ed2fad26a",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4467977497",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4467977497",
+    "body": "@bors retry\r\n\r\nSpurious failure fixed by #156640.\r\n\r\n",
+    "oracle_html_sha": "f572b80c389b73bf337ef9a475016af8ac49e7da499bbef4781fb7c4ca3551e3",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4467950488",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4467950488",
+    "body": "This pull request was unapproved.\n\n[View changes since this unapproval](https://triagebot.infra.rust-lang.org/gh-changes-since/rust-lang/rust/156625/1966c2d9c8e9ede22341aa55f3a14516a5d1bae3..3b4883ffae00afc0847ba6dce7fc65ee492b1d4d)",
+    "oracle_html_sha": "78e439dbc4c96712aae88e70505726e8c5161e4d9556248eee864a4b3db71df1",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4467950165",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4467950165",
+    "body": "@bors r-\nTo give time to reply",
+    "oracle_html_sha": "dda3328b9d9eb49cd96dbc34eb5b655bd75e5e0877d22c73cfaa0d4d7bf76cc3",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "rust-lang-rust-4467913431",
+    "source_url": "https://api.github.com/repos/rust-lang/rust/issues/comments/4467913431",
+    "body": "I suppose we could just let those implementation remain unstable. Or should we outright remove them as well?",
+    "oracle_html_sha": "eb07fd1fdc6e28fee0503a592e7b0bec9a4d2a8f945c6e6c7ef61bd3f9a2a250",
+    "repo": "rust-lang/rust"
+  },
+  {
+    "id": "kubernetes-kubernetes-4469519651",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4469519651",
+    "body": "/test pull-kubernetes-node-e2e-containerd",
+    "oracle_html_sha": "1dc3df2cb2a691a1e468f9c2f08bedb3a9d1b5cd2acd72bf39c88bb8a200656b",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4469253178",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4469253178",
+    "body": "/sig instrumentation",
+    "oracle_html_sha": "3bcbb39d3868dac13ecc43039ee32dcea97f30b90c7c329a49de8e72f17b1ef8",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4469247779",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4469247779",
+    "body": "This PR [may require API review](https://git.k8s.io/community/sig-architecture/api-review-process.md#what-apis-need-to-be-reviewed).\n\nIf so, when the changes are ready, [complete the pre-review checklist and request an API review](https://git.k8s.io/community/sig-architecture/api-review-process.md#mechanics).\n\nStatus of requested reviews is tracked in the [API Review project](https://github.com/orgs/kubernetes/projects/169).",
+    "oracle_html_sha": "93e57b163725c92f22633c778e7a32bbbadcc089bc5f9ddaf7e5e91fe348cbe7",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4469225230",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4469225230",
+    "body": "New changes are detected. LGTM label has been removed.",
+    "oracle_html_sha": "99e0a2d9cb596865eba15ea5d5b455a43123c0f46806483ab692b8cdfb0625bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4469002945",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4469002945",
+    "body": "New changes are detected. LGTM label has been removed.",
+    "oracle_html_sha": "99e0a2d9cb596865eba15ea5d5b455a43123c0f46806483ab692b8cdfb0625bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4468908662",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4468908662",
+    "body": "Unknown CLA label state. Rechecking for CLA labels.\n\nSend feedback to sig-contributor-experience at [kubernetes/community](https://github.com/kubernetes/community).\n\n/check-cla\n/easycla",
+    "oracle_html_sha": "6d4d209be84854cc98de377e24751cfd633f09ef68f6299a447d5c1f1c48cad2",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4468726266",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4468726266",
+    "body": "New changes are detected. LGTM label has been removed.",
+    "oracle_html_sha": "99e0a2d9cb596865eba15ea5d5b455a43123c0f46806483ab692b8cdfb0625bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4468476195",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4468476195",
+    "body": "cc: @gjtempleton @towca @jackfrancis @adrianmoisey \n\nCould one of you please take a look at this when you get a chance, thank you 🙏 ",
+    "oracle_html_sha": "7574db21e099615a342a8502c16bd35d5ec095bce9215490ed4a3e42f43af0f5",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4468444441",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4468444441",
+    "body": "Hello maintainers, I would like to work on this regression. I can reproduce the cancelled RunPodSandbox scenario, trace the kubelet/containerd interaction, and add regression coverage for sandbox-name reservation cleanup. Please assign this to me.",
+    "oracle_html_sha": "21ee34f86037a4f5e58a3c381a4b6d6b3c5c715ea82990cb125099b1e156b0b5",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4468035243",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4468035243",
+    "body": "/lgtm\r\nThank you @richabanker.",
+    "oracle_html_sha": "0c1194fc6b012689dde18b308e79d07c1daba5a16fa13b190eb3abc923991c67",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4467652495",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4467652495",
+    "body": "Please read guidelines for marking issue as need help.",
+    "oracle_html_sha": "c96a08022400dec5c545d638acecfb4438fd797e8d8246f3a6787b8b3799dc9d",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4467609201",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4467609201",
+    "body": "Hey @bart0sh thanks for your feedback so far. Do you have any final thoughts on this? You seemed to be supportive of this change in #134839 except for a couple points which I believe have been addressed in this PR.\r\n\r\nIf you've reconsidered and think that this isn't the right approach then I'll totally understand. I'd just like to hear that rather than let the PR linger for the bot to cull.",
+    "oracle_html_sha": "51367894de829b8d0100bcad41eb905d8fa742b3186dd4fcb6ce869424a3c5cf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4467223236",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4467223236",
+    "body": "thanks!\r\n/lgtm \r\n/assign soltysh ",
+    "oracle_html_sha": "6654ed2281764367a8b3f952b775a354d5a66941062b4f6fa381bd00bb6ab301",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4467214892",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4467214892",
+    "body": "/ok-to-test\r\n\r\nsorry for the delay",
+    "oracle_html_sha": "9295f06bd26824ddfae58d55df5bdb74e34cc7d1912478499314e657b501f28f",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4467172288",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4467172288",
+    "body": "/test pull-kubernetes-gce-master-scale-performance-5000",
+    "oracle_html_sha": "3235ac5a07ff1d6084a30bd456030d8b3d177c9a309e4554af5efbc9a87a8e0d",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466998575",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466998575",
+    "body": "New changes are detected. LGTM label has been removed.",
+    "oracle_html_sha": "99e0a2d9cb596865eba15ea5d5b455a43123c0f46806483ab692b8cdfb0625bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466923004",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466923004",
+    "body": "xref: https://github.com/kubernetes/enhancements/pull/6015",
+    "oracle_html_sha": "f83cbccf39d46cc2045d187820af28d2b15d3cd8f420a1f6f73c8d92072b4d18",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466859801",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466859801",
+    "body": "/test pull-kubernetes-integration",
+    "oracle_html_sha": "c30fded48e0baf277f5f69f65861353f7256e0e6f3a38ba9db6f6207b721a375",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466292327",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466292327",
+    "body": "@puneetdixit200 Could you provide the memory profiling data? Also, which Kubernetes version are you using?",
+    "oracle_html_sha": "264f55c4a2f64472a5b94ab52876684cc33833ac75f6dbba7eb764312d0f7634",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466268513",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466268513",
+    "body": "Hi maintainers, I’d like to investigate this. I can reproduce the high pod churn scenario, profile StreamWatcher memory growth, and propose a focused fix or benchmark-backed analysis.",
+    "oracle_html_sha": "922fd6eed40ead805ae5fc9cb813f5c759998ad010ca78dd574b757cac1713fb",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466267782",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466267782",
+    "body": "Hi maintainers, I’d like to work on this. I can start by mapping the current admission plugin informer usage, measure memory impact, and submit a targeted optimization plan/PR.",
+    "oracle_html_sha": "9e06f862d256463fc1165ed443fc03fa95427545414b1e57466ef0e6364d6b04",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466217137",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466217137",
+    "body": "@richabanker - I did split this one into 3 separate PRs as follows, so we could close this specific PR\r\nhttps://github.com/kubernetes/kubernetes/pull/136367\r\nhttps://github.com/kubernetes/kubernetes/pull/136369\r\nhttps://github.com/kubernetes/kubernetes/pull/136368\r\n\r\nI will follow up on the resource claim one and there's one metric remaining in endpoint slice which I will address too. \r\n\r\nIn short, this PR can be closed. \r\n",
+    "oracle_html_sha": "99fb8a74685a92898907a17141a4bb7f9d6298e7c5dba5f67d749f77617eb02e",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4466077930",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4466077930",
+    "body": "/test pull-kubernetes-e2e-gce",
+    "oracle_html_sha": "61cbfe34bffa8294c222b2bb5ce7264684f40008fea7b173a16d5b566432c1ca",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4465216593",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4465216593",
+    "body": "Rebased on latest master and addressed @richabanker's feedback (ran ./hack/tools/instrumentation/update-documentation-metrics.sh to update documentation-list.yaml). @richabanker could you re-lgtm? cc @ahg-g for approval.\r\n\r\n",
+    "oracle_html_sha": "a97248271f85a5c0cb5d050160426229d8246bba9078080c045182521ed6fba7",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4465211651",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4465211651",
+    "body": "/test pull-kubernetes-integration",
+    "oracle_html_sha": "c30fded48e0baf277f5f69f65861353f7256e0e6f3a38ba9db6f6207b721a375",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4465117014",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4465117014",
+    "body": "/assign @apelisse \r\n\r\nCould you take a look at this? This only promotes to beta, no change.",
+    "oracle_html_sha": "1f9d1cca389fff4de1191b29847791896e109999a3f03637afd468f91058b672",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4465063487",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4465063487",
+    "body": "New changes are detected. LGTM label has been removed.",
+    "oracle_html_sha": "99e0a2d9cb596865eba15ea5d5b455a43123c0f46806483ab692b8cdfb0625bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464553949",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464553949",
+    "body": "/sig node\r\n/priority backlog\r\n/triage accepted\r\n/lgtm\r\n\r\nThank you for long term commitment!",
+    "oracle_html_sha": "dd3ec11fe9d34df23b32758b0635735229313f89f4aee0878ebf578379087099",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464543593",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464543593",
+    "body": "This PR [may require API review](https://git.k8s.io/community/sig-architecture/api-review-process.md#what-apis-need-to-be-reviewed).\n\nIf so, when the changes are ready, [complete the pre-review checklist and request an API review](https://git.k8s.io/community/sig-architecture/api-review-process.md#mechanics).\n\nStatus of requested reviews is tracked in the [API Review project](https://github.com/orgs/kubernetes/projects/169).",
+    "oracle_html_sha": "93e57b163725c92f22633c778e7a32bbbadcc089bc5f9ddaf7e5e91fe348cbe7",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464477528",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464477528",
+    "body": "/cc @ffromani \r\n/cc @pohly \r\n/cc @nojnhuh ",
+    "oracle_html_sha": "75cfda21dec01207c817e7ac2b4988bd6910cf9bc71252e4d7e357858f5c5a19",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464476841",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464476841",
+    "body": "/cc @ffromani \r\n/cc @pohly \r\n/cc @nojnhuh \r\n",
+    "oracle_html_sha": "75cfda21dec01207c817e7ac2b4988bd6910cf9bc71252e4d7e357858f5c5a19",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464336699",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464336699",
+    "body": "Updated this quite significantly, reused k8s structs for marshalling and used NewRequestInfo after moving the util out of client-go. Feel free to take another pass @jpbetz! ",
+    "oracle_html_sha": "8839bb2a3bf985f9dd97abab3806c2f5295fe960f4f2e7bf17930098ae8375c8",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464289649",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464289649",
+    "body": "/assign @aaron-prindle @jpbetz \r\ncc: @thockin ",
+    "oracle_html_sha": "dad93e2b84bfab2a66c23a166e2fba38f74c924d74a21ccba966384081ae19bf",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464266280",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464266280",
+    "body": "/cc @yujuhong @tallclair @dchen1107 @mrunalp ",
+    "oracle_html_sha": "ed5c138bee3f1088bd3f1de3f73afb537f5d201e94879f5c5d68998831121381",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464264818",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464264818",
+    "body": "/assign @SergeyKanzhelev @haircommander ",
+    "oracle_html_sha": "3956c950beb5d119140bc63741c049fce7a2d9eb3aa2b32f0cbb402f7ced7bf2",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464241076",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464241076",
+    "body": "/approve\r\n/hold for the e2e windows pr job",
+    "oracle_html_sha": "b12fecedc8213ca44ce61654496e77813a3994bbe2d80bc3427ded419c611bcb",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464065831",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464065831",
+    "body": "/lgtm\r\n/approve\r\n\r\n/hold \r\nfor https://github.com/kubernetes/kubernetes/pull/139099 to be addressed first. (Will need update to the docs once the issue is fixed)",
+    "oracle_html_sha": "1f66c7bde0a9451bcd32b3b87ea9b43526fc02e63af161e50c7e41ac10b6e5fd",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4464037022",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4464037022",
+    "body": "/close\r\n\r\nSince KEP 5808 added some defaults in https://github.com/kubernetes/kubernetes/pull/136763\r\n\r\nPlease feel free to reopen if there is anything outstanding that the KEP is not handling. Thanks!",
+    "oracle_html_sha": "bf71c4b40fb8074be158a61b22ff7370496d866065bffc3f50383c6a39c02292",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463989138",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463989138",
+    "body": "@bhope ping on this, can we close this if you dont intend to work on it? Thanks",
+    "oracle_html_sha": "b3b9e4f526cbcdba4e21e7ced3dcbe175604f686c8bd2ae50959fbdbd9349dea",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463847253",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463847253",
+    "body": "/close\r\nin favor of https://github.com/kubernetes/kubernetes/pull/138914",
+    "oracle_html_sha": "e242a858f20c7775e1c1b60bcba25d6dd727326dc072584369334cff1891f412",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463820760",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463820760",
+    "body": "/cc @tallclair \r\nthis is the one we discussed earlier, thanks!",
+    "oracle_html_sha": "cb5f74a28eba9dc5813b6e849171b4763aa78db62f652cde024aba54a0000953",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463819560",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463819560",
+    "body": "Which was previously suggested in this thread https://github.com/kubernetes/kubernetes/pull/135739#discussion_r2759491355",
+    "oracle_html_sha": "b8bd96d9be6de7f26d55e7a47aa9ca5a0abc51907ba7e25c44c009b47cedc14d",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463795303",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463795303",
+    "body": "/test pull-kubernetes-e2e-capz-windows\r\nchanges look good but let's run the e2e test",
+    "oracle_html_sha": "7eef285466c610c435ecfd4854c443bd0c619e1a7fe72a09051dd835709f4570",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463722882",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463722882",
+    "body": "Alright, 3iii should be the behavior we observe now, I updated the first commit in the chain to update behavior from the apiserver here. I also updated the integration tests to check behavior of the resource version returned in all the cases like @jpbetz requested. Let's see how tests do, hopefully getting close!",
+    "oracle_html_sha": "92e8a7a7e28d2df2ade62564dfc6bf3c30323aa4773313f20bf1a1dc7a996112",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463629292",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463629292",
+    "body": "@vinayakray19 If you've already split out the effort into smaller PRs, can we close this one? ",
+    "oracle_html_sha": "c75e0f6587abdcc5e3ffeac9f57d0ceddf227ff7312efd5c58429883292b6a82",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463362238",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463362238",
+    "body": "Also please update the documentation-list.yaml too, similar to how you did in https://github.com/kubernetes/kubernetes/pull/137116 ?",
+    "oracle_html_sha": "d2db3b70c9a4c3352a7eea7e68bccc4a71e51b09abbbf52b1229e6a3275fd2b0",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463310613",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463310613",
+    "body": "/approve\r\n\r\nthe optional/required is in @lalitc375 's hands",
+    "oracle_html_sha": "66797f392c6a7f74640467f737136d659839c18c8ab477db8bcd91f70deb3cf7",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4463169700",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4463169700",
+    "body": "/remove-lifecycle rotten",
+    "oracle_html_sha": "20033f3cd1ee77a051d8ed567e58568b375bade2a596c46b50f219d52e912f94",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4462995688",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4462995688",
+    "body": "/hold\r\nRelated to updating the v1 type.go to not modify the existing open API information (similar to what was done for v1beta2). See latest 2 review comments",
+    "oracle_html_sha": "de730bc514a6d2357506f24e3d03060d318f6371b6ddcaacedde324c092aaa39",
+    "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "kubernetes-kubernetes-4462840649",
+    "source_url": "https://api.github.com/repos/kubernetes/kubernetes/issues/comments/4462840649",
+    "body": "@bhope do you plan on splitting this PR into multiple per-file PRs? If not, can we close it? Thanks!",
+    "oracle_html_sha": "0fdff91eaa372ff04c8d77f63d0be688ea85451fbb196d87ee2a9c11ae12a494",
+    "repo": "kubernetes/kubernetes"
+  }
+]

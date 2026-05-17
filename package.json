@@ -13,15 +13,16 @@
     "svelte-check": "pnpm ipc:bindings && pnpm --filter desktop svelte-check",
     "lint": "pnpm --filter desktop lint",
     "test": "pnpm --filter desktop test",
-    "bench": "pnpm --filter desktop bench",
-    "corpus": "pnpm --filter desktop corpus",
+    "bench": "node ./tools/perf-bench/run-all.mjs",
+    "corpus": "node ./tools/markdown-corpus/score.mjs",
     "rust:fmt": "cargo fmt --check",
     "rust:clippy": "cargo clippy --workspace --all-targets -- -D warnings",
     "rust:test": "cargo test --workspace",
     "rust:bench-check": "cargo bench --workspace --no-run",
     "rust:check": "cargo check --workspace --all-targets",
     "prepare": "husky || true",
-    "commitlint": "commitlint --from HEAD~1 --to HEAD"
+    "commitlint": "commitlint --from HEAD~1 --to HEAD",
+    "corpus:fetch": "node ./tools/markdown-corpus/fetch.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

@@ -12,8 +12,8 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . && prettier --check .",
     "test": "vitest run",
     "test:smoke": "bash -lc 'if command -v xvfb-run >/dev/null 2>&1; then xvfb-run -a playwright test tests/smoke.spec.ts; else playwright test tests/smoke.spec.ts; fi'",
-    "bench": "node -e \"console.log('bench placeholder: no-op scaffold gate satisfied');\"",
-    "corpus": "node -e \"console.log('corpus placeholder: no-op scaffold gate satisfied');\"",
+    "bench": "node ../../tools/perf-bench/run-all.mjs",
+    "corpus": "node ../../tools/markdown-corpus/score.mjs",
     "tauri": "tauri"
   },
   "dependencies": {

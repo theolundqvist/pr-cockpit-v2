@@ -20,8 +20,24 @@ path = "fixtures/build.rs"
 name = "generate-ipc-bindings"
 path = "src/bin/generate_ipc_bindings.rs"
 
+[[bin]]
+name = "render_batch"
+path = "src/bin/render_batch.rs"
+
 [[bench]]
-name = "scaffold_bench"
+name = "inbox_first_paint"
+harness = false
+
+[[bench]]
+name = "pr_detail_open"
+harness = false
+
+[[bench]]
+name = "file_open_in_diff_cached"
+harness = false
+
+[[bench]]
+name = "comrak_render_throughput"
 harness = false
 
 [build-dependencies]
