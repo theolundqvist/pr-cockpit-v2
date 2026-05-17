@@ -178,18 +178,18 @@
       "agentId": "bc-f1a2a30c-1418-4ed2-b30b-432f1b7abd3e",
       "runId": "run-a3e64bfd-137b-4bac-a854-4331e2b21c0f",
       "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-perf-corpus.md",
       "startedAt": "2026-05-17T09:02:43.413Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T09:02:46.226Z",
+      "finishedAt": "2026-05-17T09:59:43.614Z",
+      "lastUpdate": "2026-05-17T09:59:43.615Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m1-finalize",
@@ -282,6 +282,14 @@
     {
       "at": "2026-05-17T09:02:43.410Z",
       "message": "m1-frontend: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T09:18:44.326Z",
+      "message": "m1-perf-corpus: SSE idle 343159ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T09:18:44.327Z",
+      "message": "m1-perf-corpus: tool_call idle 343160ms; last=2026-05-17T09:13:01.167Z"
     }
   ]
 }
