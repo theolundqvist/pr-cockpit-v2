@@ -781,6 +781,10 @@
     {
       "at": "2026-05-17T22:52:58.438Z",
       "message": "m3-diff-worktree-notifs: tool_call idle 342722ms; last=2026-05-17T22:47:15.716Z"
+    },
+    {
+      "at": "2026-05-17T23:03:09.431Z",
+      "message": "m3-diff-worktree-notifs: tool_call idle 337489ms; last=2026-05-17T22:57:31.942Z"
     }
   ]
 }
