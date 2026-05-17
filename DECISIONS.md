@@ -227,3 +227,25 @@ uses `TokioClock`; tests inject `MockClock`.
 
 Reason: the polling sequence must be verified deterministically without wall-time
 delays. Clock injection makes retry behavior precise and CI-stable.
+
+### 2026-05-17: Frontend boot seed + worker highlighting cache strategy for M1 cockpit UI
+
+Decision:
+- Inbox cold paint reads `window.__INBOX_SEED__` first. Tauri computes this once
+  during startup (`ipc_init_inbox_impl`) and injects it on page load, so the
+  renderer can synchronously render `pr_inbox_rows` before any async IPC roundtrip.
+- Tree-sitter grammars are still provisioned from the vendored
+  `apps/desktop/src/assets/grammars/*.wasm` directory at runtime; the
+  highlight worker lazy-loads by language and only tokenizes around the
+  viewport window.
+- Token cache for highlighting is stored in IndexedDB database
+  `pr-cockpit-highlight-cache`, object store `tokens`, keyed by
+  `language:content_hash`, with line-token arrays merged across viewport
+  requests.
+- Inbox keyboard layer is global and GitHub-style (`j`, `k`, `Enter`), with row
+  preloading (`prDetailPreload`) on hover/focus so route transitions can resolve
+  from warm cache.
+
+Reason: this keeps first paint and navigation latency predictable in offline
+fixture mode while containing syntax/highlighting work to visible content and
+avoiding repeated tokenization for large diffs.

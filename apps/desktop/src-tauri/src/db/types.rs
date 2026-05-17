@@ -154,6 +154,58 @@ pub struct NotificationListRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct RepoSubscriptionRow {
+    pub account_id: String,
+    pub repo_id: String,
+    pub repo_owner: String,
+    pub repo_name: String,
+    pub watch_tier: String,
+    pub last_full_sync_at: Option<i64>,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrLabelRow {
+    pub label_name: String,
+    pub label_color: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrAssigneeRow {
+    pub user_id: String,
+    pub login: Option<String>,
+    pub assigned_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrReviewerRow {
+    pub user_id: String,
+    pub login: Option<String>,
+    pub reviewer_type: String,
+    pub reviewer_state: String,
+    pub requested_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrProjectRow {
+    pub project_id: String,
+    pub project_title: String,
+    pub item_id: Option<String>,
+    pub status: Option<String>,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrMilestoneRow {
+    pub milestone_id: String,
+    pub title: String,
+    pub state: String,
+    pub due_on: Option<i64>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct SearchHitRow {
     pub doc_type: String,
     pub doc_ref: String,

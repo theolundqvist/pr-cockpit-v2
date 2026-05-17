@@ -352,6 +352,114 @@ impl Db {
         Ok(rows)
     }
 
+    pub async fn list_repo_subscriptions(
+        &self,
+        account_id: &str,
+    ) -> Result<Vec<RepoSubscriptionRow>> {
+        let rows = sqlx::query_as::<_, RepoSubscriptionRow>(
+            "SELECT
+               rs.account_id,
+               rs.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               rs.watch_tier,
+               rs.last_full_sync_at,
+               rs.updated_at
+             FROM repo_subscriptions rs
+             JOIN repos r ON r.id = rs.repo_id
+             WHERE rs.account_id = ?1
+             ORDER BY r.owner ASC, r.name ASC",
+        )
+        .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_labels(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrLabelRow>> {
+        let rows = sqlx::query_as::<_, PrLabelRow>(
+            "SELECT label_name, label_color, description
+             FROM pr_labels
+             WHERE account_id = ?1 AND pr_id = ?2
+             ORDER BY label_name ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_assignees(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrAssigneeRow>> {
+        let rows = sqlx::query_as::<_, PrAssigneeRow>(
+            "SELECT
+               pa.user_id,
+               u.login,
+               pa.assigned_at
+             FROM pr_assignees pa
+             LEFT JOIN users u ON u.id = pa.user_id
+             WHERE pa.account_id = ?1 AND pa.pr_id = ?2
+             ORDER BY pa.assigned_at ASC, pa.user_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_reviewers(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrReviewerRow>> {
+        let rows = sqlx::query_as::<_, PrReviewerRow>(
+            "SELECT
+               pr.user_id,
+               u.login,
+               pr.reviewer_type,
+               pr.reviewer_state,
+               pr.requested_at
+             FROM pr_reviewers pr
+             LEFT JOIN users u ON u.id = pr.user_id
+             WHERE pr.account_id = ?1 AND pr.pr_id = ?2
+             ORDER BY pr.requested_at ASC, pr.user_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_projects(&self, account_id: &str, pr_id: &str) -> Result<Vec<PrProjectRow>> {
+        let rows = sqlx::query_as::<_, PrProjectRow>(
+            "SELECT project_id, project_title, item_id, status, updated_at
+             FROM pr_projects
+             WHERE account_id = ?1 AND pr_id = ?2
+             ORDER BY project_title ASC, project_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn pr_milestones(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<Vec<PrMilestoneRow>> {
+        let rows = sqlx::query_as::<_, PrMilestoneRow>(
+            "SELECT milestone_id, title, state, due_on, description
+             FROM pr_milestones
+             WHERE account_id = ?1 AND pr_id = ?2
+             ORDER BY title ASC, milestone_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
     pub async fn rate_limit_buckets_for_account(
         &self,
         account_id: &str,

@@ -41,6 +41,9 @@ export const commands = {
 	ipcRenderedCommentHtml: (input: RenderedCommentInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("ipc_rendered_comment_html", { input })),
 	ipcNotificationsList: (input: NotificationsListInput) => typedError<NotificationItem[], IpcError>(__TAURI_INVOKE("ipc_notifications_list", { input })),
 	ipcSystemStatus: (input: SystemStatusInput) => typedError<SystemStatusResponse, IpcError>(__TAURI_INVOKE("ipc_system_status", { input })),
+	ipcRepoSubscriptions: (input: RepoSubscriptionsInput) => typedError<RepoSubscriptionItem[], IpcError>(__TAURI_INVOKE("ipc_repo_subscriptions", { input })),
+	ipcPrMetadata: (input: PrHandleInput) => typedError<PrMetadataResponse, IpcError>(__TAURI_INVOKE("ipc_pr_metadata", { input })),
+	ipcInitInbox: () => typedError<InitInboxResponse, IpcError>(__TAURI_INVOKE("ipc_init_inbox")),
 };
 
 /** Events */
@@ -129,6 +132,14 @@ export type InboxItem = {
 
 export type InboxListInput = {
 	account_id: string,
+};
+
+export type InitInboxResponse = {
+	active_account_id: string | null,
+	accounts: AccountsListResponse,
+	subscriptions: RepoSubscriptionItem[],
+	inbox: InboxItem[],
+	status: SystemStatusResponse | null,
 };
 
 export type IpcError = {
@@ -233,6 +244,33 @@ export type PrHandleInput = {
 	pr_id: string,
 };
 
+export type PrLabel = {
+	label_name: string,
+	label_color: string,
+	description: string | null,
+};
+
+export type PrMetadataResponse = {
+	labels: PrLabel[],
+	assignees: PrParticipant[],
+	requested_reviewers: PrReviewer[],
+	projects: PrProject[],
+	milestones: PrMilestone[],
+};
+
+export type PrMilestone = {
+	milestone_id: string,
+	title: string,
+	state: string,
+	due_on: number | null,
+	description: string | null,
+};
+
+export type PrParticipant = {
+	user_id: string,
+	login: string | null,
+};
+
 export type PrPatchInput = {
 	account_id: string,
 	pr_id: string,
@@ -242,6 +280,22 @@ export type PrPatchInput = {
 export type PrPatchResponse = {
 	patch_blob_sha: string | null,
 	patch: string | null,
+};
+
+export type PrProject = {
+	project_id: string,
+	project_title: string,
+	item_id: string | null,
+	status: string | null,
+	updated_at: number,
+};
+
+export type PrReviewer = {
+	user_id: string,
+	login: string | null,
+	reviewer_type: string,
+	reviewer_state: string,
+	requested_at: number,
 };
 
 export type RateLimitBucket = {
@@ -268,6 +322,20 @@ export type RenderedCommentHtml = {
 export type RenderedCommentInput = {
 	body: string,
 	repo: string | null,
+};
+
+export type RepoSubscriptionItem = {
+	account_id: string,
+	repo_id: string,
+	repo_owner: string,
+	repo_name: string,
+	watch_tier: string,
+	last_full_sync_at: number | null,
+	updated_at: number,
+};
+
+export type RepoSubscriptionsInput = {
+	account_id: string,
 };
 
 export type ReviewThread = {

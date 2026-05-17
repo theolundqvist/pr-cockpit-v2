@@ -10,8 +10,9 @@ use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
 };
 use crate::db::{
-    CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrDetailSummaryRow,
-    PrFileRow, RateLimitBucketRow, ReviewThreadRow, TimelineRow,
+    CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrAssigneeRow,
+    PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrReviewerRow,
+    RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
 };
 use crate::render::{self, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
@@ -287,6 +288,80 @@ pub struct SystemStatusResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RepoSubscriptionItem {
+    pub account_id: String,
+    pub repo_id: String,
+    pub repo_owner: String,
+    pub repo_name: String,
+    pub watch_tier: String,
+    pub last_full_sync_at: Option<i64>,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RepoSubscriptionsInput {
+    pub account_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrLabel {
+    pub label_name: String,
+    pub label_color: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrParticipant {
+    pub user_id: String,
+    pub login: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrReviewer {
+    pub user_id: String,
+    pub login: Option<String>,
+    pub reviewer_type: String,
+    pub reviewer_state: String,
+    pub requested_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrProject {
+    pub project_id: String,
+    pub project_title: String,
+    pub item_id: Option<String>,
+    pub status: Option<String>,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrMilestone {
+    pub milestone_id: String,
+    pub title: String,
+    pub state: String,
+    pub due_on: Option<i64>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrMetadataResponse {
+    pub labels: Vec<PrLabel>,
+    pub assignees: Vec<PrParticipant>,
+    pub requested_reviewers: Vec<PrReviewer>,
+    pub projects: Vec<PrProject>,
+    pub milestones: Vec<PrMilestone>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct InitInboxResponse {
+    pub active_account_id: Option<String>,
+    pub accounts: AccountsListResponse,
+    pub subscriptions: Vec<RepoSubscriptionItem>,
+    pub inbox: Vec<InboxItem>,
+    pub status: Option<SystemStatusResponse>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct PrChangedEventPayload {
     pub pr_id: String,
 }
@@ -326,6 +401,10 @@ fn normalize_page(input_limit: Option<i64>, input_offset: Option<i64>) -> (i64, 
     let limit = input_limit.unwrap_or(50).clamp(1, 200);
     let offset = input_offset.unwrap_or(0).max(0);
     (limit, offset)
+}
+
+fn account_id_from_locator(locator: &AccountLocator) -> String {
+    format!("{}:{}", locator.host, locator.login)
 }
 
 fn map_inbox_row(row: InboxRow) -> InboxItem {
@@ -458,6 +537,63 @@ fn map_notification_row(row: NotificationListRow) -> NotificationItem {
         pr_id: row.pr_id,
         repo_owner: row.repo_owner,
         repo_name: row.repo_name,
+    }
+}
+
+fn map_repo_subscription_row(row: RepoSubscriptionRow) -> RepoSubscriptionItem {
+    RepoSubscriptionItem {
+        account_id: row.account_id,
+        repo_id: row.repo_id,
+        repo_owner: row.repo_owner,
+        repo_name: row.repo_name,
+        watch_tier: row.watch_tier,
+        last_full_sync_at: row.last_full_sync_at,
+        updated_at: row.updated_at,
+    }
+}
+
+fn map_pr_label_row(row: PrLabelRow) -> PrLabel {
+    PrLabel {
+        label_name: row.label_name,
+        label_color: row.label_color,
+        description: row.description,
+    }
+}
+
+fn map_pr_assignee_row(row: PrAssigneeRow) -> PrParticipant {
+    PrParticipant {
+        user_id: row.user_id,
+        login: row.login,
+    }
+}
+
+fn map_pr_reviewer_row(row: PrReviewerRow) -> PrReviewer {
+    PrReviewer {
+        user_id: row.user_id,
+        login: row.login,
+        reviewer_type: row.reviewer_type,
+        reviewer_state: row.reviewer_state,
+        requested_at: row.requested_at,
+    }
+}
+
+fn map_pr_project_row(row: PrProjectRow) -> PrProject {
+    PrProject {
+        project_id: row.project_id,
+        project_title: row.project_title,
+        item_id: row.item_id,
+        status: row.status,
+        updated_at: row.updated_at,
+    }
+}
+
+fn map_pr_milestone_row(row: PrMilestoneRow) -> PrMilestone {
+    PrMilestone {
+        milestone_id: row.milestone_id,
+        title: row.title,
+        state: row.state,
+        due_on: row.due_on,
+        description: row.description,
     }
 }
 
@@ -758,6 +894,118 @@ pub async fn ipc_system_status_impl(
     Ok(SystemStatusResponse { rate_limits, sync })
 }
 
+pub async fn ipc_repo_subscriptions_impl(
+    db: &Db,
+    input: RepoSubscriptionsInput,
+) -> Result<Vec<RepoSubscriptionItem>, IpcError> {
+    let rows = db
+        .list_repo_subscriptions(&input.account_id)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_repo_subscription_row).collect())
+}
+
+pub async fn ipc_pr_metadata_impl(
+    db: &Db,
+    input: PrHandleInput,
+) -> Result<PrMetadataResponse, IpcError> {
+    let labels = db
+        .pr_labels(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pr_label_row)
+        .collect::<Vec<_>>();
+    let assignees = db
+        .pr_assignees(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pr_assignee_row)
+        .collect::<Vec<_>>();
+    let requested_reviewers = db
+        .pr_reviewers(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pr_reviewer_row)
+        .collect::<Vec<_>>();
+    let projects = db
+        .pr_projects(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pr_project_row)
+        .collect::<Vec<_>>();
+    let milestones = db
+        .pr_milestones(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(map_pr_milestone_row)
+        .collect::<Vec<_>>();
+    Ok(PrMetadataResponse {
+        labels,
+        assignees,
+        requested_reviewers,
+        projects,
+        milestones,
+    })
+}
+
+pub async fn ipc_init_inbox_impl(
+    db: &Db,
+    auth: &AuthService,
+    sync: &SyncTierStateStore,
+) -> Result<InitInboxResponse, IpcError> {
+    let accounts = ipc_accounts_list_impl(auth).await?;
+    let active_locator = accounts.active.clone().or_else(|| {
+        accounts.accounts.first().map(|account| AccountLocator {
+            host: account.host.clone(),
+            login: account.login.clone(),
+        })
+    });
+    let active_account_id = active_locator.as_ref().map(account_id_from_locator);
+
+    let (subscriptions, inbox, status) = if let Some(account_id) = active_account_id.as_ref() {
+        let subscriptions = ipc_repo_subscriptions_impl(
+            db,
+            RepoSubscriptionsInput {
+                account_id: account_id.clone(),
+            },
+        )
+        .await?;
+        let inbox = ipc_inbox_list_impl(
+            db,
+            InboxListInput {
+                account_id: account_id.clone(),
+            },
+        )
+        .await?;
+        let status = Some(
+            ipc_system_status_impl(
+                db,
+                sync,
+                SystemStatusInput {
+                    account_id: account_id.clone(),
+                },
+            )
+            .await?,
+        );
+        (subscriptions, inbox, status)
+    } else {
+        (Vec::new(), Vec::new(), None)
+    };
+
+    Ok(InitInboxResponse {
+        active_account_id,
+        accounts,
+        subscriptions,
+        inbox,
+        status,
+    })
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn ipc_accounts_list(
@@ -865,6 +1113,34 @@ pub async fn ipc_system_status(
     ipc_system_status_impl(db.inner(), sync.inner(), input).await
 }
 
+#[tauri::command]
+#[specta::specta]
+pub async fn ipc_repo_subscriptions(
+    db: tauri::State<'_, Arc<Db>>,
+    input: RepoSubscriptionsInput,
+) -> Result<Vec<RepoSubscriptionItem>, IpcError> {
+    ipc_repo_subscriptions_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn ipc_pr_metadata(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrHandleInput,
+) -> Result<PrMetadataResponse, IpcError> {
+    ipc_pr_metadata_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn ipc_init_inbox(
+    db: tauri::State<'_, Arc<Db>>,
+    auth: tauri::State<'_, Arc<AuthService>>,
+    sync: tauri::State<'_, Arc<SyncTierStateStore>>,
+) -> Result<InitInboxResponse, IpcError> {
+    ipc_init_inbox_impl(db.inner(), auth.inner(), sync.inner()).await
+}
+
 pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
     tauri_specta::Builder::<R>::new()
         .dangerously_cast_bigints_to_number()
@@ -880,7 +1156,10 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             ipc_pr_patch,
             ipc_rendered_comment_html,
             ipc_notifications_list,
-            ipc_system_status
+            ipc_system_status,
+            ipc_repo_subscriptions,
+            ipc_pr_metadata,
+            ipc_init_inbox
         ])
         .events(tauri_specta::collect_events![
             PrChangedEventPayload,
@@ -922,5 +1201,8 @@ pub fn command_names() -> &'static [&'static str] {
         "ipc_rendered_comment_html",
         "ipc_notifications_list",
         "ipc_system_status",
+        "ipc_repo_subscriptions",
+        "ipc_pr_metadata",
+        "ipc_init_inbox",
     ]
 }

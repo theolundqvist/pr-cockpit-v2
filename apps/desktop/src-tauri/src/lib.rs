@@ -6,6 +6,11 @@ use tauri::Manager;
 use crate::auth::AuthService;
 use crate::db::Db;
 
+#[derive(Debug, Clone)]
+struct InboxSeedState {
+    json: String,
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let specta_builder = ipc::specta_builder::<tauri::Wry>();
@@ -36,13 +41,40 @@ pub fn run() {
             let auth_service =
                 Arc::new(AuthService::new(Arc::clone(&db)).context("building auth service")?);
             let sync_state = Arc::new(sync::SyncTierStateStore::default());
+            let inbox_seed = tauri::async_runtime::block_on(ipc::ipc_init_inbox_impl(
+                db.as_ref(),
+                auth_service.as_ref(),
+                sync_state.as_ref(),
+            ))
+            .unwrap_or_else(|_| ipc::InitInboxResponse {
+                active_account_id: None,
+                accounts: auth::AccountsListResponse {
+                    active: None,
+                    accounts: Vec::new(),
+                },
+                subscriptions: Vec::new(),
+                inbox: Vec::new(),
+                status: None,
+            });
+            let inbox_seed_state = InboxSeedState {
+                json: serde_json::to_string(&inbox_seed).unwrap_or_else(|_| "null".to_string()),
+            };
 
             app.manage(db);
             app.manage(auth_service);
             app.manage(sync_state);
+            app.manage(inbox_seed_state);
 
             specta_builder.mount_events(app);
             Ok(())
+        })
+        .on_page_load(|window, _payload| {
+            let inbox_seed = window.state::<InboxSeedState>();
+            let script = format!(
+                "window.__INBOX_SEED__ = {}; window.dispatchEvent(new Event('inbox-seed-ready'));",
+                inbox_seed.json
+            );
+            let _ = window.eval(&script);
         })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())

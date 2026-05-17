@@ -12,5 +12,12 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
-  ignorePatterns: ['.svelte-kit/', 'build/', 'dist/', 'src-tauri/target/', '**/*.svelte']
+  ignorePatterns: [
+    '.svelte-kit/',
+    'build/',
+    'dist/',
+    'src-tauri/target/',
+    '**/*.svelte',
+    'src/lib/ipc/bindings.ts'
+  ]
 };
