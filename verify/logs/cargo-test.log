@@ -1,0 +1,233 @@
+   Compiling slab v0.4.12
+   Compiling tokio v1.52.3
+   Compiling crossbeam-utils v0.8.21
+   Compiling zerocopy v0.8.48
+   Compiling futures-util v0.3.32
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.2.2
+   Compiling rand v0.7.3
+   Compiling phf_generator v0.8.0
+   Compiling getrandom v0.3.4
+   Compiling phf_codegen v0.8.0
+   Compiling crossbeam-channel v0.5.15
+   Compiling httpdate v1.0.3
+   Compiling futures-executor v0.3.32
+   Compiling glib v0.18.5
+   Compiling either v1.15.0
+   Compiling phf_macros v0.8.0
+   Compiling concurrent-queue v2.5.0
+   Compiling tokio-util v0.7.18
+   Compiling h2 v0.4.14
+   Compiling event-listener v5.4.1
+   Compiling phf v0.8.0
+   Compiling rand_chacha v0.3.1
+   Compiling crossbeam-queue v0.3.12
+   Compiling sqlx-core v0.8.6
+   Compiling rand v0.8.6
+   Compiling markup5ever v0.10.1
+   Compiling gio v0.18.4
+   Compiling cairo-rs v0.18.5
+   Compiling atk v0.18.2
+   Compiling javascriptcore-rs v1.1.2
+   Compiling hyper v1.9.0
+   Compiling tower v0.5.3
+   Compiling sqlx-sqlite v0.8.6
+   Compiling hyper-util v0.1.20
+   Compiling num-bigint-dig v0.8.6
+   Compiling tokio-rustls v0.26.4
+   Compiling ahash v0.8.12
+   Compiling async-compression v0.4.42
+   Compiling tokio-stream v0.1.18
+   Compiling selectors v0.22.0
+   Compiling cssparser v0.27.2
+   Compiling sqlx-macros-core v0.8.6
+   Compiling rsa v0.9.10
+   Compiling hyper-rustls v0.27.9
+   Compiling tower-http v0.6.10
+   Compiling hashbrown v0.14.5
+   Compiling futures v0.3.32
+   Compiling jsonwebtoken v10.4.0
+   Compiling html5ever v0.25.2
+   Compiling hashlink v0.9.1
+   Compiling sqlx-macros v0.8.6
+   Compiling hyper-timeout v0.5.2
+   Compiling rusqlite v0.32.1
+   Compiling octocrab v0.50.0
+   Compiling gdk-pixbuf v0.18.5
+   Compiling pango v0.18.3
+   Compiling soup3 v0.5.0
+   Compiling gdk v0.18.2
+   Compiling sqlx v0.8.6
+   Compiling kuchiki v0.8.1
+   Compiling reqwest v0.12.28
+   Compiling crossbeam-epoch v0.9.18
+   Compiling crossbeam-deque v0.8.6
+   Compiling half v2.7.1
+   Compiling rand_core v0.9.5
+   Compiling ciborium-io v0.2.2
+   Compiling plotters-backend v0.3.7
+   Compiling plotters-svg v0.3.7
+   Compiling ciborium-ll v0.2.2
+   Compiling rand_chacha v0.9.0
+   Compiling gtk v0.18.2
+   Compiling gdkx11 v0.18.2
+   Compiling rayon-core v1.13.0
+   Compiling itertools v0.13.0
+   Compiling assert-json-diff v2.0.2
+   Compiling num_cpus v1.17.0
+   Compiling cast v0.3.0
+   Compiling deadpool-runtime v0.1.4
+   Compiling criterion-plot v0.8.2
+   Compiling deadpool v0.12.3
+   Compiling rayon v1.12.0
+   Compiling rand v0.9.4
+   Compiling alloca v0.4.0
+   Compiling ciborium v0.2.2
+   Compiling plotters v0.3.7
+   Compiling tinytemplate v1.2.1
+   Compiling page_size v0.6.0
+   Compiling colored v3.1.1
+   Compiling anes v0.1.6
+   Compiling similar v2.7.0
+   Compiling oorandom v11.1.5
+   Compiling criterion v0.8.2
+   Compiling mockito v1.7.2
+   Compiling wiremock v0.6.5
+   Compiling webkit2gtk v2.0.2
+   Compiling tao v0.35.2
+   Compiling muda v0.19.1
+   Compiling wry v0.55.1
+   Compiling tauri-runtime v2.11.2
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling tauri v2.11.2
+   Compiling tauri-plugin-clipboard-manager v2.3.2
+   Compiling tauri-specta v2.0.0-rc.25
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-os v2.3.2
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 07s
+     Running unittests src/lib.rs (target/debug/deps/desktop_lib-edcfbafbe30910f9)
+
+running 3 tests
+test tests::package_name_is_stable ... ok
+test auth::gh::tests::parses_status_sections_by_token_match ... ok
+test render::tests::sanitizes_scripts ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/main.rs (target/debug/deps/desktop-955d93550eb7a2ec)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests fixtures/build.rs (target/debug/deps/fixture_build-c960f1f83400bc7d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generate_ipc_bindings.rs (target/debug/deps/generate_ipc_bindings-a282f85f0be4533e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_batch.rs (target/debug/deps/render_batch-f7046273ed6f1480)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/canonical_queries.rs (target/debug/deps/canonical_queries-6cd6f137fddd46c8)
+
+running 1 test
+test graphql_queries_are_canonicalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/db_integration.rs (target/debug/deps/db_integration-46faa286764279aa)
+
+running 5 tests
+test open_fixture_loads_inbox_under_timing_budget_best_effort ... ok
+test fts_search_returns_expected_hits ... ok
+test migrations_apply_cleanly_to_empty_file ... ok
+test blob_store_round_trip_and_ref_counts_work ... ok
+test read_models_match_hand_rolled_selects_on_fixture ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/ipc_bindings.rs (target/debug/deps/ipc_bindings-f246ddec3bb3ea65)
+
+running 1 test
+test ipc_bindings_are_up_to_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/ipc_token_safety.rs (target/debug/deps/ipc_token_safety-0fd10095a449ff68)
+
+running 1 test
+test ipc_flow_tracing_does_not_leak_stubbed_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/online_demo.rs (target/debug/deps/online_demo-8a7874acbf92df5f)
+
+running 1 test
+test optional_online_inbox_refresh_demo ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/perf_smoke.rs (target/debug/deps/perf_smoke-080128a1b07b67e0)
+
+running 1 test
+test inbox_cold_paint_fixture_budget_smoke ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/render.rs (target/debug/deps/render-69f0f1a32a2f0ae3)
+
+running 8 tests
+test renders_issue_autolink ... ok
+test renders_emoji_shortcode ... ok
+test renders_alert_block ... ok
+test renders_user_autolink ... ok
+test renders_sha_autolink ... ok
+test renders_suggestion_fence ... ok
+test uses_render_cache_on_second_render ... ok
+test mini_corpus_smoke_snapshot ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/renderer_isolation.rs (target/debug/deps/renderer_isolation-87cca37cb6193948)
+
+running 1 test
+test renderer_does_not_reach_sqlite_or_github_directly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sync_integration.rs (target/debug/deps/sync_integration-2e4894488ffab59b)
+
+running 6 tests
+test mergeable_null_recovery_uses_expected_virtual_clock_schedule ... ok
+test rate_limit_budgeter_throttles_background_only ... ok
+test etag_304_round_trip_avoids_counter_decrement_and_db_writes ... ok
+test pr_detail_reconcile_upserts_expected_sqlite_rows ... ok
+test tiered_scheduler_honors_focus_pause_and_foreground_bypass ... ok
+test notifications_change_detector_honors_headers_and_emits_refetch_targets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s
+
+     Running tests/token_safety.rs (target/debug/deps/token_safety-71b906a21ae7fd39)
+
+running 1 test
+test token_safety_guards_all_auth_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+   Doc-tests desktop_lib
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,5 @@
+
+> pr-cockpit@0.1.0 online-demo /workspace
+> node --experimental-strip-types ./tools/online-demo/run.ts
+
+[online-demo] skip: GITHUB_TOKEN is not set; live API demo is optional and non-gating.
