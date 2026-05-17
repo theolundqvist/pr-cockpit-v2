@@ -122,20 +122,20 @@
     {
       "name": "m2-verify",
       "type": "verifier",
-      "branch": "orch/m2-optimistic-writes/m2-verify",
+      "branch": "`orch/m2-optimistic-writes/m2-finalize` (verifier artifacts committed at `50ff6f9`)",
       "startingRef": "orch/m2-optimistic-writes/m2-finalize",
       "dependsOn": [
         "m2-finalize"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-c53d91c7-1f39-4155-9129-277e866f60a7",
+      "runId": "run-a04ebb5f-470c-4ee5-b283-dbc06452c7c5",
+      "parentAgentId": "bc-64160f6f-aaee-42c1-b65b-277f3260fc1b",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m2-verify.md",
       "startedAt": "2026-05-17T18:50:49.522Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T18:50:49.522Z",
+      "finishedAt": "2026-05-17T19:35:07.585Z",
+      "lastUpdate": "2026-05-17T19:35:07.585Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -204,6 +204,14 @@
     {
       "at": "2026-05-17T18:50:48.962Z",
       "message": "m2-finalize: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T19:23:55.294Z",
+      "message": "m2-verify: SSE idle 347767ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T19:23:55.295Z",
+      "message": "m2-verify: tool_call idle 347768ms; last=2026-05-17T19:18:07.527Z"
     }
   ]
 }
