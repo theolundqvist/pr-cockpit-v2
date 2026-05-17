@@ -83,3 +83,24 @@ subplanners don't repeat the work; flagged for the operator to add.
 Slack visibility is opt-in via `SLACK_BOT_TOKEN` + `--slack-channel`. Neither
 is set here; the script logs once and proceeds without a Slack thread, per
 its docs. Correctness is unaffected.
+
+### 2026-05-17: Patched skill `MODEL_CATALOG` for current `/v1/models` shape
+
+The vendored skill (`cursor/plugins@main`) ships a `MODEL_CATALOG` whose
+selection params are stale relative to the live model API:
+
+- `claude-opus-4-7` and friends now require a `cyber` parameter (default
+  `false`) and a complete `(cyber, thinking, context, effort, fast)` quintet
+  per `/v1/models`. The catalog was sending bare `{id}` or partial params,
+  yielding `invalid_model` and rejecting every spawn.
+- `gpt-5.5` variants now require an explicit `context` (`272k` for `fast:true`,
+  `1m` for `fast:false`).
+
+Patched these locally in `~/orchestrate/skills-orchestrate/scripts/models.ts`
+so the skill's slugs (`claude-opus-4-7`, `claude-opus-4-7-thinking-xhigh`,
+`opus-max`, `gpt-5.5-high`, `gpt-5.5-high-fast`) resolve to live variants
+again. `bun cli.ts models --check` no longer prints `invalid_model`; the only
+remaining error is the probe's own `validation_error` against its placeholder
+`example-org/example-repo`, which is not a model issue.
+
+This patch belongs upstream in `cursor/plugins`; flagged for a follow-up PR.
