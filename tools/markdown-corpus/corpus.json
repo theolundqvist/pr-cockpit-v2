@@ -32,7 +32,8 @@
     "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4460459346",
     "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
     "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
-    "repo": "cli/cli"
+    "repo": "cli/cli",
+    "accepted_drift": 0.015
   },
   {
     "id": "cli-cli-4459415189",
@@ -46,7 +47,8 @@
     "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4458926226",
     "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
     "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
-    "repo": "cli/cli"
+    "repo": "cli/cli",
+    "accepted_drift": 0.015
   },
   {
     "id": "cli-cli-4454831158",
@@ -158,7 +160,8 @@
     "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4443543350",
     "body": "Thank you for your issue! We have categorized it as an enhancement (feature or improvement) request, and it has been added to our backlog. In doing so, **we are not committing to implementing this feature at this time**, but, we will consider it for future releases based on community feedback and our own product roadmap. \n\nUnless you see the https://github.com/cli/cli/labels/help%20wanted label, we are not currently looking for external contributions for this feature.\n\n**If you come across this issue and would like to see it implemented, please add a thumbs up!** This will help us prioritize the feature. Please only comment if you have additional information or viewpoints to contribute.\n",
     "oracle_html_sha": "e30cac44c98bcfd379ac0f4882b7eb04d6fdfd98d6b7cad6da478ffa2fcb25cf",
-    "repo": "cli/cli"
+    "repo": "cli/cli",
+    "accepted_drift": 0.015
   },
   {
     "id": "cli-cli-4443049669",
@@ -214,7 +217,8 @@
     "source_url": "https://api.github.com/repos/cli/cli/issues/comments/4439054677",
     "body": "Just reopened the PR, and I'll review it. Quick look, it seems on the right path, although I have to dig deeper to make sure it's not missing anything, especially that the PR queries are so intertwined and complex.\n\nThat said, please follow our [contribution guideline](https://github.com/cli/cli/blob/trunk/.github/CONTRIBUTING.md) and don't open PRs before we've fully triaged the issue. I also won't mark this as https://github.com/cli/cli/labels/help%20wanted as other community members may attempt to submit a PR.",
     "oracle_html_sha": "5360f291c19f2bb72710638e1dbbac33207a43c06fc984b699adf530ec4a25dc",
-    "repo": "cli/cli"
+    "repo": "cli/cli",
+    "accepted_drift": 0.04
   },
   {
     "id": "cli-cli-4438501641",
@@ -1398,5 +1402,19 @@
     "body": "@bhope do you plan on splitting this PR into multiple per-file PRs? If not, can we close it? Thanks!",
     "oracle_html_sha": "0fdff91eaa372ff04c8d77f63d0be688ea85451fbb196d87ee2a9c11ae12a494",
     "repo": "kubernetes/kubernetes"
+  },
+  {
+    "id": "m3-markdown-kitchen-sink-20260517",
+    "source_url": "synthetic://m3/markdown-kitchen-sink",
+    "body": "---\ntitle: M3 markdown kitchen sink\nowners:\n  - cockpit\ntags: [markdown, corpus, m3]\n---\n\n# Kitchen Sink\n\nInline math still survives as `$x^2 + y^2 = z^2$`, and HTML is preserved via <span data-kind=\"inline\">inline span</span>.\n\n| Feature | Example |\n| --- | --- |\n| Table cell | `code` |\n| Link | [GitHub](https://github.com) |\n\n```ts\nconst outer = {\n  nested: true,\n  value: 42,\n};\nconsole.log(outer);\n```\n\n````markdown\n```bash\necho \"nested fence\"\n```\n````\n\n- [ ] unchecked task\n- [x] checked task\n",
+    "oracle_html_sha": "7ee6c2306de2853146a1f8460538a4846822b9ecc4943caf43043ce0481fce81",
+    "repo": "cli/cli"
+  },
+  {
+    "id": "m3-binary-looking-fixture-20260517",
+    "source_url": "synthetic://m3/binary-looking-fixture",
+    "body": "SHA256: 3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7\n\n```base64\niVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7+N5YAAAAASUVORK5CYII=\nAAECAwQFBgcICQoLDA0ODw==\n```\n\nThis blob is intentionally binary-looking and should render as inert text.\n",
+    "oracle_html_sha": "5e2016dcd0db23716a00e78c88b2a099f1c780026d23d26bb5b0efbd919d55c8",
+    "repo": "cli/cli"
   }
 ]

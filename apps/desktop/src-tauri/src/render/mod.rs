@@ -26,6 +26,20 @@ static SUGGESTION_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r#"(?s)<pre><code class="language-suggestion">(.+?)</code></pre>"#)
         .expect("valid suggestion regex")
 });
+static GH_ISSUE_OR_PR_LINK_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
+        r"^https://github\.com/([^/]+)/([^/]+)/(issues|pull)/(\d+)(#(?:issuecomment-\d+|discussion_r\d+))?/?$",
+    )
+        .expect("valid issue/pr autolink regex")
+});
+static GH_COMMIT_LINK_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^https://github\.com/([^/]+)/([^/]+)/commit/([0-9a-fA-F]{7,40})/?$")
+        .expect("valid commit autolink regex")
+});
+static GH_LABEL_LINK_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^https://github\.com/([^/]+)/([^/]+)/labels/([^/?#]+)$")
+        .expect("valid label autolink regex")
+});
 static EMOJI_MAP: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
     HashMap::from([
         (":rocket:", "🚀"),
@@ -200,6 +214,7 @@ fn postprocess_alerts(input: &str) -> String {
 
 fn postprocess_autolinks_and_emoji(input: &str, repo: Option<&str>) -> String {
     let document = kuchiki::parse_html().one(input.to_string());
+    normalize_github_autolink_labels(&document, repo);
     let text_nodes: Vec<NodeRef> = document
         .descendants()
         .filter(|node| node.as_text().is_some())
@@ -230,6 +245,94 @@ fn postprocess_autolinks_and_emoji(input: &str, repo: Option<&str>) -> String {
     }
 
     document.to_string()
+}
+
+fn normalize_github_autolink_labels(document: &NodeRef, repo: Option<&str>) {
+    let Ok(selection) = document.select("a[href]") else {
+        return;
+    };
+    let mut updates: Vec<(NodeRef, String)> = Vec::new();
+    for anchor in selection {
+        let href = {
+            let attrs = anchor.attributes.borrow();
+            attrs.get("href").map(str::to_owned)
+        };
+        let Some(href) = href else {
+            continue;
+        };
+        let Some(label) = github_autolink_label(&href, repo) else {
+            continue;
+        };
+        if !anchor_text_matches_href(anchor.as_node(), &href) {
+            continue;
+        }
+        updates.push((anchor.as_node().clone(), label));
+    }
+    for (anchor_node, label) in updates {
+        let children: Vec<NodeRef> = anchor_node.children().collect();
+        for child in children {
+            child.detach();
+        }
+        anchor_node.append(NodeRef::new_text(label));
+    }
+}
+
+fn github_autolink_label(href: &str, repo: Option<&str>) -> Option<String> {
+    if let Some(caps) = GH_ISSUE_OR_PR_LINK_RE.captures(href) {
+        let owner = caps.get(1)?.as_str();
+        let target_repo = caps.get(2)?.as_str();
+        let number = caps.get(4)?.as_str();
+        let target = format!("{owner}/{target_repo}");
+        let same_repo = repo
+            .map(|value| value.eq_ignore_ascii_case(&target))
+            .unwrap_or(false);
+        let mut label = if same_repo {
+            format!("#{number}")
+        } else {
+            format!("{target}#{number}")
+        };
+        if caps.get(5).is_some() {
+            label.push_str(" (comment)");
+        }
+        return Some(label);
+    }
+    if let Some(caps) = GH_COMMIT_LINK_RE.captures(href) {
+        let owner = caps.get(1)?.as_str();
+        let target_repo = caps.get(2)?.as_str();
+        let sha = caps.get(3)?.as_str().to_lowercase();
+        let target = format!("{owner}/{target_repo}");
+        if repo
+            .map(|value| value.eq_ignore_ascii_case(&target))
+            .unwrap_or(false)
+        {
+            return Some(sha.chars().take(7).collect());
+        }
+        return Some(format!(
+            "{target}@{}",
+            sha.chars().take(7).collect::<String>()
+        ));
+    }
+    if let Some(caps) = GH_LABEL_LINK_RE.captures(href) {
+        let owner = caps.get(1)?.as_str();
+        let target_repo = caps.get(2)?.as_str();
+        let target = format!("{owner}/{target_repo}");
+        if repo
+            .map(|value| value.eq_ignore_ascii_case(&target))
+            .unwrap_or(false)
+        {
+            return Some(caps.get(3)?.as_str().replace("%20", " "));
+        }
+    }
+    None
+}
+
+fn anchor_text_matches_href(anchor: &NodeRef, href: &str) -> bool {
+    let text = anchor.text_contents().trim().to_string();
+    !text.is_empty() && normalize_link_value(&text) == normalize_link_value(href)
+}
+
+fn normalize_link_value(value: &str) -> String {
+    value.trim_end_matches('/').to_ascii_lowercase()
 }
 
 fn sanitize_rendered_html(input: &str) -> String {
@@ -368,5 +471,42 @@ mod tests {
         let rendered = render_comment("<script>alert('x')</script>hello", &ctx);
         assert!(!rendered.html.contains("<script"));
         assert!(rendered.html.contains("hello"));
+    }
+
+    #[test]
+    fn normalizes_github_issue_and_comment_autolinks() {
+        let rendered = render_comment(
+            "xref: https://github.com/kubernetes/enhancements/pull/6015\n\nhttps://github.com/cli/cli/issues/13338#issuecomment-4439054677",
+            &RenderCtx {
+                repo: Some("kubernetes/kubernetes"),
+                cache: None,
+            },
+        );
+        assert!(rendered.html.contains(">kubernetes/enhancements#6015<"));
+        assert!(rendered.html.contains(">cli/cli#13338 (comment)<"));
+    }
+
+    #[test]
+    fn normalizes_same_repo_pr_autolinks() {
+        let rendered = render_comment(
+            "/close\nin favor of https://github.com/kubernetes/kubernetes/pull/138914",
+            &RenderCtx {
+                repo: Some("kubernetes/kubernetes"),
+                cache: None,
+            },
+        );
+        assert!(rendered.html.contains(">#138914<"));
+    }
+
+    #[test]
+    fn normalizes_same_repo_label_links() {
+        let rendered = render_comment(
+            "tagged as https://github.com/cli/cli/labels/help%20wanted",
+            &RenderCtx {
+                repo: Some("cli/cli"),
+                cache: None,
+            },
+        );
+        assert!(rendered.html.contains(">help wanted<"));
     }
 }
