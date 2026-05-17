@@ -255,12 +255,12 @@
       "handoffPath": "handoffs/m1-fix-gates.md",
       "startedAt": "2026-05-17T11:31:19.608Z",
       "finishedAt": "2026-05-17T11:56:29.494Z",
-      "lastUpdate": "2026-05-17T11:56:29.494Z",
+      "lastUpdate": "2026-05-17T11:56:30.548Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -274,17 +274,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T11:56:32.300Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T11:56:32.300Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -379,6 +380,10 @@
     {
       "at": "2026-05-17T11:50:24.365Z",
       "message": "m1-fix-gates: tool_call idle 317125ms; last=2026-05-17T11:45:07.240Z"
+    },
+    {
+      "at": "2026-05-17T11:56:30.549Z",
+      "message": "m1-fix-gates: verification self-reported (unit-test-verified)"
     }
   ]
 }
