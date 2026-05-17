@@ -3,5 +3,11 @@
   "identifier": "default",
   "description": "Default capability for scaffolded desktop app",
   "windows": ["main"],
-  "permissions": ["core:default", "fs:default", "os:default", "clipboard-manager:default"]
+  "permissions": [
+    "core:default",
+    "fs:default",
+    "os:default",
+    "clipboard-manager:default",
+    "notification:default"
+  ]
 }

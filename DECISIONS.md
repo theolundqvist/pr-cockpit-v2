@@ -1,5 +1,32 @@
 # Decisions
 
+### 2026-05-17: M3 notifications engine contracts (plugin ownership, trigger predicates, dedup, suppression)
+
+Decision:
+
+- Native OS dispatch is owned by Rust only through `tauri-plugin-notification`; renderer code never calls the notification plugin directly.
+- Cross-platform delivery behavior is treated as platform-native:
+  - macOS requires user approval for "Allow Notifications" on first send,
+  - Linux routes through desktop notification services (`notify-send`/DBus-backed),
+  - Windows relies on AppUserModelID-backed toasts; bundled app setup is handled by Tauri plugin wiring, while some dev-mode runs may require env override for shell identity.
+- Trigger semantics are snapshot-diff based and evaluated post-reconcile against canonical SQLite state:
+  - `review_requested`: new `pr_reviewers` row for the viewer account,
+  - `changes_requested`: review upsert to `CHANGES_REQUESTED` by non-viewer actor,
+  - `approved`: review upsert to `APPROVED` by non-viewer actor,
+  - `mention`: comment body includes `@<viewer-login>` from non-viewer author,
+  - `ci_fail`: aggregate check-suite state flips green→red for authored/reviewed PRs,
+  - `ci_recover`: aggregate check-suite state flips red→green for authored/reviewed PRs,
+  - `merge_conflict`: `pull_requests.mergeable_state` flips to `dirty`,
+  - `mutation_failure`: `MutationEvent::Failed` that is not classified as transient network.
+- Dedup primitive is schema-level `UNIQUE(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)` plus `INSERT OR IGNORE`; only successful inserts can dispatch OS notifications.
+- Quiet-hours and focus-mode suppression still persist events for inbox visibility:
+  - `deduped = 0` means OS dispatch attempted,
+  - `deduped = 1` means suppressed/failed OS dispatch but event row retained.
+- Per-repo filter precedence is `deny > allow`; non-empty allow-list restricts scope, deny-list always excludes.
+- Mutation-failure notifications preserve M2 silent-revert policy: transient network failures stay silent; non-network failures can notify.
+
+Reason: M3 needs deterministic local-notification behavior that aligns with post-reconcile state, avoids duplicate OS spam, and keeps renderer architecture/token-safety boundaries unchanged.
+
 ## M2 contract decisions (promoted for M3+)
 
 These are the non-obvious M2 contracts that downstream milestones should treat

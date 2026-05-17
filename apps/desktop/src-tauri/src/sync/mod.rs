@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tokio::sync::{broadcast, mpsc, oneshot, watch, Mutex};
@@ -54,12 +55,35 @@ pub trait CacheInvalidationEmitter: Send + Sync {
     fn emit_inbox_changed(&self, _account_id: &str) {}
     fn emit_rate_limit_changed(&self, _account_id: &str) {}
     fn emit_notifications_changed(&self, _account_id: &str) {}
+    fn emit_sync_reconciled(&self, _account_id: &str) {}
 }
 
 #[derive(Default)]
 pub struct NoopCacheInvalidationEmitter;
 
 impl CacheInvalidationEmitter for NoopCacheInvalidationEmitter {}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SyncReconciledEvent {
+    pub account_id: String,
+    pub scope: String,
+}
+
+static SYNC_RECONCILED_EVENTS: Lazy<broadcast::Sender<SyncReconciledEvent>> = Lazy::new(|| {
+    let (tx, _) = broadcast::channel(512);
+    tx
+});
+
+pub fn subscribe_reconciled_events() -> broadcast::Receiver<SyncReconciledEvent> {
+    SYNC_RECONCILED_EVENTS.subscribe()
+}
+
+fn publish_sync_reconciled_event(account_id: &str, scope: &str) {
+    let _ = SYNC_RECONCILED_EVENTS.send(SyncReconciledEvent {
+        account_id: account_id.to_string(),
+        scope: scope.to_string(),
+    });
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct SyncTierSnapshot {
@@ -574,6 +598,10 @@ impl RealActions {
                 payload,
             )
             .await?;
+            publish_sync_reconciled_event(&self.inner.account_id, "inbox_refresh");
+            self.inner
+                .emitter
+                .emit_sync_reconciled(&self.inner.account_id);
             self.inner
                 .emitter
                 .emit_inbox_changed(&self.inner.account_id);
@@ -654,9 +682,15 @@ impl RealActions {
             }
         }
 
-        if let Some(target) =
-            reconcile_pr_detail(Arc::clone(&self.inner.db), &self.inner.account_id, payload).await?
-        {
+        let reconcile_target =
+            reconcile_pr_detail(Arc::clone(&self.inner.db), &self.inner.account_id, payload)
+                .await?;
+        publish_sync_reconciled_event(&self.inner.account_id, "pr_detail");
+        self.inner
+            .emitter
+            .emit_sync_reconciled(&self.inner.account_id);
+
+        if let Some(target) = reconcile_target {
             self.inner
                 .emitter
                 .emit_inbox_changed(&self.inner.account_id);
@@ -719,6 +753,10 @@ impl RealActions {
                     mapped,
                 )
                 .await?;
+                publish_sync_reconciled_event(&self.inner.account_id, "notifications");
+                self.inner
+                    .emitter
+                    .emit_sync_reconciled(&self.inner.account_id);
                 self.inner
                     .emitter
                     .emit_notifications_changed(&self.inner.account_id);

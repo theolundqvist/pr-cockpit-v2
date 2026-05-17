@@ -8,6 +8,9 @@ use crate::auth::token_client::TokenClient;
 use crate::auth::AuthService;
 use crate::db::Db;
 use crate::mutations::{MutationEngine, NetworkMonitor};
+use crate::notify::{
+    dispatcher::TauriNotificationSender, NotificationEngine, NotificationEventEmitter,
+};
 
 #[derive(Debug, Clone)]
 struct InboxSeedState {
@@ -57,6 +60,16 @@ pub fn run() {
                     .with_cache_emitter(cache_emitter.clone())
                     .with_network_monitor(network_monitor.clone()),
             );
+            let notification_sender = Arc::new(TauriNotificationSender::new(app.handle().clone()));
+            let notification_emitter: Arc<dyn NotificationEventEmitter> = cache_emitter.clone();
+            let notification_engine = Arc::new(
+                tauri::async_runtime::block_on(NotificationEngine::new(
+                    Arc::clone(&db),
+                    notification_sender,
+                    notification_emitter,
+                ))
+                .context("building notification engine")?,
+            );
             let inbox_seed = tauri::async_runtime::block_on(ipc::ipc_init_inbox_impl(
                 db.as_ref(),
                 auth_service.as_ref(),
@@ -80,6 +93,7 @@ pub fn run() {
             app.manage(Arc::clone(&auth_service));
             app.manage(Arc::clone(&sync_state));
             app.manage(Arc::clone(&mutation_engine));
+            app.manage(Arc::clone(&notification_engine));
             app.manage(inbox_seed_state);
 
             {
@@ -94,6 +108,13 @@ pub fn run() {
                         }
                     }
                 });
+            }
+
+            {
+                let notification_engine = Arc::clone(&notification_engine);
+                let mutation_rx = mutation_engine.subscribe();
+                let sync_rx = sync::subscribe_reconciled_events();
+                notification_engine.spawn(mutation_rx, sync_rx);
             }
 
             {
@@ -131,6 +152,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(invoke_handler)
         .run(tauri::generate_context!())
@@ -142,6 +164,7 @@ pub mod auth;
 pub mod db;
 pub mod ipc;
 pub mod mutations;
+pub mod notify;
 pub mod render;
 pub mod storage;
 pub mod sync;

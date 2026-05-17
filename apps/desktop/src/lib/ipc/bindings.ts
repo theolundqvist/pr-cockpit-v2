@@ -54,6 +54,26 @@ export const commands = {
 	saveDraft: (input: SaveDraftInput) => typedError<Draft, IpcError>(__TAURI_INVOKE("save_draft", { input })),
 	deleteDraft: (draftId: string) => typedError<null, IpcError>(__TAURI_INVOKE("delete_draft", { draftId })),
 	renderPreview: (input: RenderPreviewInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("render_preview", { input })),
+	listNotificationRules: (accountId: string) => typedError<NotificationRule[], IpcError>(__TAURI_INVOKE("list_notification_rules", { accountId })),
+	setNotificationRule: (accountId: string, kind: string, enabled: boolean, configJson: string) => typedError<null, IpcError>(__TAURI_INVOKE("set_notification_rule", { accountId, kind, enabled, configJson })),
+	setQuietHours: (accountId: string, json: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_quiet_hours", { accountId, json })),
+	setFocusMode: (accountId: string, on: boolean) => typedError<null, IpcError>(__TAURI_INVOKE("set_focus_mode", { accountId, on })),
+	setPerRepoFilters: (accountId: string, allow: string[], deny: string[]) => typedError<null, IpcError>(__TAURI_INVOKE("set_per_repo_filters", { accountId, allow, deny })),
+	listNotificationEvents: (accountId: string, limit: number | null, offset: number | null, since: number | null) => typedError<NotificationEventRow[], IpcError>(__TAURI_INVOKE("list_notification_events", { accountId, limit, offset, since })),
+	markNotificationEventSeen: (eventId: string) => typedError<null, IpcError>(__TAURI_INVOKE("mark_notification_event_seen", { eventId })),
+	notifDebugSimulateEvent: (accountId: string, payloadJson: string) => typedError<{
+	event_id: string,
+	account_id: string,
+	repo_id: string | null,
+	pr_id: string | null,
+	event_type: string,
+	actor_id: string,
+	server_event_id: string,
+	title: string,
+	body: string,
+	fired_at: number,
+	deduped: boolean,
+} | null, IpcError>(__TAURI_INVOKE("__notif_debug__simulate_event", { accountId, payloadJson })),
 };
 
 /** Events */
@@ -66,9 +86,11 @@ export const events = {
 	mutationRolledBack: makeEvent<MutationRolledBackEventPayload>("mutation:rolled-back"),
 	mutationSubmitted: makeEvent<MutationSubmittedEventPayload>("mutation:submitted"),
 	networkAccountIdChanged: makeEvent<NetworkChangedEventPayload>("network:<account_id> changed"),
+	notificationEvent: makeEvent<NotificationEventPayload>("notification:event"),
 	notificationsAccountIdChanged: makeEvent<NotificationsChangedEventPayload>("notifications:account:<id> changed"),
 	prIdChanged: makeEvent<PrChangedEventPayload>("pr:<id> changed"),
 	rateLimitAccountIdChanged: makeEvent<RateLimitChangedEventPayload>("rate_limit:account:<id> changed"),
+	syncAccountIdReconciled: makeEvent<SyncReconciledEventPayload>("sync:<account_id> reconciled"),
 };
 
 /* Types */
@@ -236,6 +258,35 @@ export type NetworkChangedEventPayload = {
 	state: NetState,
 };
 
+export type NotificationEventPayload = {
+	event_id: string,
+	account_id: string,
+	repo_id: string | null,
+	pr_id: string | null,
+	event_type: string,
+	actor_id: string,
+	server_event_id: string,
+	title: string,
+	body: string,
+	fired_at: number,
+	deduped: boolean,
+};
+
+export type NotificationEventRow = {
+	id: string,
+	account_id: string,
+	repo_id: string | null,
+	pr_id: string | null,
+	event_type: string,
+	actor_id: string,
+	server_event_id: string,
+	title: string,
+	body: string,
+	fired_at: number,
+	deduped: boolean,
+	seen: boolean,
+};
+
 export type NotificationItem = {
 	id: string,
 	reason: string,
@@ -245,6 +296,15 @@ export type NotificationItem = {
 	pr_id: string | null,
 	repo_owner: string,
 	repo_name: string,
+};
+
+export type NotificationRule = {
+	id: string,
+	account_id: string,
+	kind: string,
+	enabled: boolean,
+	config_json: string,
+	updated_at: number,
 };
 
 export type NotificationsChangedEventPayload = {
@@ -501,6 +561,10 @@ export type SubmittedMutation = {
 	requires_confirmation: boolean,
 	optimism_level: OptimismLevel,
 	projected_changes: string[],
+};
+
+export type SyncReconciledEventPayload = {
+	account_id: string,
 };
 
 export type SyncSystemSnapshot = {

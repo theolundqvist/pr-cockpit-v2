@@ -1,9 +1,11 @@
 <script lang="ts">
   import '../app.css';
   import { onDestroy, onMount } from 'svelte';
+  import { page } from '$app/stores';
   import { get } from 'svelte/store';
 
-  import { listenEvent, toAccountId } from '$lib/ipc/client';
+  import { listenEvent, listenEventPayload, listNotificationEvents, toAccountId } from '$lib/ipc/client';
+  import type { NotificationEventPayload } from '$lib/ipc/bindings';
   import {
     activeAccountIdStore,
     accountsStore,
@@ -20,6 +22,8 @@
   export let data: LayoutData;
 
   let unlistenRateLimit: (() => void) | null = null;
+  let unlistenNotification: (() => void) | null = null;
+  let notificationIndicatorCount = 0;
 
   $: activeRateLimit = $statusStore?.rate_limits[0] ?? null;
   $: selectedAccount = $accountsStore.find((account) => toAccountId(account) === $activeAccountIdStore) ?? null;
@@ -27,11 +31,15 @@
   onMount(async () => {
     await initializeCockpit(data.boot);
     await subscribeRateLimit();
+    await refreshNotificationIndicator();
+    await subscribeNotificationEvents();
   });
 
   onDestroy(() => {
     unlistenRateLimit?.();
     unlistenRateLimit = null;
+    unlistenNotification?.();
+    unlistenNotification = null;
   });
 
   async function subscribeRateLimit(): Promise<void> {
@@ -45,10 +53,35 @@
     });
   }
 
+  async function refreshNotificationIndicator(): Promise<void> {
+    const activeId = get(activeAccountIdStore);
+    if (!activeId) {
+      notificationIndicatorCount = 0;
+      return;
+    }
+    const events = await listNotificationEvents(activeId, 100, 0, null);
+    notificationIndicatorCount = events.filter((event) => !event.seen).length;
+  }
+
+  async function subscribeNotificationEvents(): Promise<void> {
+    unlistenNotification?.();
+    unlistenNotification = await listenEventPayload<NotificationEventPayload>(
+      'notification:event',
+      async (payload) => {
+        const activeId = get(activeAccountIdStore);
+        if (!activeId || payload.account_id !== activeId) {
+          return;
+        }
+        notificationIndicatorCount += 1;
+      }
+    );
+  }
+
   async function onAccountChange(event: Event): Promise<void> {
     const nextAccountId = (event.currentTarget as HTMLSelectElement).value;
     await selectAccountById(nextAccountId);
     await subscribeRateLimit();
+    await refreshNotificationIndicator();
   }
 
   function toggleFocusMode(): void {
@@ -80,6 +113,21 @@
     </div>
 
     <div class="p-3 flex-auto overflow-auto">
+      <nav class="mb-3">
+        <a
+          class={`btn btn-sm width-full mb-1 ${$page.url.pathname === '/' ? 'btn-primary' : ''}`}
+          href="/"
+        >
+          Inbox
+        </a>
+        <a
+          class={`btn btn-sm width-full ${$page.url.pathname.startsWith('/settings') ? 'btn-primary' : ''}`}
+          href="/settings"
+        >
+          Settings
+        </a>
+      </nav>
+
       <h2 class="f6 text-bold mb-2">Repo subscriptions</h2>
       {#if $repoSubscriptionsStore.length === 0}
         <p class="f6 color-fg-muted">No subscriptions yet.</p>
@@ -124,6 +172,9 @@
       <button class="btn" type="button" on:click={toggleFocusMode}>
         Focus: {$focusModeStore === 'focused' ? 'On' : 'Off'}
       </button>
+      <span class="Label" aria-label="Notification inbox indicator">
+        Notifications {notificationIndicatorCount}
+      </span>
       {#if selectedAccount}
         <span class="f6 color-fg-muted">@{selectedAccount.login}</span>
       {/if}
