@@ -207,13 +207,13 @@
       "handoffPath": "handoffs/m1-finalize.md",
       "startedAt": "2026-05-17T10:00:16.811Z",
       "finishedAt": "2026-05-17T10:46:25.400Z",
-      "lastUpdate": "2026-05-17T10:46:26.168Z",
+      "lastUpdate": "2026-05-17T11:28:53.642Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "live-ui-verified"
+      "verification": "verifier-failed"
     },
     {
       "name": "m1-verify",
@@ -320,6 +320,10 @@
     {
       "at": "2026-05-17T10:46:26.168Z",
       "message": "m1-finalize: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T11:28:53.642Z",
+      "message": "m1-finalize: verification recorded (verifier-failed) by verifier m1-verify"
     }
   ]
 }
