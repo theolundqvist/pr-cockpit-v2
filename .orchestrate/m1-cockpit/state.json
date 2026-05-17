@@ -135,12 +135,12 @@
       "handoffPath": "handoffs/m1-ipc-types.md",
       "startedAt": "2026-05-17T07:34:14.701Z",
       "finishedAt": "2026-05-17T08:07:34.448Z",
-      "lastUpdate": "2026-05-17T08:07:34.448Z",
+      "lastUpdate": "2026-05-17T08:07:35.347Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "unit-test-verified",
       "attempts": 1
     },
     {
@@ -154,17 +154,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T08:07:37.634Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T08:07:37.634Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m1-perf-corpus",
@@ -264,6 +265,10 @@
     {
       "at": "2026-05-17T07:34:15.586Z",
       "message": "m1-markdown-pipeline: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T08:07:35.347Z",
+      "message": "m1-ipc-types: verification self-reported (unit-test-verified)"
     }
   ]
 }
