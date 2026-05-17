@@ -1,0 +1,18 @@
+
+> pr-cockpit@0.1.0 svelte-check /workspace
+> pnpm ipc:bindings && pnpm --filter desktop svelte-check
+
+
+> pr-cockpit@0.1.0 ipc:bindings /workspace
+> cargo run -p desktop --bin generate-ipc-bindings
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s
+     Running `target/debug/generate-ipc-bindings`
+
+> desktop@0.1.0 svelte-check /workspace/apps/desktop
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /workspace/apps/desktop
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings

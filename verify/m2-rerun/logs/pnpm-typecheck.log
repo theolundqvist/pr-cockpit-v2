@@ -1,0 +1,15 @@
+
+> pr-cockpit@0.1.0 typecheck /workspace
+> pnpm ipc:bindings && pnpm --filter desktop typecheck
+
+
+> pr-cockpit@0.1.0 ipc:bindings /workspace
+> cargo run -p desktop --bin generate-ipc-bindings
+
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.34s
+     Running `target/debug/generate-ipc-bindings`
+
+> desktop@0.1.0 typecheck /workspace/apps/desktop
+> svelte-kit sync && tsc --noEmit
+
