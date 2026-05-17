@@ -108,13 +108,13 @@
       "handoffPath": "handoffs/m3-finalize-merge.md",
       "startedAt": "2026-05-17T22:25:21.624Z",
       "finishedAt": "2026-05-17T23:24:08.616Z",
-      "lastUpdate": "2026-05-17T23:24:08.616Z",
+      "lastUpdate": "2026-05-17T23:24:09.508Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "m3-verify",
@@ -127,17 +127,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T23:24:12.364Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-17T23:24:12.364Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -216,6 +217,10 @@
     {
       "at": "2026-05-17T22:39:26.550Z",
       "message": "m3-finalize-merge: tool_call idle 313061ms; last=2026-05-17T22:34:13.489Z"
+    },
+    {
+      "at": "2026-05-17T23:24:09.508Z",
+      "message": "m3-finalize-merge: verification self-reported (live-ui-verified)"
     }
   ]
 }
