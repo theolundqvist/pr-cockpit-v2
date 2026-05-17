@@ -257,16 +257,16 @@
       "finishedAt": "2026-05-17T11:56:29.494Z",
       "lastUpdate": "2026-05-17T11:56:30.548Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": "unit-test-verified",
-      "attempts": 1
+      "verification": "unit-test-verified"
     },
     {
       "name": "m1-reverify",
       "type": "verifier",
-      "branch": "orch/m1-cockpit/m1-reverify",
+      "branch": "`orch/m1-cockpit/m1-fix-gates` @ `6a553e8dab189848cb8c3dedb9c64966a8be7d5b` (verifier added `verify/` artifacts on top of worker SHA `c436ab81c59fff8fe0655fdb35171b5883e2b013`)",
       "startingRef": "orch/m1-cockpit/m1-fix-gates",
       "dependsOn": [
         "m1-fix-gates"
@@ -274,18 +274,18 @@
       "agentId": "bc-5c357a89-61c7-4511-b6f1-4b587171b314",
       "runId": "run-30e8597c-3df7-4126-bfe6-d826e450107e",
       "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-reverify.md",
       "startedAt": "2026-05-17T11:56:32.300Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T11:56:34.786Z",
+      "finishedAt": "2026-05-17T12:33:46.827Z",
+      "lastUpdate": "2026-05-17T12:33:46.827Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
