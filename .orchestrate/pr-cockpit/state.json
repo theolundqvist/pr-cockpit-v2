@@ -26,7 +26,7 @@
     {
       "name": "verify-m1-cockpit",
       "type": "verifier",
-      "branch": "orch/pr-cockpit/verify-m1-cockpit",
+      "branch": "`orch/pr-cockpit/m1-cockpit` (verifier artifacts committed under `verify/RERUN_AUDIT.md` + `verify/logs-rerun/`, pushed)",
       "startingRef": "orch/pr-cockpit/m1-cockpit",
       "dependsOn": [
         "m1-cockpit"
@@ -34,12 +34,12 @@
       "agentId": "bc-efdde0d3-d6b9-4e54-9500-b7dfa529c577",
       "runId": "run-480c8eed-849d-4af7-88b2-967b6845cff1",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-m1-cockpit.md",
       "startedAt": "2026-05-17T13:44:37.033Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-17T13:44:40.618Z",
+      "finishedAt": "2026-05-17T14:09:31.674Z",
+      "lastUpdate": "2026-05-17T14:09:31.675Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
