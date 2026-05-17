@@ -8,12 +8,12 @@ use anyhow::{anyhow, Context, Result};
 use sqlx::FromRow;
 use tokio::sync::broadcast;
 
+use super::dispatch;
 use super::ipc_types::{
     DrainSummary, MutationEvent, PendingMutationView, SubmitPayload, SubmittedMutation,
 };
 use super::patch::Patch;
 use super::projector::{self, PatchSource};
-use super::stub_handlers;
 use super::{
     ApplyCtx, ErrorKind, HardConflictDiff, Mutation, MutationKind, OptimismLevel, PredictCtx,
     ReconcileCtx, RollbackCtx, ServerCallShape,
@@ -97,10 +97,7 @@ impl MutationApplyError {
 impl MutationEngine {
     pub fn new(db: Arc<Db>, github: GithubClient) -> Self {
         let (events_tx, _) = broadcast::channel(512);
-        let mut handlers = HashMap::<MutationKind, Arc<dyn Mutation>>::new();
-        for handler in stub_handlers::stub_handlers() {
-            handlers.insert(handler.kind(), handler);
-        }
+        let handlers = dispatch::dispatch_table();
 
         Self {
             db,

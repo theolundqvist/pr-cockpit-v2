@@ -2,12 +2,13 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use desktop_lib::db::{
-    CommentRecord, Db, PrLabelRecord, PullRequestRecord, RepoRecord, UserRecord,
+    CommentRecord, Db, PrAssigneeRecord, PrFileRecord, PrLabelRecord, PrReviewerRecord,
+    PullRequestRecord, RepoRecord, ReviewThreadRecord, UserRecord,
 };
 use desktop_lib::mutations::engine::MutationEngine;
 use desktop_lib::mutations::ipc_types::SubmitPayload;
 use desktop_lib::mutations::projector;
-use desktop_lib::mutations::{MutationKind, Patch};
+use desktop_lib::mutations::{dispatch, MutationKind, Patch};
 use proptest::prelude::*;
 use proptest::test_runner::{Config, RngAlgorithm, TestRng, TestRunner};
 
@@ -20,20 +21,11 @@ const REPO_ID: &str = "repo-prop";
 const USER_ID: &str = "user-stub";
 
 #[test]
-fn prop_submit_then_rollback_restores_domain_state() {
+fn prop_submit_then_rollback_restores_domain_state_for_all_kinds() {
     let runtime = tokio::runtime::Runtime::new().expect("runtime");
-    let mut runner = deterministic_runner(24, [7_u8; 32]);
+    let mut runner = deterministic_runner(40, [7_u8; 32]);
     let strategy = (
-        prop::sample::select(vec![
-            MutationKind::AddComment,
-            MutationKind::EditComment,
-            MutationKind::DeleteComment,
-            MutationKind::AddReaction,
-            MutationKind::RemoveReaction,
-            MutationKind::AddLabel,
-            MutationKind::RemoveLabel,
-            MutationKind::SetAssignees,
-        ]),
+        prop::sample::select(all_mutation_kinds()),
         "[a-z0-9_]{3,20}",
     );
 
@@ -42,7 +34,6 @@ fn prop_submit_then_rollback_restores_domain_state() {
             let result = runtime.block_on(async {
                 let harness = support::build_harness("http://127.0.0.1:1", "token", "prop").await?;
                 seed_graph(&harness.db, &harness.account_id).await?;
-                prepare_kind_fixture(&harness.db, &harness.account_id, kind).await?;
 
                 let before = snapshot_domain_tables(harness.db.pool()).await?;
                 let engine = MutationEngine::new(Arc::clone(&harness.db), harness.github.clone());
@@ -50,7 +41,10 @@ fn prop_submit_then_rollback_restores_domain_state() {
                 let submitted = engine.submit(&harness.account_id, payload).await?;
                 engine.discard(&submitted.mutation_id).await?;
                 let after = snapshot_domain_tables(harness.db.pool()).await?;
-                anyhow::ensure!(before == after, "domain snapshot changed after rollback");
+                anyhow::ensure!(
+                    before == after,
+                    "domain snapshot changed after rollback\nbefore:\n{before}\nafter:\n{after}"
+                );
                 Ok::<_, anyhow::Error>(())
             });
             result.map_err(|error| TestCaseError::fail(error.to_string()))
@@ -59,101 +53,28 @@ fn prop_submit_then_rollback_restores_domain_state() {
 }
 
 #[test]
-fn prop_submit_then_reconcile_matches_authoritative_upsert() {
+fn prop_interleaved_submit_discard_is_deterministic() {
     let runtime = tokio::runtime::Runtime::new().expect("runtime");
-    let mut runner = deterministic_runner(16, [9_u8; 32]);
-    let strategy = "[a-z0-9]{4,12}";
-
-    runner
-        .run(&strategy, |suffix| {
-            let result = runtime.block_on(async {
-                let harness = support::build_harness("http://127.0.0.1:1", "token", "prop").await?;
-                seed_graph(&harness.db, &harness.account_id).await?;
-                let engine = MutationEngine::new(Arc::clone(&harness.db), harness.github.clone());
-
-                let payload = SubmitPayload {
-                    kind: MutationKind::AddComment,
-                    target_type: "pull_request".to_string(),
-                    target_id: PR_ID.to_string(),
-                    idempotency_key: format!("idem-reconcile-{suffix}"),
-                    input_json: serde_json::json!({
-                        "local_id": format!("local-comment-{suffix}"),
-                        "pr_id": PR_ID,
-                        "author_id": USER_ID,
-                        "body": format!("body-{suffix}"),
-                        "server_body": format!("server-{suffix}"),
-                    }),
-                };
-
-                let submitted = engine.submit(&harness.account_id, payload).await?;
-                let summary = engine.drain().await?;
-                anyhow::ensure!(summary.reconciled >= 1, "expected a reconciled mutation");
-
-                let comment_count: i64 = sqlx::query_scalar(
-                    "SELECT COUNT(*) FROM comments WHERE id = ?1",
-                )
-                .bind(format!("srv-local-comment-{suffix}"))
-                .fetch_one(harness.db.pool())
-                .await?;
-                anyhow::ensure!(comment_count == 1, "server authoritative comment missing");
-
-                let local_count: i64 = sqlx::query_scalar(
-                    "SELECT COUNT(*) FROM comments WHERE id = ?1",
-                )
-                .bind(format!("local-comment-{suffix}"))
-                .fetch_one(harness.db.pool())
-                .await?;
-                anyhow::ensure!(local_count == 0, "local temporary comment id still present");
-
-                let mapping_count: i64 = sqlx::query_scalar(
-                    "SELECT COUNT(*) FROM id_mappings WHERE account_id = ?1 AND kind = 'comment' AND local_id = ?2 AND server_id = ?3",
-                )
-                .bind(&harness.account_id)
-                .bind(format!("local-comment-{suffix}"))
-                .bind(format!("srv-local-comment-{suffix}"))
-                .fetch_one(harness.db.pool())
-                .await?;
-                anyhow::ensure!(mapping_count == 1, "expected id mapping to be written exactly once");
-
-                let status: String = sqlx::query_scalar(
-                    "SELECT status FROM pending_mutations WHERE id = ?1",
-                )
-                .bind(submitted.mutation_id)
-                .fetch_one(harness.db.pool())
-                .await?;
-                anyhow::ensure!(status == "applied", "mutation should finish applied");
-
-                Ok::<_, anyhow::Error>(())
-            });
-            result.map_err(|error| TestCaseError::fail(error.to_string()))
-        })
-        .expect("property should pass");
-}
-
-#[test]
-fn prop_interleaved_runtime_transitions_converge() {
-    let runtime = tokio::runtime::Runtime::new().expect("runtime");
-    let mut runner = deterministic_runner(20, [11_u8; 32]);
+    let mut runner = deterministic_runner(24, [11_u8; 32]);
     let strategy = (
-        prop::collection::vec(
-            prop_oneof![Just("ok"), Just("transient"), Just("hard_conflict")],
-            1..20,
-        ),
-        prop::collection::vec(0_u8..=3, 1..20),
+        prop::collection::vec(prop::sample::select(all_mutation_kinds()), 1..16),
+        prop::collection::vec(0_u8..=2, 1..20),
     );
 
     runner
-        .run(&strategy, |(responses, ops)| {
+        .run(&strategy, |(kinds, ops)| {
             let result = runtime.block_on(async {
-                let left = run_interleaving_case(&responses, &ops).await?;
-                let right = run_interleaving_case(&responses, &ops).await?;
+                let left = run_interleaving_case(&kinds, &ops).await?;
+                let right = run_interleaving_case(&kinds, &ops).await?;
                 anyhow::ensure!(left == right, "terminal state must be deterministic");
                 anyhow::ensure!(
-                    left.values().all(|status| matches!(
-                        status.as_str(),
-                        "applied" | "failed" | "discarded" | "pending"
-                    )),
-                    "terminal statuses must be from known set"
+                    left.values().all(|status| {
+                        matches!(
+                            status.as_str(),
+                            "pending" | "discarded" | "failed" | "applied"
+                        )
+                    }),
+                    "terminal statuses must be valid pending/discarded/failed/applied"
                 );
                 Ok::<_, anyhow::Error>(())
             });
@@ -163,59 +84,15 @@ fn prop_interleaved_runtime_transitions_converge() {
 }
 
 #[test]
-fn prop_id_mappings_are_monotonic() {
-    let runtime = tokio::runtime::Runtime::new().expect("runtime");
-    let mut runner = deterministic_runner(12, [13_u8; 32]);
-    let strategy = (1_u8..5_u8, "[a-z0-9]{4,8}");
-
-    runner
-        .run(&strategy, |(extra_retries, suffix)| {
-            let result = runtime.block_on(async {
-                let harness = support::build_harness("http://127.0.0.1:1", "token", "prop").await?;
-                seed_graph(&harness.db, &harness.account_id).await?;
-                let engine = MutationEngine::new(Arc::clone(&harness.db), harness.github.clone());
-                let local_id = format!("local-comment-{suffix}");
-                let payload = SubmitPayload {
-                    kind: MutationKind::AddComment,
-                    target_type: "pull_request".to_string(),
-                    target_id: PR_ID.to_string(),
-                    idempotency_key: format!("idem-monotonic-{suffix}"),
-                    input_json: serde_json::json!({
-                        "local_id": local_id,
-                        "pr_id": PR_ID,
-                        "author_id": USER_ID,
-                        "body": "body",
-                        "transient_once": true,
-                    }),
-                };
-
-                let submitted = engine.submit(&harness.account_id, payload).await?;
-                let _ = engine.drain().await?;
-                for _ in 0..extra_retries {
-                    engine.retry(&submitted.mutation_id).await?;
-                    let _ = engine.drain().await?;
-                }
-
-                let mappings = sqlx::query_as::<_, (String, String)>(
-                    "SELECT local_id, server_id
-                     FROM id_mappings
-                     WHERE account_id = ?1 AND kind = 'comment' AND local_id = ?2",
-                )
-                .bind(&harness.account_id)
-                .bind(format!("local-comment-{suffix}"))
-                .fetch_all(harness.db.pool())
-                .await?;
-                anyhow::ensure!(mappings.len() == 1, "expected exactly one mapping row");
-                let (local, server) = &mappings[0];
-                anyhow::ensure!(
-                    server == &format!("srv-{local}"),
-                    "mapping must stay stable"
-                );
-                Ok::<_, anyhow::Error>(())
-            });
-            result.map_err(|error| TestCaseError::fail(error.to_string()))
-        })
-        .expect("property should pass");
+fn dispatch_table_covers_full_kind_set() {
+    let table = dispatch::dispatch_table();
+    for kind in all_mutation_kinds() {
+        assert!(
+            table.contains_key(&kind),
+            "dispatch table missing {}",
+            kind.as_str()
+        );
+    }
 }
 
 #[test]
@@ -314,62 +191,34 @@ fn prop_projector_is_involution() {
 }
 
 async fn run_interleaving_case(
-    responses: &[&str],
+    kinds: &[MutationKind],
     ops: &[u8],
 ) -> Result<std::collections::BTreeMap<String, String>> {
     let harness = support::build_harness("http://127.0.0.1:1", "token", "prop").await?;
     seed_graph(&harness.db, &harness.account_id).await?;
     let engine = MutationEngine::new(Arc::clone(&harness.db), harness.github.clone());
 
-    for (index, response) in responses.iter().enumerate() {
-        let force_error = match *response {
-            "transient" => Some("transient"),
-            "hard_conflict" => Some("hard_conflict"),
-            _ => None,
-        };
-
-        let payload = SubmitPayload {
-            kind: MutationKind::AddComment,
-            target_type: "pull_request".to_string(),
-            target_id: PR_ID.to_string(),
-            idempotency_key: format!("idem-int-{index}"),
-            input_json: serde_json::json!({
-                "local_id": format!("local-int-{index}"),
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "body": format!("body-{index}"),
-                "force_error": force_error,
-            }),
-        };
+    for (index, kind) in kinds.iter().enumerate() {
+        let payload = payload_for_kind(*kind, &format!("{index}"));
         let _ = engine.submit(&harness.account_id, payload).await?;
     }
-
     for op in ops {
         match op {
             0 => {
-                let _ = engine.drain().await?;
-            }
-            1 => {
-                if let Some(id) = first_mutation_id_with_status(harness.db.pool(), "failed").await?
-                {
-                    engine.retry(&id).await?;
-                }
-            }
-            2 => {
                 if let Some(id) =
                     first_mutation_id_with_status(harness.db.pool(), "pending").await?
                 {
                     engine.discard(&id).await?;
                 }
             }
+            1 => {
+                let _ = engine.drain().await?;
+            }
             _ => {
                 let _ = engine.drain().await?;
             }
         }
     }
-
-    let _ = engine.drain().await?;
-
     let rows = sqlx::query_as::<_, (String, String)>(
         "SELECT idempotency_key, status
          FROM pending_mutations
@@ -377,7 +226,6 @@ async fn run_interleaving_case(
     )
     .fetch_all(harness.db.pool())
     .await?;
-
     Ok(rows.into_iter().collect())
 }
 
@@ -395,199 +243,201 @@ async fn first_mutation_id_with_status(
 }
 
 fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
-    match kind {
-        MutationKind::AddComment => SubmitPayload {
-            kind,
-            target_type: "pull_request".to_string(),
-            target_id: PR_ID.to_string(),
-            idempotency_key: format!("idem-add-comment-{suffix}"),
-            input_json: serde_json::json!({
-                "local_id": format!("local-comment-{suffix}"),
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "body": format!("body-{suffix}"),
-            }),
-        },
-        MutationKind::EditComment => SubmitPayload {
-            kind,
-            target_type: "comment".to_string(),
-            target_id: "comment-edit".to_string(),
-            idempotency_key: format!("idem-edit-comment-{suffix}"),
-            input_json: serde_json::json!({
-                "comment_id": "comment-edit",
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "previous_body": "seed-edit",
-                "next_body": format!("next-{suffix}"),
-                "created_at": 10,
-                "previous_updated_at": 10,
-            }),
-        },
-        MutationKind::DeleteComment => SubmitPayload {
-            kind,
-            target_type: "comment".to_string(),
-            target_id: "comment-delete".to_string(),
-            idempotency_key: format!("idem-delete-comment-{suffix}"),
-            input_json: serde_json::json!({
-                "comment_id": "comment-delete",
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "body": "seed-delete",
-                "created_at": 10,
-                "previous_updated_at": 10,
-            }),
-        },
-        MutationKind::AddReaction => SubmitPayload {
-            kind,
-            target_type: "comment".to_string(),
-            target_id: "comment-react".to_string(),
-            idempotency_key: format!("idem-add-reaction-{suffix}"),
-            input_json: serde_json::json!({
-                "comment_id": "comment-react",
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "body": "seed-react",
-                "previous_updated_at": 1,
-            }),
-        },
-        MutationKind::RemoveReaction => SubmitPayload {
-            kind,
-            target_type: "comment".to_string(),
-            target_id: "comment-react".to_string(),
-            idempotency_key: format!("idem-remove-reaction-{suffix}"),
-            input_json: serde_json::json!({
-                "comment_id": "comment-react",
-                "pr_id": PR_ID,
-                "author_id": USER_ID,
-                "body": "seed-react",
-                "previous_updated_at": 1,
-            }),
-        },
-        MutationKind::AddLabel => SubmitPayload {
-            kind,
-            target_type: "pull_request".to_string(),
-            target_id: PR_ID.to_string(),
-            idempotency_key: format!("idem-add-label-{suffix}"),
-            input_json: serde_json::json!({
-                "pr_id": PR_ID,
-                "label_name": format!("label-{suffix}"),
-                "label_color": "aabbcc",
-            }),
-        },
-        MutationKind::RemoveLabel => SubmitPayload {
-            kind,
-            target_type: "pull_request".to_string(),
-            target_id: PR_ID.to_string(),
-            idempotency_key: format!("idem-remove-label-{suffix}"),
-            input_json: serde_json::json!({
-                "pr_id": PR_ID,
-                "label_name": "remove-me",
-                "label_color": "ddeeff",
-            }),
-        },
-        MutationKind::SetAssignees => SubmitPayload {
-            kind,
-            target_type: "pull_request".to_string(),
-            target_id: PR_ID.to_string(),
-            idempotency_key: format!("idem-assignees-{suffix}"),
-            input_json: serde_json::json!({
-                "pr_id": PR_ID,
-                "user_id": USER_ID,
-            }),
-        },
-        _ => unreachable!("strategy only generates covered stub kinds"),
+    fn merge_with_base(extra: serde_json::Value) -> serde_json::Value {
+        let mut base = serde_json::Map::new();
+        base.insert("owner".to_string(), serde_json::json!(OWNER));
+        base.insert("repo".to_string(), serde_json::json!(REPO));
+        base.insert("repo_id".to_string(), serde_json::json!(REPO_ID));
+        base.insert("pr_id".to_string(), serde_json::json!(PR_ID));
+        base.insert("pr_number".to_string(), serde_json::json!(1));
+        base.insert(
+            "pull_request_id".to_string(),
+            serde_json::json!("PR_node_1"),
+        );
+        base.insert("author_id".to_string(), serde_json::json!(USER_ID));
+        base.insert("head_sha".to_string(), serde_json::json!("head"));
+        base.insert("base_sha".to_string(), serde_json::json!("base"));
+        base.insert("head_ref".to_string(), serde_json::json!("feature"));
+        base.insert("base_ref".to_string(), serde_json::json!("main"));
+        base.insert("title".to_string(), serde_json::json!("seed title"));
+        base.insert("body".to_string(), serde_json::json!("seed body"));
+        base.insert("state".to_string(), serde_json::json!("open"));
+        base.insert("created_at".to_string(), serde_json::json!(10));
+        base.insert("previous_updated_at".to_string(), serde_json::json!(10));
+        if let serde_json::Value::Object(extra_map) = extra {
+            for (key, value) in extra_map {
+                base.insert(key, value);
+            }
+        }
+        serde_json::Value::Object(base)
+    }
+
+    let input_json = match kind {
+        MutationKind::AddComment => merge_with_base(serde_json::json!({
+            "local_id": format!("local-comment-{suffix}"),
+            "body": format!("comment-{suffix}"),
+            "kind": "issue",
+        })),
+        MutationKind::EditComment => merge_with_base(serde_json::json!({
+            "comment_id": "comment-edit",
+            "previous_body": "before",
+            "next_body": format!("after-{suffix}"),
+            "kind": "issue",
+        })),
+        MutationKind::DeleteComment => merge_with_base(serde_json::json!({
+            "comment_id": "comment-delete",
+            "body": "delete-me",
+            "kind": "issue",
+        })),
+        MutationKind::AddReaction => merge_with_base(serde_json::json!({
+            "comment_id": "comment-react",
+            "target_id": "comment-react",
+            "target_type": "issue_comment",
+            "content": "heart",
+            "body": "seed",
+            "kind": "issue",
+        })),
+        MutationKind::RemoveReaction => merge_with_base(serde_json::json!({
+            "comment_id": "comment-react",
+            "target_id": "comment-react",
+            "target_type": "issue_comment",
+            "reaction_id": "1",
+            "content": "heart",
+            "body": "seed",
+            "kind": "issue",
+        })),
+        MutationKind::AddLabel => merge_with_base(serde_json::json!({
+            "label_name": format!("label-{suffix}"),
+            "label_color": "aabbcc",
+        })),
+        MutationKind::RemoveLabel => merge_with_base(serde_json::json!({
+            "label_name": "label-remove",
+            "label_color": "ddeeff",
+        })),
+        MutationKind::SetAssignees => merge_with_base(serde_json::json!({
+            "previous_user_ids": ["user-old"],
+            "next_user_ids": ["user-new"],
+            "user_id": "user-new",
+            "previous_assigned_at": 10,
+        })),
+        MutationKind::RequestReview => merge_with_base(serde_json::json!({
+            "previous_reviewers": [],
+            "next_reviewers": ["reviewer-1"],
+            "reviewer_id": "reviewer-1",
+        })),
+        MutationKind::RemoveReviewRequest => merge_with_base(serde_json::json!({
+            "previous_reviewers": ["reviewer-1"],
+            "next_reviewers": [],
+            "reviewer_id": "reviewer-1",
+        })),
+        MutationKind::SubmitReview => merge_with_base(serde_json::json!({
+            "event": "COMMENT",
+            "body": format!("review-{suffix}"),
+            "local_review_id": format!("local-review-{suffix}"),
+        })),
+        MutationKind::ResolveThread | MutationKind::UnresolveThread => {
+            merge_with_base(serde_json::json!({
+                "thread_id": "thread-1",
+                "path": "src/lib.rs",
+                "previous_is_resolved": 0,
+                "is_outdated": 0,
+            }))
+        }
+        MutationKind::MarkFileViewed | MutationKind::UnmarkFileViewed => {
+            merge_with_base(serde_json::json!({
+                "path": "src/lib.rs",
+                "status": "modified",
+                "is_binary": 0,
+                "additions": 1,
+                "deletions": 1,
+                "previous_viewed_by_account_id": serde_json::Value::Null,
+                "previous_viewed_at_head_sha": serde_json::Value::Null,
+            }))
+        }
+        MutationKind::UpdatePrTitle => merge_with_base(serde_json::json!({
+            "previous_title": "seed title",
+            "previous_body": "seed body",
+            "title": format!("title-{suffix}"),
+        })),
+        MutationKind::UpdatePrDescription => merge_with_base(serde_json::json!({
+            "previous_title": "seed title",
+            "previous_body": "seed body",
+            "body": format!("body-{suffix}"),
+        })),
+        MutationKind::SetMilestone => merge_with_base(serde_json::json!({
+            "milestone_id": "milestone-1",
+            "milestone_number": 1,
+            "milestone_title": "M1",
+            "milestone_state": "open",
+        })),
+        MutationKind::SetProject => merge_with_base(serde_json::json!({
+            "project_id": "project-1",
+            "project_title": "Roadmap",
+            "project_field_id": "field-1",
+            "project_field_option_id": "option-1",
+        })),
+        MutationKind::ConvertToDraft | MutationKind::MarkReadyForReview => {
+            merge_with_base(serde_json::json!({
+                "previous_draft": 0,
+                "previous_title": "seed title",
+                "previous_body": "seed body",
+            }))
+        }
+        MutationKind::EnableAutoMerge | MutationKind::DisableAutoMerge => {
+            merge_with_base(serde_json::json!({
+                "merge_method": "SQUASH",
+            }))
+        }
+        MutationKind::UpdateBranch => merge_with_base(serde_json::json!({
+            "merge_state_status": "CLEAN",
+        })),
+        MutationKind::Merge => merge_with_base(serde_json::json!({
+            "merge_method": "merge",
+            "expected_head_sha": "head",
+        })),
+        MutationKind::ClosePr | MutationKind::ReopenPr => merge_with_base(serde_json::json!({
+            "previous_state": "open",
+        })),
+    };
+    SubmitPayload {
+        kind,
+        target_type: "pull_request".to_string(),
+        target_id: PR_ID.to_string(),
+        idempotency_key: format!("idem-{}-{suffix}", kind.as_str()),
+        input_json,
     }
 }
 
-async fn prepare_kind_fixture(db: &Db, account_id: &str, kind: MutationKind) -> Result<()> {
-    let now = 10;
-    match kind {
-        MutationKind::EditComment => {
-            db.upsert_comment(&CommentRecord {
-                id: "comment-edit".to_string(),
-                account_id: account_id.to_string(),
-                pr_id: PR_ID.to_string(),
-                kind: "issue".to_string(),
-                author_id: USER_ID.to_string(),
-                body: "seed-edit".to_string(),
-                created_at: now,
-                updated_at: now,
-                deleted_at: None,
-                in_reply_to_id: None,
-                review_id: None,
-                thread_id: None,
-                path: None,
-                line: None,
-                side: None,
-                start_line: None,
-                start_side: None,
-                original_commit_sha: None,
-            })
-            .await?;
-        }
-        MutationKind::DeleteComment => {
-            db.upsert_comment(&CommentRecord {
-                id: "comment-delete".to_string(),
-                account_id: account_id.to_string(),
-                pr_id: PR_ID.to_string(),
-                kind: "issue".to_string(),
-                author_id: USER_ID.to_string(),
-                body: "seed-delete".to_string(),
-                created_at: now,
-                updated_at: now,
-                deleted_at: None,
-                in_reply_to_id: None,
-                review_id: None,
-                thread_id: None,
-                path: None,
-                line: None,
-                side: None,
-                start_line: None,
-                start_side: None,
-                original_commit_sha: None,
-            })
-            .await?;
-        }
-        MutationKind::AddReaction | MutationKind::RemoveReaction => {
-            db.upsert_comment(&CommentRecord {
-                id: "comment-react".to_string(),
-                account_id: account_id.to_string(),
-                pr_id: PR_ID.to_string(),
-                kind: "issue".to_string(),
-                author_id: USER_ID.to_string(),
-                body: "seed-react".to_string(),
-                created_at: now,
-                updated_at: 1,
-                deleted_at: None,
-                in_reply_to_id: None,
-                review_id: None,
-                thread_id: None,
-                path: None,
-                line: None,
-                side: None,
-                start_line: None,
-                start_side: None,
-                original_commit_sha: None,
-            })
-            .await?;
-        }
-        MutationKind::RemoveLabel => {
-            db.replace_pr_labels(
-                account_id,
-                PR_ID,
-                &[PrLabelRecord {
-                    account_id: account_id.to_string(),
-                    pr_id: PR_ID.to_string(),
-                    label_name: "remove-me".to_string(),
-                    label_color: "ddeeff".to_string(),
-                    description: None,
-                }],
-            )
-            .await?;
-        }
-        _ => {}
-    }
-    Ok(())
+fn all_mutation_kinds() -> Vec<MutationKind> {
+    vec![
+        MutationKind::AddComment,
+        MutationKind::EditComment,
+        MutationKind::DeleteComment,
+        MutationKind::AddReaction,
+        MutationKind::RemoveReaction,
+        MutationKind::AddLabel,
+        MutationKind::RemoveLabel,
+        MutationKind::SetAssignees,
+        MutationKind::RequestReview,
+        MutationKind::RemoveReviewRequest,
+        MutationKind::SubmitReview,
+        MutationKind::ResolveThread,
+        MutationKind::UnresolveThread,
+        MutationKind::MarkFileViewed,
+        MutationKind::UnmarkFileViewed,
+        MutationKind::UpdatePrTitle,
+        MutationKind::UpdatePrDescription,
+        MutationKind::SetMilestone,
+        MutationKind::SetProject,
+        MutationKind::ConvertToDraft,
+        MutationKind::MarkReadyForReview,
+        MutationKind::EnableAutoMerge,
+        MutationKind::DisableAutoMerge,
+        MutationKind::UpdateBranch,
+        MutationKind::Merge,
+        MutationKind::ClosePr,
+        MutationKind::ReopenPr,
+    ]
 }
 
 async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
@@ -619,6 +469,20 @@ async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
     })
     .await?;
 
+    for login in ["user-old", "user-new", "reviewer-1"] {
+        db.upsert_user(&UserRecord {
+            id: login.to_string(),
+            account_id: account_id.to_string(),
+            login: login.to_string(),
+            display_name: None,
+            avatar_url: None,
+            html_url: None,
+            created_at: 1,
+            updated_at: 1,
+        })
+        .await?;
+    }
+
     db.upsert_pull_request(&PullRequestRecord {
         id: PR_ID.to_string(),
         account_id: account_id.to_string(),
@@ -626,7 +490,7 @@ async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
         number: 1,
         state: "open".to_string(),
         draft: false,
-        title: "seed".to_string(),
+        title: "seed title".to_string(),
         body: "seed body".to_string(),
         author_id: Some(USER_ID.to_string()),
         base_ref: "main".to_string(),
@@ -644,10 +508,152 @@ async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
         commits_count: 0,
         is_read: true,
         html_url: None,
-        created_at: 1,
-        updated_at: 1,
+        created_at: 10,
+        updated_at: 10,
         closed_at: None,
         merged_at: None,
+    })
+    .await?;
+
+    db.upsert_comment(&CommentRecord {
+        id: "comment-edit".to_string(),
+        account_id: account_id.to_string(),
+        pr_id: PR_ID.to_string(),
+        kind: "issue".to_string(),
+        author_id: USER_ID.to_string(),
+        body: "before".to_string(),
+        created_at: 10,
+        updated_at: 10,
+        deleted_at: None,
+        in_reply_to_id: None,
+        review_id: None,
+        thread_id: None,
+        path: None,
+        line: None,
+        side: None,
+        start_line: None,
+        start_side: None,
+        original_commit_sha: None,
+    })
+    .await?;
+
+    db.upsert_comment(&CommentRecord {
+        id: "comment-delete".to_string(),
+        account_id: account_id.to_string(),
+        pr_id: PR_ID.to_string(),
+        kind: "issue".to_string(),
+        author_id: USER_ID.to_string(),
+        body: "delete-me".to_string(),
+        created_at: 10,
+        updated_at: 10,
+        deleted_at: None,
+        in_reply_to_id: None,
+        review_id: None,
+        thread_id: None,
+        path: None,
+        line: None,
+        side: None,
+        start_line: None,
+        start_side: None,
+        original_commit_sha: None,
+    })
+    .await?;
+
+    db.upsert_comment(&CommentRecord {
+        id: "comment-react".to_string(),
+        account_id: account_id.to_string(),
+        pr_id: PR_ID.to_string(),
+        kind: "issue".to_string(),
+        author_id: USER_ID.to_string(),
+        body: "seed".to_string(),
+        created_at: 10,
+        updated_at: 10,
+        deleted_at: None,
+        in_reply_to_id: None,
+        review_id: None,
+        thread_id: None,
+        path: None,
+        line: None,
+        side: None,
+        start_line: None,
+        start_side: None,
+        original_commit_sha: None,
+    })
+    .await?;
+
+    db.upsert_review_thread(&ReviewThreadRecord {
+        id: "thread-1".to_string(),
+        account_id: account_id.to_string(),
+        pr_id: PR_ID.to_string(),
+        path: "src/lib.rs".to_string(),
+        line: Some(1),
+        side: Some("RIGHT".to_string()),
+        start_line: Some(1),
+        start_side: Some("RIGHT".to_string()),
+        original_commit_sha: None,
+        original_path: None,
+        original_position: None,
+        original_line: None,
+        is_outdated: false,
+        is_resolved: false,
+        resolved_by_id: None,
+        created_at: 10,
+        updated_at: 10,
+    })
+    .await?;
+
+    db.replace_pr_labels(
+        account_id,
+        PR_ID,
+        &[PrLabelRecord {
+            account_id: account_id.to_string(),
+            pr_id: PR_ID.to_string(),
+            label_name: "label-remove".to_string(),
+            label_color: "ddeeff".to_string(),
+            description: None,
+        }],
+    )
+    .await?;
+
+    db.replace_pr_assignees(
+        account_id,
+        PR_ID,
+        &[PrAssigneeRecord {
+            account_id: account_id.to_string(),
+            pr_id: PR_ID.to_string(),
+            user_id: "user-old".to_string(),
+            assigned_at: 10,
+        }],
+    )
+    .await?;
+
+    db.replace_pr_reviewers(
+        account_id,
+        PR_ID,
+        &[PrReviewerRecord {
+            account_id: account_id.to_string(),
+            pr_id: PR_ID.to_string(),
+            user_id: "reviewer-1".to_string(),
+            reviewer_type: "user".to_string(),
+            reviewer_state: "requested".to_string(),
+            requested_at: 10,
+        }],
+    )
+    .await?;
+
+    db.upsert_pr_file(&PrFileRecord {
+        account_id: account_id.to_string(),
+        pr_id: PR_ID.to_string(),
+        head_sha: "head".to_string(),
+        path: "src/lib.rs".to_string(),
+        old_path: None,
+        status: "modified".to_string(),
+        additions: 1,
+        deletions: 1,
+        is_binary: false,
+        patch_blob_sha: None,
+        viewed_by_account_id: None,
+        viewed_at_head_sha: None,
     })
     .await?;
 
