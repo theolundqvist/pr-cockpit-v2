@@ -122,3 +122,40 @@ Decision:
 
 Reason: these mappings encode PLAN §4 invariants directly in schema constraints
 and avoid ambiguity during optimistic reconciliation.
+
+### 2026-05-17: Auth tokens are keychain-only with explicit Linux fallback behavior
+
+Decision: auth writes tokens exclusively through `auth::TokenStore` backed by
+the `keyring` crate using one keychain entry per `(host, login)`. If Linux
+cannot provide a usable backend (for example no Secret Service session), auth
+returns a typed `KeyringUnavailable` error instead of persisting tokens
+elsewhere.
+
+Reason: token material must never land in SQLite or logs. Failing closed keeps
+that invariant intact on minimal Linux setups while still allowing the frontend
+to present actionable remediation.
+
+### 2026-05-17: OAuth Device Flow polling contract for M1 auth layer
+
+Decision: device flow uses GitHub's public client_id
+`Iv1.b507a08c87ecfe98`. `auth_oauth_device_start` returns the server-provided
+interval (default 5s when missing). `auth_oauth_device_poll` maps
+`authorization_pending` to continue polling at the current interval, maps
+`slow_down` to interval + 5s, and terminates on `access_denied` or
+`expired_token`.
+
+Reason: this matches GitHub's device flow guidance while keeping a deterministic
+polling policy that frontend code can drive directly.
+
+### 2026-05-17: Token safety regression is enforced by integration test
+
+Decision: `apps/desktop/src-tauri/tests/token_safety.rs` simulates all three
+auth save paths (gh import, OAuth device, PAT) with a fake `TokenStore`,
+mocked `gh` output, and local HTTP server, then asserts:
+
+- `accounts` rows contain no token-like strings,
+- SQLite DB/WAL bytes contain no token bytes,
+- captured `tracing` events contain no raw token strings.
+
+Reason: this catches regressions at the persistence boundary and logging
+boundary before sync/frontend layers are integrated.
