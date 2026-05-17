@@ -34,14 +34,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-17T13:44:37.033Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T13:44:23.260Z",
+      "lastUpdate": "2026-05-17T13:44:37.033Z",
       "note": "respawned by self-planner (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -284,6 +284,10 @@
     {
       "at": "2026-05-17T13:43:05.277Z",
       "message": "verify-m1-cockpit: spawn failed after 3 transient sub-attempts: Error: m1-cockpit: branch must be orch/pr-cockpit/m1-cockpit, got `orch/pr-cockpit/m1-cockpit` (deliverable merged in; identical to `orch/m1-cockpit/m1-bench-baselines`)"
+    },
+    {
+      "at": "2026-05-17T13:44:24.054Z",
+      "message": "verify-m1-cockpit: respawned by self-planner (was error)"
     }
   ]
 }
