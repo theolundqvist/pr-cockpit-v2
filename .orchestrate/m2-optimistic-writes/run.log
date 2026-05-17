@@ -1,0 +1,3 @@
+[orchestrate] SLACK_BOT_TOKEN not set; Slack visibility disabled
+[2026-05-17T14:35:57.210Z] sweep m2-optimistic-writes: pending=5 error=1
+[orchestrate] exit-on-error: 1 task(s) transitioned to error this run (m2-mutation-engine); planner's turn. See handoffs/<task>-failure.md for each. Re-run 'bun cli.ts run' after reacting (in-flight workers reattach via recoverRunning).
