@@ -793,6 +793,14 @@
     {
       "at": "2026-05-17T23:38:09.283Z",
       "message": "m3-diff-worktree-notifs: tool_call idle 349087ms; last=2026-05-17T23:32:20.196Z"
+    },
+    {
+      "at": "2026-05-17T23:47:27.022Z",
+      "message": "m3-diff-worktree-notifs: SSE idle 350962ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T23:47:27.023Z",
+      "message": "m3-diff-worktree-notifs: tool_call idle 350963ms; last=2026-05-17T23:41:36.060Z"
     }
   ]
 }
