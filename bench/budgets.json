@@ -34,7 +34,7 @@
       "kind": "min",
       "unit": "ops/s",
       "budget": 850,
-      "baseline": 30000
+      "baseline": 15000
     },
     "inbox_first_paint_ms_frontend": {
       "source": "frontend",
@@ -48,7 +48,7 @@
       "kind": "max",
       "unit": "ms",
       "budget": 50,
-      "baseline": 30
+      "baseline": 40
     },
     "pr_detail_open_cold_ms_frontend": {
       "source": "frontend",

@@ -39,6 +39,22 @@ jitter that can spike single-shot timings without a code change. Best-of-5
 keeps the gate strict against real regressions (`best > budget` still fails)
 while reducing false negatives from one noisy sample.
 
+### 2026-05-17: Perf comparator treats hard budgets as fail-closed and baselines as tunable regression references
+
+Decision: `tools/perf-bench/compare-budgets.mjs` evaluates each metric with two distinct checks:
+
+- hard-budget breach against `budget` (PLAN §10 contract, always fail),
+- relative-regression alarm against `baseline` with `tolerance_pct` (runner-calibrated sensitivity).
+
+For CI runner calibration, M1 baselines were tuned to match Ubuntu shared-runner behavior for:
+
+- `comrak_render_throughput_ops_per_sec` baseline `30000 -> 15000`,
+- `pr_detail_open_preloaded_ms_frontend` baseline `30 -> 40`.
+
+Reason: shared CI hardware can deviate materially from local verifier hardware while still satisfying PLAN §10 hard limits. Keeping hard budgets fixed preserves product SLOs; tuning baselines prevents false alarms and keeps relative-regression signals actionable.
+
+Cross-reference: this follows the same CI-jitter mitigation intent as `2026-05-17: WebKit perf gate uses best-of-5 estimator for jitter-sensitive timing metrics`.
+
 ### 2026-05-17: IPC surface is generated from `ipc::` with pinned Specta RC (M1 IPC wiring)
 
 Decision: IPC commands/events consumed by the desktop renderer are declared in

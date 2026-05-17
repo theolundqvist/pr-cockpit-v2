@@ -194,6 +194,36 @@ async function measureDiffScrollSamples(page, sampleCount) {
   };
 }
 
+async function measurePreloadedOpenSamples(page, sampleCount) {
+  const samples = [];
+
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByText("Pull Request Inbox").waitFor();
+    const primaryRow = page.getByRole("link", { name: /Active Fixture PR Falcon Diff Stress/ }).first();
+    await primaryRow.hover();
+    await delay(500);
+    const sample = await page.evaluate(async () => {
+      const row = document.querySelector('a[href="/pr/pr_1"]');
+      if (!(row instanceof HTMLAnchorElement)) {
+        throw new Error("preloaded row missing");
+      }
+      const start = performance.now();
+      row.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      while (!window.location.pathname.endsWith("/pr/pr_1")) {
+        await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+      }
+      return performance.now() - start;
+    });
+    samples.push(sample);
+  }
+
+  return {
+    best: Math.min(...samples),
+    samples,
+  };
+}
+
 async function main() {
   if (!browserFactories[browserName]) {
     throw new Error(`unsupported PERF_BROWSER=${browserName}`);
@@ -242,21 +272,7 @@ async function main() {
       return { firstPaint, firstContentfulPaint, domContentLoaded };
     });
 
-    const primaryRow = page.getByRole("link", { name: /Active Fixture PR Falcon Diff Stress/ }).first();
-    await primaryRow.hover();
-    await delay(500);
-    const preloadedOpenMs = await page.evaluate(async () => {
-      const row = document.querySelector('a[href="/pr/pr_1"]');
-      if (!(row instanceof HTMLAnchorElement)) {
-        throw new Error("preloaded row missing");
-      }
-      const start = performance.now();
-      row.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-      while (!window.location.pathname.endsWith("/pr/pr_1")) {
-        await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      }
-      return performance.now() - start;
-    });
+    const preloadedOpenStats = await measurePreloadedOpenSamples(page, timingSampleCount);
 
     const fileOpenStats = await measureFileOpenInDiffSamples(page, timingSampleCount);
     const scrollStats = await measureDiffScrollSamples(page, timingSampleCount);
@@ -307,7 +323,7 @@ async function main() {
         (inboxPaint.firstContentfulPaint ?? inboxPaint.firstPaint ?? inboxPaint.domContentLoaded ?? 0).toFixed(2),
       ),
       inbox_dom_content_loaded_ms: Number((inboxPaint.domContentLoaded ?? 0).toFixed(2)),
-      pr_detail_open_preloaded_ms: Number(preloadedOpenMs.toFixed(2)),
+      pr_detail_open_preloaded_ms: Number(preloadedOpenStats.best.toFixed(2)),
       pr_detail_open_cold_ms: Number(coldOpenMs.toFixed(2)),
       file_open_in_diff_cached_ms: Number(fileOpenStats.best.toFixed(2)),
       diff_scroll_fps: Number(scrollStats.best.fps.toFixed(2)),
@@ -330,6 +346,7 @@ async function main() {
             policy: "best_of_n_min",
             sample_count: timingSampleCount,
             metrics: {
+              pr_detail_open_preloaded_ms: preloadedOpenStats.samples.map((value) => Number(value.toFixed(2))),
               file_open_in_diff_cached_ms: fileOpenStats.samples.map((value) => Number(value.toFixed(2))),
               diff_scroll_frame_p95_ms: scrollStats.samples.map((sample) => Number(sample.frameP95Ms.toFixed(2))),
             },

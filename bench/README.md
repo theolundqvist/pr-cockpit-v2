@@ -13,6 +13,9 @@ This directory contains the M1 perf budgets (`bench/budgets.json`) and output ar
 
 A run fails if any hard budget in `bench/budgets.json` is violated, or if a metric regresses more than the global `tolerance_pct` (10%) versus its baseline.
 
+- `budget` is the PLAN §10 hard limit and is always fail-closed.
+- `baseline` is a runner-calibrated reference used only for relative regression detection.
+
 ## Rust benches
 
 Criterion benches live under `apps/desktop/src-tauri/benches/`:
@@ -54,7 +57,7 @@ The harness records:
 
 WebKit timing policy for CI stability:
 
-- `file_open_in_diff_cached_ms` and `diff_scroll_frame_p95_ms` are sampled 5 times per run.
+- `pr_detail_open_preloaded_ms`, `file_open_in_diff_cached_ms`, and `diff_scroll_frame_p95_ms` are sampled 5 times per run.
 - The harness reports the best (minimum) sample for each metric.
 - Hard PLAN §10 budgets are unchanged; the run still fails when the best sample violates budget.
 - Raw sample arrays are persisted in `bench/results/frontend.json` under `sampling.metrics`.
@@ -85,7 +88,7 @@ pnpm corpus:fetch
 
 1. Run `pnpm bench` on the CI-like runner class.
 2. Inspect `bench/results/rust.json` and `bench/results/frontend.json`.
-3. Update each metric `baseline` in `bench/budgets.json` to the new stable value.
+3. Update each metric `baseline` in `bench/budgets.json` to the new stable value for that runner class.
 4. Keep hard `budget` values aligned with PLAN §10; do not raise them.
 
 ## Interpreting regressions
@@ -94,5 +97,7 @@ When budget comparison fails, the script prints each offending metric with eithe
 
 - hard budget violation (`value > budget` for max metrics, `value < budget` for min metrics), or
 - 10% regression violation against baseline.
+
+Hard-budget breaches and baseline-regression alarms are independent checks. A value can pass PLAN §10 hard limits while still failing baseline regression if it drifts beyond tolerance.
 
 A passing run prints one line per metric with the measured value and budget comparator.
