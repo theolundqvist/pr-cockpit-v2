@@ -39,7 +39,7 @@
     {
       "name": "m1-bootstrap",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "pathsAllowed": ["**"],
       "pathsForbidden": ["AUTONOMY_BRIEF.md", "PLAN.md", "synthesis.md"],
@@ -62,7 +62,7 @@
     {
       "name": "m1-data-layer",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-bootstrap"],
       "pathsAllowed": ["**"],
@@ -81,7 +81,7 @@
     {
       "name": "m1-auth-layer",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-data-layer"],
       "pathsAllowed": ["**"],
@@ -100,7 +100,7 @@
     {
       "name": "m1-api-sync",
       "type": "worker",
-      "model": "gpt-5.5-high",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-auth-layer"],
       "pathsAllowed": ["**"],
@@ -122,7 +122,7 @@
     {
       "name": "m1-markdown-pipeline",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-api-sync"],
       "pathsAllowed": ["**"],
@@ -141,7 +141,7 @@
     {
       "name": "m1-ipc-types",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-markdown-pipeline"],
       "pathsAllowed": ["**"],
@@ -159,7 +159,7 @@
     {
       "name": "m1-frontend",
       "type": "worker",
-      "model": "gpt-5.5-high",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-ipc-types"],
       "pathsAllowed": ["**"],
@@ -181,7 +181,7 @@
     {
       "name": "m1-perf-corpus",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-frontend"],
       "pathsAllowed": ["**"],
@@ -207,7 +207,7 @@
     {
       "name": "m1-finalize",
       "type": "worker",
-      "model": "gpt-5.5-high-fast",
+      "model": "gpt-5.3-codex-high-fast",
       "maxAttempts": 2,
       "dependsOn": ["m1-perf-corpus"],
       "pathsAllowed": ["**"],
