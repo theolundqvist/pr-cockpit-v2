@@ -7,15 +7,15 @@
       "branch": "orch/m2-optimistic-writes/m2-mutation-engine",
       "startingRef": "orch/pr-cockpit/m2-optimistic-writes",
       "dependsOn": [],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-6106d758-ead8-4fc7-9a1a-642906c9e77b",
+      "runId": "run-8412579e-c45e-417c-974e-e3665cbd2ce4",
+      "parentAgentId": "bc-64160f6f-aaee-42c1-b65b-277f3260fc1b",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-17T14:37:48.316Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-17T14:37:48.316Z",
+      "lastUpdate": "2026-05-17T14:37:51.036Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -147,6 +147,14 @@
     {
       "at": "2026-05-17T14:37:35.363Z",
       "message": "m2-mutation-engine: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-17T15:03:53.343Z",
+      "message": "m2-mutation-engine: SSE idle 306803ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T15:03:53.343Z",
+      "message": "m2-mutation-engine: tool_call idle 306804ms; last=2026-05-17T14:58:46.539Z"
     }
   ]
 }
