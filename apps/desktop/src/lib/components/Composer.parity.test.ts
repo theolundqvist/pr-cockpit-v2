@@ -52,7 +52,12 @@ function loadCorpusSubset(): CorpusEntry[] {
   const corpusPath = path.resolve(process.cwd(), '../../tools/markdown-corpus/corpus.json');
   const contents = readFileSync(corpusPath, 'utf8');
   const parsed = JSON.parse(contents) as Array<{ body: string; repo: string }>;
-  return parsed.slice(0, 20).map((entry) => ({ body: entry.body, repo: entry.repo }));
+  const subset = parsed.slice(0, 20).map((entry) => ({ body: entry.body, repo: entry.repo }));
+  subset.push({
+    repo: 'fixture-org/repo-1',
+    body: '```suggestion\nconst answer = 42;\n```'
+  });
+  return subset;
 }
 
 describe('Composer preview parity', () => {

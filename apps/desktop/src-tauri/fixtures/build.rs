@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use desktop_lib::db::{
-    AccountRecord, CheckAnnotationRecord, CheckRunRecord, CheckSuiteRecord, CommentRecord,
-    CommitRecord, Db, IdMappingRecord, NotificationRecord, OrgRecord, PendingMutationRecord,
-    PrCommitRecord, PrFileRecord, PrPatchRecord, PullRequestRecord, RateLimitBucketUpdate,
-    RepoRecord, RepoSubscriptionRecord, ReviewRecord, ReviewThreadRecord, SyncCursorUpdate,
-    UserRecord, WorktreeRecord,
+    AccountRecord, BlobKind, CheckAnnotationRecord, CheckRunRecord, CheckSuiteRecord,
+    CommentRecord, CommitRecord, Db, IdMappingRecord, NotificationRecord, OrgRecord,
+    PendingMutationRecord, PrCommitRecord, PrFileRecord, PrPatchRecord, PullRequestRecord,
+    RateLimitBucketUpdate, RepoRecord, RepoSubscriptionRecord, ReviewRecord, ReviewThreadRecord,
+    SyncCursorUpdate, UserRecord, WorktreeRecord,
 };
 
 #[tokio::main]
@@ -288,6 +288,14 @@ async fn seed_active_pr_details(db: &Db, account_id: &str, base_ts: i64) -> Resu
     let head_sha = "active_head_sha_000000000000000000000000000000000001";
     let diff = synthesize_large_diff();
     let patch_sha = db.blob_store().put_patch(diff.as_bytes()).await?;
+    let image_blob_sha = db
+        .blob_store()
+        .put(test_pattern_png(), BlobKind::Asset)
+        .await?;
+    let binary_blob_sha = db
+        .blob_store()
+        .put(binary_header_bytes(), BlobKind::Asset)
+        .await?;
 
     db.upsert_pr_patch(&PrPatchRecord {
         account_id: account_id.to_string(),
@@ -304,13 +312,73 @@ async fn seed_active_pr_details(db: &Db, account_id: &str, base_ts: i64) -> Resu
         head_sha: head_sha.to_string(),
         path: "src/generated/huge_fixture.rs".to_string(),
         old_path: Some("src/generated/huge_fixture.rs".to_string()),
+        previous_path: Some("src/generated/huge_fixture.rs".to_string()),
         status: "modified".to_string(),
         additions: 5_000,
         deletions: 0,
         is_binary: false,
+        kind: "text".to_string(),
+        rename_similarity: None,
         patch_blob_sha: Some(patch_sha),
         viewed_by_account_id: Some(account_id.to_string()),
         viewed_at_head_sha: Some(head_sha.to_string()),
+    })
+    .await?;
+
+    db.upsert_pr_file(&PrFileRecord {
+        account_id: account_id.to_string(),
+        pr_id: pr_id.to_string(),
+        head_sha: head_sha.to_string(),
+        path: "assets/test-pattern.png".to_string(),
+        old_path: Some("assets/test-pattern.png".to_string()),
+        previous_path: Some("assets/test-pattern.png".to_string()),
+        status: "modified".to_string(),
+        additions: 1,
+        deletions: 1,
+        is_binary: true,
+        kind: "image".to_string(),
+        rename_similarity: None,
+        patch_blob_sha: Some(image_blob_sha),
+        viewed_by_account_id: None,
+        viewed_at_head_sha: None,
+    })
+    .await?;
+
+    db.upsert_pr_file(&PrFileRecord {
+        account_id: account_id.to_string(),
+        pr_id: pr_id.to_string(),
+        head_sha: head_sha.to_string(),
+        path: "assets/header.bin".to_string(),
+        old_path: None,
+        previous_path: None,
+        status: "added".to_string(),
+        additions: 0,
+        deletions: 0,
+        is_binary: true,
+        kind: "binary".to_string(),
+        rename_similarity: None,
+        patch_blob_sha: Some(binary_blob_sha),
+        viewed_by_account_id: None,
+        viewed_at_head_sha: None,
+    })
+    .await?;
+
+    db.upsert_pr_file(&PrFileRecord {
+        account_id: account_id.to_string(),
+        pr_id: pr_id.to_string(),
+        head_sha: head_sha.to_string(),
+        path: "src/renamed/new_name.txt".to_string(),
+        old_path: Some("src/renamed/old_name.txt".to_string()),
+        previous_path: Some("src/renamed/old_name.txt".to_string()),
+        status: "renamed".to_string(),
+        additions: 2,
+        deletions: 2,
+        is_binary: false,
+        kind: "text".to_string(),
+        rename_similarity: Some(0.95),
+        patch_blob_sha: None,
+        viewed_by_account_id: None,
+        viewed_at_head_sha: None,
     })
     .await?;
 
@@ -321,10 +389,13 @@ async fn seed_active_pr_details(db: &Db, account_id: &str, base_ts: i64) -> Resu
             head_sha: head_sha.to_string(),
             path: format!("src/module_{idx:02}/file_{idx:02}.ts"),
             old_path: None,
+            previous_path: None,
             status: "added".to_string(),
             additions: 12 + idx,
             deletions: idx % 3,
             is_binary: false,
+            kind: "text".to_string(),
+            rename_similarity: None,
             patch_blob_sha: None,
             viewed_by_account_id: None,
             viewed_at_head_sha: None,
@@ -576,6 +647,24 @@ fn synthesize_large_diff() -> String {
         );
     }
     diff
+}
+
+fn test_pattern_png() -> &'static [u8] {
+    &[
+        0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, b'I', b'H', b'D',
+        b'R', 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90,
+        0x77, 0x53, 0xDE, 0x00, 0x00, 0x00, 0x0C, b'I', b'D', b'A', b'T', 0x08, 0x99, 0x63, 0xF8,
+        0x0F, 0x04, 0x00, 0x09, 0xFB, 0x03, 0xFD, 0xA7, 0x8A, 0xA2, 0x25, 0x00, 0x00, 0x00, 0x00,
+        b'I', b'E', b'N', b'D', 0xAE, 0x42, 0x60, 0x82,
+    ]
+}
+
+fn binary_header_bytes() -> &'static [u8] {
+    &[
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
+        0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+        0x1E, 0x1F,
+    ]
 }
 
 fn render_seed_sql() -> String {

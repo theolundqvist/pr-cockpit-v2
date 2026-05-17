@@ -13,7 +13,8 @@ import {
   type MutationKind,
   type NetState,
   type PendingMutationView,
-  type PrDetailSummary
+  type PrDetailSummary,
+  type SubmittedMutation
 } from '$lib/ipc/bindings';
 import {
   MOCK_ACCOUNTS,
@@ -290,6 +291,33 @@ export async function getPrPatch(accountId: string, prId: string, headSha: strin
   return prId === 'pr_1' ? mockPatch() : { patch_blob_sha: null, patch: null };
 }
 
+export async function getPrFileBlob(
+  accountId: string,
+  prId: string,
+  headSha: string,
+  path: string,
+  side: string | null = null
+) {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.getPrFileBlob({
+        account_id: accountId,
+        pr_id: prId,
+        head_sha: headSha,
+        path,
+        side
+      })
+    );
+  }
+  return {
+    sha256: `mock-${path}`,
+    local_path: path.endsWith('.png')
+      ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQImWP4DwQACfsD/aeKoiUAAAAASUVORK5CYII='
+      : '',
+    mime_type: path.endsWith('.png') ? 'image/png' : 'application/octet-stream'
+  };
+}
+
 export async function renderCommentHtml(body: string, repo: string | null) {
   if (isTauriRuntime()) {
     return unwrap(commands.renderPreview({ body, ctx: { repo } }));
@@ -343,6 +371,21 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
     optimism_level: optimism,
     projected_changes: [kind, ...Object.keys(parsed).slice(0, 2)]
   };
+}
+
+export async function submitReviewComment(
+  accountId: string,
+  payload: Record<string, unknown>
+): Promise<SubmittedMutation> {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.submitReviewComment({
+        account_id: accountId,
+        payload_json: JSON.stringify(payload)
+      })
+    );
+  }
+  return submitMutation(accountId, 'add_review_comment', JSON.stringify(payload));
 }
 
 export async function listPendingMutations(

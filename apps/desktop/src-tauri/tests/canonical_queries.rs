@@ -18,6 +18,8 @@ fn graphql_queries_are_canonicalized() -> Result<()> {
     collect_files_with_ext(&desktop_root, "graphql", &mut graphql_files)?;
     let mut root_query_count = 0usize;
     let mut mutation_query_count = 0usize;
+    let mut saw_add_review_comment = false;
+    let mut saw_add_review_thread = false;
     for file in &graphql_files {
         let normalized = file.to_string_lossy().replace('\\', "/");
         assert!(
@@ -27,6 +29,14 @@ fn graphql_queries_are_canonicalized() -> Result<()> {
         );
         if normalized.contains("/src-tauri/src/api/queries/mutations/") {
             mutation_query_count += 1;
+            if normalized.ends_with("/src-tauri/src/api/queries/mutations/addReviewComment.graphql")
+            {
+                saw_add_review_comment = true;
+            }
+            if normalized.ends_with("/src-tauri/src/api/queries/mutations/addReviewThread.graphql")
+            {
+                saw_add_review_thread = true;
+            }
             continue;
         }
         if normalized.ends_with("/src-tauri/src/api/queries/PrDetail.graphql")
@@ -50,6 +60,16 @@ fn graphql_queries_are_canonicalized() -> Result<()> {
         mutation_query_count > 0,
         "expected mutation graphql files under {}/mutations",
         canonical_dir.display()
+    );
+    assert!(
+        saw_add_review_comment,
+        "expected canonical mutation file addReviewComment.graphql under {}",
+        canonical_dir.join("mutations").display()
+    );
+    assert!(
+        saw_add_review_thread,
+        "expected canonical mutation file addReviewThread.graphql under {}",
+        canonical_dir.join("mutations").display()
     );
 
     let mut rust_files = Vec::new();

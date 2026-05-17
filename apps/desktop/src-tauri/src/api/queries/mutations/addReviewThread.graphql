@@ -1,0 +1,48 @@
+mutation AddReviewThread(
+  $pullRequestId: ID!
+  $body: String!
+  $path: String!
+  $side: DiffSide!
+  $line: Int!
+  $startSide: DiffSide
+  $startLine: Int
+  $subjectType: PullRequestReviewThreadSubjectType
+) {
+  addPullRequestReviewThread(
+    input: {
+      pullRequestId: $pullRequestId
+      body: $body
+      path: $path
+      side: $side
+      line: $line
+      startSide: $startSide
+      startLine: $startLine
+      subjectType: $subjectType
+    }
+  ) {
+    thread {
+      id
+      path
+      side
+      line
+      startSide
+      startLine
+      isOutdated
+      isResolved
+      updatedAt
+      comments(first: 1) {
+        nodes {
+          id
+          body
+          createdAt
+          updatedAt
+          path
+          side
+          line
+          startSide
+          startLine
+        }
+      }
+    }
+  }
+}

@@ -42,9 +42,6 @@ async fn upsert_nodes(ctx: &ReconcileCtx<'_>, nodes: &[ServerNode]) -> Result<()
             ServerNode::PullRequest(record) => {
                 ctx.db.upsert_pull_request(record).await?;
             }
-            ServerNode::Comment(record) => {
-                ctx.db.upsert_comment(record).await?;
-            }
             ServerNode::Review(record) => {
                 ctx.db.upsert_review(record).await?;
             }
@@ -76,6 +73,12 @@ async fn upsert_nodes(ctx: &ReconcileCtx<'_>, nodes: &[ServerNode]) -> Result<()
                     .replace_pr_reviewers(account_id, pr_id, reviewers)
                     .await?;
             }
+            ServerNode::Comment(_) => {}
+        }
+    }
+    for node in nodes {
+        if let ServerNode::Comment(record) = node {
+            ctx.db.upsert_comment(record).await?;
         }
     }
     Ok(())
@@ -153,13 +156,29 @@ async fn cascade_id_swap(tx: &mut sqlx::SqliteConnection, mapping: &IdMappingDra
     }
 
     if kind == "thread" {
+        sqlx::query(
+            "INSERT OR IGNORE INTO review_threads(
+               id, account_id, pr_id, path, line, side, start_line, start_side,
+               original_commit_sha, original_path, original_position, original_line,
+               is_outdated, is_resolved, resolved_by_id, created_at, updated_at, pending_state
+             )
+             SELECT
+               ?1, account_id, pr_id, path, line, side, start_line, start_side,
+               original_commit_sha, original_path, original_position, original_line,
+               is_outdated, is_resolved, resolved_by_id, created_at, updated_at, pending_state
+             FROM review_threads
+             WHERE id = ?2",
+        )
+        .bind(&mapping.server_id)
+        .bind(&mapping.local_id)
+        .execute(&mut *tx)
+        .await?;
         sqlx::query("UPDATE comments SET thread_id = ?1 WHERE thread_id = ?2")
             .bind(&mapping.server_id)
             .bind(&mapping.local_id)
             .execute(&mut *tx)
             .await?;
-        sqlx::query("UPDATE review_threads SET id = ?1 WHERE id = ?2")
-            .bind(&mapping.server_id)
+        sqlx::query("DELETE FROM review_threads WHERE id = ?1")
             .bind(&mapping.local_id)
             .execute(&mut *tx)
             .await?;

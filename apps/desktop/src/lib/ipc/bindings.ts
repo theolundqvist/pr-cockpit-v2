@@ -40,12 +40,14 @@ export const commands = {
 	ipcPrCheckSummary: (input: CheckSummaryInput) => typedError<PrCheckSummary, IpcError>(__TAURI_INVOKE("ipc_pr_check_summary", { input })),
 	ipcPrFiles: (input: PrFilesInput) => typedError<PrFilesResponse, IpcError>(__TAURI_INVOKE("ipc_pr_files", { input })),
 	ipcPrPatch: (input: PrPatchInput) => typedError<PrPatchResponse, IpcError>(__TAURI_INVOKE("ipc_pr_patch", { input })),
+	getPrFileBlob: (input: PrFileBlobInput) => typedError<PrFileBlobResponse, IpcError>(__TAURI_INVOKE("get_pr_file_blob", { input })),
 	ipcRenderedCommentHtml: (input: RenderedCommentInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("ipc_rendered_comment_html", { input })),
 	ipcNotificationsList: (input: NotificationsListInput) => typedError<NotificationItem[], IpcError>(__TAURI_INVOKE("ipc_notifications_list", { input })),
 	ipcSystemStatus: (input: SystemStatusInput) => typedError<SystemStatusResponse, IpcError>(__TAURI_INVOKE("ipc_system_status", { input })),
 	ipcRepoSubscriptions: (input: RepoSubscriptionsInput) => typedError<RepoSubscriptionItem[], IpcError>(__TAURI_INVOKE("ipc_repo_subscriptions", { input })),
 	ipcPrMetadata: (input: PrHandleInput) => typedError<PrMetadataResponse, IpcError>(__TAURI_INVOKE("ipc_pr_metadata", { input })),
 	ipcInitInbox: () => typedError<InitInboxResponse, IpcError>(__TAURI_INVOKE("ipc_init_inbox")),
+	submitReviewComment: (input: SubmitReviewCommentInput) => typedError<SubmittedMutation, IpcError>(__TAURI_INVOKE("submit_review_comment", { input })),
 	submitMutation: (accountId: string, kind: MutationKind, payloadJson: string) => typedError<SubmittedMutation, IpcError>(__TAURI_INVOKE("submit_mutation", { accountId, kind, payloadJson })),
 	listPendingMutations: (accountId: string, includePending: boolean | null) => typedError<PendingMutationView[], IpcError>(__TAURI_INVOKE("list_pending_mutations", { accountId, includePending })),
 	retryMutation: (mutationId: string) => typedError<null, IpcError>(__TAURI_INVOKE("retry_mutation", { mutationId })),
@@ -131,6 +133,7 @@ export type FileTreeSummary = {
 	head_sha: string,
 	directory: string,
 	file_count: number,
+	viewed_file_count: number,
 	additions: number,
 	deletions: number,
 };
@@ -215,7 +218,7 @@ export type MutationHardConflictEventPayload = {
 	conflict: HardConflictPayload,
 };
 
-export type MutationKind = "add_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "close_pr" | "reopen_pr";
+export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "close_pr" | "reopen_pr";
 
 export type MutationReconciledEventPayload = {
 	mutation_id: string,
@@ -333,14 +336,32 @@ export type PrFile = {
 	head_sha: string,
 	path: string,
 	old_path: string | null,
+	previous_path: string | null,
 	status: string,
 	additions: number,
 	deletions: number,
 	is_binary: boolean,
+	kind: string,
+	rename_similarity: number | null,
+	is_viewed: boolean,
 	patch_blob_sha: string | null,
 	viewed_by_account_id: string | null,
 	viewed_at_head_sha: string | null,
 	pending_overlay: PendingOverlay | null,
+};
+
+export type PrFileBlobInput = {
+	account_id: string,
+	pr_id: string,
+	head_sha: string,
+	path: string,
+	side: string | null,
+};
+
+export type PrFileBlobResponse = {
+	sha256: string,
+	local_path: string,
+	mime_type: string,
 };
 
 export type PrFilesInput = {
@@ -493,6 +514,11 @@ export type SaveDraftInput = {
 	target_type: string,
 	target_id: string,
 	body: string,
+};
+
+export type SubmitReviewCommentInput = {
+	account_id: string,
+	payload_json: string,
 };
 
 export type SubmittedMutation = {

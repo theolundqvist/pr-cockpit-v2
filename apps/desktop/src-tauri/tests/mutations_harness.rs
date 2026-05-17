@@ -108,6 +108,56 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
                     "updatedAt": "2026-05-17T00:00:00Z"
                 }
             },
+            "addPullRequestReviewComment": {
+                "comment": {
+                    "id": "comment-review-1",
+                    "body": "server review comment body",
+                    "createdAt": "2026-05-17T00:00:00Z",
+                    "updatedAt": "2026-05-17T00:00:00Z",
+                    "path": "src/lib.rs",
+                    "side": "RIGHT",
+                    "line": 7,
+                    "startSide": "RIGHT",
+                    "startLine": 5,
+                    "pullRequestReviewThread": {
+                        "id": "thread-review-1",
+                        "path": "src/lib.rs",
+                        "side": "RIGHT",
+                        "line": 7,
+                        "startSide": "RIGHT",
+                        "startLine": 5,
+                        "isOutdated": false,
+                        "isResolved": false,
+                        "updatedAt": "2026-05-17T00:00:00Z"
+                    }
+                }
+            },
+            "addPullRequestReviewThread": {
+                "thread": {
+                    "id": "thread-review-1",
+                    "path": "src/lib.rs",
+                    "side": "RIGHT",
+                    "line": 7,
+                    "startSide": "RIGHT",
+                    "startLine": 5,
+                    "isOutdated": false,
+                    "isResolved": false,
+                    "updatedAt": "2026-05-17T00:00:00Z",
+                    "comments": {
+                        "nodes": [{
+                            "id": "comment-review-1",
+                            "body": "server review comment body",
+                            "createdAt": "2026-05-17T00:00:00Z",
+                            "updatedAt": "2026-05-17T00:00:00Z",
+                            "path": "src/lib.rs",
+                            "side": "RIGHT",
+                            "line": 7,
+                            "startSide": "RIGHT",
+                            "startLine": 5
+                        }]
+                    }
+                }
+            },
             "submitPullRequestReview": {
                 "pullRequestReview": {
                     "id": "review-1",
@@ -301,6 +351,7 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
                 .await;
         }
         MutationKind::SubmitReview
+        | MutationKind::AddReviewComment
         | MutationKind::ResolveThread
         | MutationKind::UnresolveThread
         | MutationKind::SetProject
@@ -382,6 +433,7 @@ pub async fn mount_failure(server: &MockServer, kind: MutationKind) {
             "/repos/octo/hello-world/pulls/1/requested_reviewers"
         }
         MutationKind::SubmitReview
+        | MutationKind::AddReviewComment
         | MutationKind::ResolveThread
         | MutationKind::UnresolveThread
         | MutationKind::SetProject
@@ -432,6 +484,18 @@ pub fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
             "local_id": format!("local-comment-{suffix}"),
             "body": format!("comment-{suffix}"),
             "kind": "issue",
+        }),
+        MutationKind::AddReviewComment => serde_json::json!({
+            "local_id": format!("local-review-comment-{suffix}"),
+            "local_thread_id": format!("local-review-thread-{suffix}"),
+            "body": format!("review-comment-{suffix}"),
+            "path": "src/lib.rs",
+            "line": 7,
+            "side": "RIGHT",
+            "start_line": 5,
+            "start_side": "RIGHT",
+            "subject_type": "LINE",
+            "review_id": "review-existing-1",
         }),
         MutationKind::EditComment => serde_json::json!({
             "comment_id": "comment-edit",

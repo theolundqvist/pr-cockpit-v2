@@ -15,6 +15,9 @@ pub fn dispatch_table() -> HashMap<MutationKind, Arc<dyn Mutation>> {
 pub fn handler_for(kind: MutationKind) -> Option<Arc<dyn Mutation>> {
     match kind {
         MutationKind::AddComment => Some(Arc::new(handlers::comments::AddComment)),
+        MutationKind::AddReviewComment => {
+            Some(Arc::new(handlers::review_comments::AddReviewComment))
+        }
         MutationKind::EditComment => Some(Arc::new(handlers::comments::EditComment)),
         MutationKind::DeleteComment => Some(Arc::new(handlers::comments::DeleteComment)),
         MutationKind::AddReaction => Some(Arc::new(handlers::reactions::AddReaction)),

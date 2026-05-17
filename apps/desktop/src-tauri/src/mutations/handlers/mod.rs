@@ -9,6 +9,7 @@ pub mod labels;
 pub mod merge_controls;
 pub mod pr_meta;
 pub mod reactions;
+pub mod review_comments;
 pub mod reviewers;
 pub mod reviews;
 pub mod threads;
@@ -17,6 +18,7 @@ pub mod viewed_files;
 pub fn all() -> Vec<Arc<dyn Mutation>> {
     vec![
         Arc::new(comments::AddComment),
+        Arc::new(review_comments::AddReviewComment),
         Arc::new(comments::EditComment),
         Arc::new(comments::DeleteComment),
         Arc::new(reactions::AddReaction),
@@ -50,6 +52,7 @@ pub fn has_handler(kind: MutationKind) -> bool {
     matches!(
         kind,
         MutationKind::AddComment
+            | MutationKind::AddReviewComment
             | MutationKind::EditComment
             | MutationKind::DeleteComment
             | MutationKind::AddReaction

@@ -50,6 +50,7 @@ impl OptimismLevel {
 #[serde(rename_all = "snake_case")]
 pub enum MutationKind {
     AddComment,
+    AddReviewComment,
     EditComment,
     DeleteComment,
     AddReaction,
@@ -82,6 +83,7 @@ impl MutationKind {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::AddComment => "add_comment",
+            Self::AddReviewComment => "add_review_comment",
             Self::EditComment => "edit_comment",
             Self::DeleteComment => "delete_comment",
             Self::AddReaction => "add_reaction",
@@ -118,6 +120,7 @@ impl FromStr for MutationKind {
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let kind = match value {
             "add_comment" => Self::AddComment,
+            "add_review_comment" => Self::AddReviewComment,
             "edit_comment" => Self::EditComment,
             "delete_comment" => Self::DeleteComment,
             "add_reaction" => Self::AddReaction,

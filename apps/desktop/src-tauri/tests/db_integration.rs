@@ -1,7 +1,10 @@
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
-use desktop_lib::db::{BlobKind, Db};
+use desktop_lib::db::{
+    AccountRecord, BlobKind, Db, PrFileRecord, PullRequestRecord, RepoRecord, UserRecord,
+};
+use desktop_lib::ipc::{ipc_pr_files_impl, PrFilesInput};
 use tempfile::TempDir;
 
 const ACCOUNT_ID: &str = "acct_demo";
@@ -156,23 +159,30 @@ async fn read_models_match_hand_rolled_selects_on_fixture() -> Result<()> {
 
     assert_query_sets_equal(
         db.pool(),
-        "SELECT account_id, pr_id, head_sha, directory, file_count, additions, deletions
+        "SELECT account_id, pr_id, head_sha, directory, file_count, viewed_file_count, additions, deletions
          FROM file_tree_summary
          WHERE account_id = ?1 AND pr_id = 'pr_1'",
         "SELECT
-            account_id,
-            pr_id,
-            head_sha,
+            pf.account_id,
+            pf.pr_id,
+            pf.head_sha,
             CASE
-                WHEN instr(path, '/') > 0 THEN substr(path, 1, instr(path, '/') - 1)
+                WHEN instr(pf.path, '/') > 0 THEN substr(pf.path, 1, instr(pf.path, '/') - 1)
                 ELSE '.'
             END AS directory,
             COUNT(*) AS file_count,
-            SUM(additions) AS additions,
-            SUM(deletions) AS deletions
-         FROM pr_files
-         WHERE account_id = ?1 AND pr_id = 'pr_1'
-         GROUP BY account_id, pr_id, head_sha, directory",
+            SUM(
+                CASE
+                    WHEN pf.viewed_by_account_id IS NOT NULL AND pf.viewed_at_head_sha = pr.head_sha THEN 1
+                    ELSE 0
+                END
+            ) AS viewed_file_count,
+            SUM(pf.additions) AS additions,
+            SUM(pf.deletions) AS deletions
+         FROM pr_files pf
+         JOIN pull_requests pr ON pr.account_id = pf.account_id AND pr.id = pf.pr_id
+         WHERE pf.account_id = ?1 AND pf.pr_id = 'pr_1'
+         GROUP BY pf.account_id, pf.pr_id, pf.head_sha, directory",
         ACCOUNT_ID,
     )
     .await?;
@@ -274,6 +284,123 @@ async fn open_fixture_loads_inbox_under_timing_budget_best_effort() -> Result<()
         elapsed < Duration::from_millis(500),
         "fixture inbox cold load should remain below shared-runner regression threshold"
     );
+    Ok(())
+}
+
+#[tokio::test]
+async fn pr_file_rename_round_trip_surfaces_previous_path_and_similarity() -> Result<()> {
+    let temp = TempDir::new()?;
+    let db = Db::open(temp.path()).await?;
+    let account_id = "acct-rename";
+    let repo_id = "repo-rename";
+    let pr_id = "pr-rename";
+    let head_sha = "head-rename";
+
+    db.upsert_account(&AccountRecord {
+        id: account_id.to_string(),
+        host: "github.com".to_string(),
+        login: "rename-user".to_string(),
+        token_kind: "pat".to_string(),
+        scopes: "repo".to_string(),
+        created_at: 1,
+        updated_at: 1,
+    })
+    .await?;
+    db.upsert_repo(&RepoRecord {
+        id: repo_id.to_string(),
+        account_id: account_id.to_string(),
+        owner: "octo".to_string(),
+        name: "rename-demo".to_string(),
+        default_branch: Some("main".to_string()),
+        description: None,
+        html_url: None,
+        is_private: false,
+        is_archived: false,
+        pushed_at: None,
+        created_at: 1,
+        updated_at: 1,
+    })
+    .await?;
+    db.upsert_user(&UserRecord {
+        id: "user-rename".to_string(),
+        account_id: account_id.to_string(),
+        login: "rename-user".to_string(),
+        display_name: None,
+        avatar_url: None,
+        html_url: None,
+        created_at: 1,
+        updated_at: 1,
+    })
+    .await?;
+    db.upsert_pull_request(&PullRequestRecord {
+        id: pr_id.to_string(),
+        account_id: account_id.to_string(),
+        repo_id: repo_id.to_string(),
+        number: 1,
+        state: "open".to_string(),
+        draft: false,
+        title: "rename fixture".to_string(),
+        body: "body".to_string(),
+        author_id: Some("user-rename".to_string()),
+        base_ref: "main".to_string(),
+        base_sha: "base".to_string(),
+        head_ref: "feature".to_string(),
+        head_sha: head_sha.to_string(),
+        head_repo_id: Some(repo_id.to_string()),
+        mergeable_state: Some("MERGEABLE".to_string()),
+        merge_state_status: Some("CLEAN".to_string()),
+        additions: 3,
+        deletions: 1,
+        changed_files: 1,
+        comments_count: 0,
+        reviews_count: 0,
+        commits_count: 0,
+        is_read: false,
+        html_url: None,
+        created_at: 1,
+        updated_at: 1,
+        closed_at: None,
+        merged_at: None,
+    })
+    .await?;
+    db.upsert_pr_file(&PrFileRecord {
+        account_id: account_id.to_string(),
+        pr_id: pr_id.to_string(),
+        head_sha: head_sha.to_string(),
+        path: "src/new_name.rs".to_string(),
+        old_path: Some("src/old_name.rs".to_string()),
+        previous_path: Some("src/old_name.rs".to_string()),
+        status: "renamed".to_string(),
+        additions: 3,
+        deletions: 1,
+        is_binary: false,
+        kind: "text".to_string(),
+        rename_similarity: Some(0.92),
+        patch_blob_sha: None,
+        viewed_by_account_id: None,
+        viewed_at_head_sha: None,
+    })
+    .await?;
+
+    let files = ipc_pr_files_impl(
+        &db,
+        PrFilesInput {
+            account_id: account_id.to_string(),
+            pr_id: pr_id.to_string(),
+            head_sha: head_sha.to_string(),
+        },
+    )
+    .await
+    .map_err(|error| anyhow::anyhow!("ipc_pr_files_impl failed: {error:?}"))?;
+    let renamed = files
+        .files
+        .iter()
+        .find(|file| file.path == "src/new_name.rs")
+        .expect("renamed file row");
+    assert_eq!(renamed.status, "renamed");
+    assert_eq!(renamed.previous_path.as_deref(), Some("src/old_name.rs"));
+    assert_eq!(renamed.rename_similarity, Some(92));
+
     Ok(())
 }
 

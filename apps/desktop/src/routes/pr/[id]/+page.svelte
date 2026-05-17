@@ -619,21 +619,25 @@
                 <label class="d-flex flex-items-center gap-2 flex-auto">
                   <input
                     type="checkbox"
-                    checked={Boolean(file.viewed_by_account_id)}
+                    checked={file.is_viewed}
                     on:change={(event) => {
                       const checked = (event.currentTarget as HTMLInputElement).checked;
-                      if (checked) {
-                        return submit('mark_file_viewed', {
-                          pr_id: data.prId,
-                          file_path: file.path,
-                          target_id: file.path
-                        });
-                      }
-                      return submit('unmark_file_viewed', {
+                      const payload = {
                         pr_id: data.prId,
-                        file_path: file.path,
+                        path: file.path,
+                        head_sha: bundle.summary.head_sha,
+                        status: file.status,
+                        is_binary: file.is_binary ? 1 : 0,
+                        additions: file.additions,
+                        deletions: file.deletions,
+                        previous_viewed_by_account_id: file.viewed_by_account_id,
+                        previous_viewed_at_head_sha: file.viewed_at_head_sha,
                         target_id: file.path
-                      });
+                      };
+                      if (checked) {
+                        return submit('mark_file_viewed', payload);
+                      }
+                      return submit('unmark_file_viewed', payload);
                     }}
                   />
                   <span class="text-mono f6">{file.path}</span>
@@ -651,7 +655,16 @@
             {/each}
           </ul>
         </div>
-        <DiffViewer patch={bundle.patch} files={bundle.files} reviewThreads={bundle.review_threads} />
+        <DiffViewer
+          patch={bundle.patch}
+          files={bundle.files}
+          reviewThreads={bundle.review_threads}
+          accountId={data.activeAccountId}
+          prId={data.prId}
+          headSha={bundle.summary.head_sha}
+          pullRequestNodeId={bundle.summary.pr_id}
+          on:reviewcommentsubmitted={refreshBundle}
+        />
       {:else}
         <div class="Box">
           <div class="Box-header">Check runs</div>
