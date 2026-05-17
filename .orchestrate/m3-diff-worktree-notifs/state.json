@@ -59,13 +59,13 @@
       "handoffPath": "handoffs/m3-notifications.md",
       "startedAt": "2026-05-17T20:58:11.668Z",
       "finishedAt": "2026-05-17T21:47:18.762Z",
-      "lastUpdate": "2026-05-17T21:47:18.762Z",
+      "lastUpdate": "2026-05-17T21:47:19.610Z",
       "note": "respawned by local-cli (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m3-corpus-tighten",
@@ -195,6 +195,10 @@
     {
       "at": "2026-05-17T21:42:15.811Z",
       "message": "m3-worktree-read: tool_call idle 326236ms; last=2026-05-17T21:36:49.575Z"
+    },
+    {
+      "at": "2026-05-17T21:47:19.610Z",
+      "message": "m3-notifications: verification self-reported (unit-test-verified)"
     }
   ]
 }
