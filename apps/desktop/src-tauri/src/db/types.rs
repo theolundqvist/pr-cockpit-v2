@@ -125,6 +125,17 @@ pub struct AccountRecord {
     pub updated_at: i64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct AuthAccountRow {
+    pub id: String,
+    pub host: String,
+    pub login: String,
+    pub token_kind: String,
+    pub scopes: String,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RepoRecord {
     pub id: String,

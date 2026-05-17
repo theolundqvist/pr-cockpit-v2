@@ -321,6 +321,184 @@ impl Db {
         Ok(())
     }
 
+    pub async fn upsert_auth_account(
+        &self,
+        host: &str,
+        login: &str,
+        token_kind: &str,
+        scopes: &str,
+        now_epoch: i64,
+    ) -> Result<AuthAccountRow> {
+        let account_id = account_id_from_host_login(host, login);
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO accounts(id, host, login, token_kind, scopes, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6)
+             ON CONFLICT(host, login) DO UPDATE SET
+               token_kind = excluded.token_kind,
+               scopes = excluded.scopes,
+               updated_at = excluded.updated_at",
+        )
+        .bind(&account_id)
+        .bind(host)
+        .bind(login)
+        .bind(token_kind)
+        .bind(scopes)
+        .bind(now_epoch)
+        .execute(tx.as_mut())
+        .await?;
+
+        let account = sqlx::query_as::<_, AuthAccountRow>(
+            "SELECT id, host, login, token_kind, scopes, created_at, updated_at
+             FROM accounts
+             WHERE host = ?1 AND login = ?2",
+        )
+        .bind(host)
+        .bind(login)
+        .fetch_one(tx.as_mut())
+        .await?;
+
+        let active_exists: Option<String> = sqlx::query_scalar(
+            "SELECT value FROM app_settings WHERE key = 'active_account_id' LIMIT 1",
+        )
+        .fetch_optional(tx.as_mut())
+        .await?;
+        if active_exists.is_none() {
+            sqlx::query(
+                "INSERT INTO app_settings(key, value, updated_at)
+                 VALUES ('active_account_id', ?1, ?2)
+                 ON CONFLICT(key) DO UPDATE SET
+                   value = excluded.value,
+                   updated_at = excluded.updated_at",
+            )
+            .bind(&account.id)
+            .bind(now_epoch)
+            .execute(tx.as_mut())
+            .await?;
+        }
+
+        tx.commit().await?;
+        Ok(account)
+    }
+
+    pub async fn list_auth_accounts(&self) -> Result<Vec<AuthAccountRow>> {
+        let rows = sqlx::query_as::<_, AuthAccountRow>(
+            "SELECT id, host, login, token_kind, scopes, created_at, updated_at
+             FROM accounts
+             ORDER BY host ASC, login ASC",
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn active_account_id(&self) -> Result<Option<String>> {
+        let active_id: Option<String> = sqlx::query_scalar(
+            "SELECT value
+             FROM app_settings
+             WHERE key = 'active_account_id'
+             LIMIT 1",
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(active_id)
+    }
+
+    pub async fn set_active_account_id(&self, account_id: &str, now_epoch: i64) -> Result<()> {
+        sqlx::query(
+            "INSERT INTO app_settings(key, value, updated_at)
+             VALUES ('active_account_id', ?1, ?2)
+             ON CONFLICT(key) DO UPDATE SET
+               value = excluded.value,
+               updated_at = excluded.updated_at",
+        )
+        .bind(account_id)
+        .bind(now_epoch)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn find_auth_account(
+        &self,
+        host: &str,
+        login: &str,
+    ) -> Result<Option<AuthAccountRow>> {
+        let row = sqlx::query_as::<_, AuthAccountRow>(
+            "SELECT id, host, login, token_kind, scopes, created_at, updated_at
+             FROM accounts
+             WHERE host = ?1 AND login = ?2
+             LIMIT 1",
+        )
+        .bind(host)
+        .bind(login)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn remove_auth_account(
+        &self,
+        host: &str,
+        login: &str,
+        now_epoch: i64,
+    ) -> Result<Option<AuthAccountRow>> {
+        let mut tx = self.pool.begin().await?;
+        let account = sqlx::query_as::<_, AuthAccountRow>(
+            "SELECT id, host, login, token_kind, scopes, created_at, updated_at
+             FROM accounts
+             WHERE host = ?1 AND login = ?2
+             LIMIT 1",
+        )
+        .bind(host)
+        .bind(login)
+        .fetch_optional(tx.as_mut())
+        .await?;
+        let Some(account) = account else {
+            tx.rollback().await?;
+            return Ok(None);
+        };
+
+        sqlx::query("DELETE FROM accounts WHERE id = ?1")
+            .bind(&account.id)
+            .execute(tx.as_mut())
+            .await?;
+
+        let current_active: Option<String> =
+            sqlx::query_scalar("SELECT value FROM app_settings WHERE key = 'active_account_id'")
+                .fetch_optional(tx.as_mut())
+                .await?;
+        if current_active.as_deref() == Some(account.id.as_str()) {
+            let next_active: Option<String> =
+                sqlx::query_scalar("SELECT id FROM accounts ORDER BY host ASC, login ASC LIMIT 1")
+                    .fetch_optional(tx.as_mut())
+                    .await?;
+            match next_active {
+                Some(next_id) => {
+                    sqlx::query(
+                        "INSERT INTO app_settings(key, value, updated_at)
+                         VALUES ('active_account_id', ?1, ?2)
+                         ON CONFLICT(key) DO UPDATE SET
+                           value = excluded.value,
+                           updated_at = excluded.updated_at",
+                    )
+                    .bind(next_id)
+                    .bind(now_epoch)
+                    .execute(tx.as_mut())
+                    .await?;
+                }
+                None => {
+                    sqlx::query("DELETE FROM app_settings WHERE key = 'active_account_id'")
+                        .execute(tx.as_mut())
+                        .await?;
+                }
+            }
+        }
+
+        tx.commit().await?;
+        Ok(Some(account))
+    }
+
     pub async fn upsert_repo(&self, repo: &RepoRecord) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
@@ -1106,6 +1284,10 @@ fn bool_to_i64(value: bool) -> i64 {
     } else {
         0
     }
+}
+
+fn account_id_from_host_login(host: &str, login: &str) -> String {
+    format!("{host}:{login}")
 }
 
 fn now_epoch_seconds() -> Result<i64> {
