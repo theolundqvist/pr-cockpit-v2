@@ -1500,6 +1500,10 @@
     {
       "at": "2026-05-18T22:36:59.971Z",
       "message": "m6-stacks-relay-polish: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T22:37:15.778Z",
+      "message": "verify-m6-stacks-relay-polish: spawn failed after 3 transient sub-attempts: Error: m6-stacks-relay-polish: branch must be orch/pr-cockpit/m6-stacks-relay-polish, got `orch/m6-stacks-relay-polish/m6-tag-v1` (deliverable; commit `5c77a19` on top of verifier-signed-off `5b14043`…"
     }
   ]
 }
