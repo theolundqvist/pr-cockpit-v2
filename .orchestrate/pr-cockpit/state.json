@@ -151,15 +151,15 @@
       "dependsOn": [
         "verify-m3-diff-worktree-notifs"
       ],
-      "agentId": null,
-      "runId": null,
+      "agentId": "bc-daf7332b-055f-44bd-87dd-1dd5073e5578",
+      "runId": "run-f05efceb-5e5c-4ccd-a97d-9a2fdad678f3",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T02:13:28.249Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T02:13:28.249Z",
+      "lastUpdate": "2026-05-18T02:13:31.033Z",
       "note": "respawned by self-planner (was cancelled; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -835,6 +835,14 @@
     {
       "at": "2026-05-18T02:13:21.361Z",
       "message": "m4-merge-multiaccount: respawned by self-planner (was cancelled); resuming from orch/pr-cockpit/m4-merge-multiaccount"
+    },
+    {
+      "at": "2026-05-18T02:21:31.651Z",
+      "message": "m4-merge-multiaccount: SSE idle 343297ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T02:21:31.651Z",
+      "message": "m4-merge-multiaccount: tool_call idle 343298ms; last=2026-05-18T02:15:48.353Z"
     }
   ]
 }
