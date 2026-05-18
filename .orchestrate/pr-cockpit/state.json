@@ -1431,6 +1431,14 @@
     {
       "at": "2026-05-18T20:24:17.224Z",
       "message": "m6-stacks-relay-polish: tool_call idle 344481ms; last=2026-05-18T20:18:32.743Z"
+    },
+    {
+      "at": "2026-05-18T20:33:43.220Z",
+      "message": "m6-stacks-relay-polish: SSE idle 302092ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T20:33:43.221Z",
+      "message": "m6-stacks-relay-polish: tool_call idle 302093ms; last=2026-05-18T20:28:41.128Z"
     }
   ]
 }
