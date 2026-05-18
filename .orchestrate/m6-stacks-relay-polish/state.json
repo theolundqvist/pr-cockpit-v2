@@ -98,7 +98,7 @@
     {
       "name": "m6-verify",
       "type": "verifier",
-      "branch": "orch/m6-stacks-relay-polish/m6-verify",
+      "branch": "`orch/m6-stacks-relay-polish/m6-finalize` (verifier evidence pushed as commit `5b14043`)",
       "startingRef": "orch/m6-stacks-relay-polish/m6-finalize",
       "dependsOn": [
         "m6-finalize"
@@ -106,18 +106,18 @@
       "agentId": "bc-277e0f4d-25e0-49cb-bac0-9d2a5aadfde9",
       "runId": "run-a68de5dc-582a-401c-aa9d-07025322d966",
       "parentAgentId": "bc-9a1a2582-4f85-429b-9282-f41b528a0536",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m6-verify.md",
       "startedAt": "2026-05-18T21:36:12.825Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T21:36:15.551Z",
+      "finishedAt": "2026-05-18T22:32:57.448Z",
+      "lastUpdate": "2026-05-18T22:32:57.452Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m6-tag-v1",
