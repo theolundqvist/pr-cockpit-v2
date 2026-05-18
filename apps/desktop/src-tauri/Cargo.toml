@@ -87,6 +87,8 @@ toml = "1.1.2"
 chrono-tz = { workspace = true }
 async-trait = "0.1.89"
 similar = "3.1.0"
+axum = "0.8.6"
+hmac = "0.12.1"
 
 [dev-dependencies]
 criterion = "0.8.2"

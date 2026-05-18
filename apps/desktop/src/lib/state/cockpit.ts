@@ -97,7 +97,10 @@ export async function initializeCockpit(seed: InitInboxResponse): Promise<void> 
   persistActiveAccountId(activeAccountId);
   persistInboxFilter(inboxAccountFilter);
   inboxStore.set(seed.inbox);
-  repoSubscriptionsStore.set(seed.subscriptions);
+  const activeSubscriptions = activeAccountId
+    ? seed.subscriptions.filter((subscription) => subscription.account_id === activeAccountId)
+    : seed.subscriptions;
+  repoSubscriptionsStore.set(activeSubscriptions);
   statusStore.set(seed.status);
   worktreeRootsStore.set([]);
   worktreesStore.set([]);

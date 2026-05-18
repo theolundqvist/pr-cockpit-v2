@@ -215,6 +215,9 @@ test('palette commands trigger suggestion, thread, file, github, and saved-reply
 
 test('keyboard-only PR cycle', async ({ page }) => {
   await page.goto('/');
+  await expect(
+    page.getByRole('link', { name: /Active Fixture PR Falcon Diff Stress/ }).first()
+  ).toBeVisible();
   await page.keyboard.press('g');
   await page.keyboard.press('p');
   await expect(page.getByTestId('command-palette-root')).toHaveClass(/is-open/);

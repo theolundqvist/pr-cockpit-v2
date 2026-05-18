@@ -122,6 +122,10 @@ export const commands = {
 } | null, IpcError>(__TAURI_INVOKE("get_stack_op", { input })),
 	getGraphiteStatus: () => typedError<GraphiteIntegrationStatus, IpcError>(__TAURI_INVOKE("get_graphite_status")),
 	setGraphiteEnabled: (enabled: boolean) => typedError<null, IpcError>(__TAURI_INVOKE("set_graphite_enabled", { enabled })),
+	getRelaySettings: () => typedError<RelaySettingsSnapshot, IpcError>(__TAURI_INVOKE("get_relay_settings")),
+	setRelayEnabled: (enabled: boolean) => typedError<null, IpcError>(__TAURI_INVOKE("set_relay_enabled", { enabled })),
+	setRelayForwardSecret: (secret: string) => typedError<null, IpcError>(__TAURI_INVOKE("set_relay_forward_secret", { secret })),
+	relayLocalUrl: () => typedError<string, IpcError>(__TAURI_INVOKE("relay_local_url")),
 	listNotificationRules: (accountId: string) => typedError<NotificationRule[], IpcError>(__TAURI_INVOKE("list_notification_rules", { accountId })),
 	setNotificationRule: (accountId: string, kind: string, enabled: boolean, configJson: string) => typedError<null, IpcError>(__TAURI_INVOKE("set_notification_rule", { accountId, kind, enabled, configJson })),
 	setQuietHours: (accountId: string, json: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_quiet_hours", { accountId, json })),
@@ -799,6 +803,12 @@ export type RediscoverSummary = {
 	watched: number,
 	skipped_unmapped: number,
 	updated_at: number,
+};
+
+export type RelaySettingsSnapshot = {
+	enabled: boolean,
+	has_forward_secret: boolean,
+	local_url: string | null,
 };
 
 export type RenderPreviewCtx = {

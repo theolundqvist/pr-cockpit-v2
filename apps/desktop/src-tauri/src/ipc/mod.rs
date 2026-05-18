@@ -35,6 +35,7 @@ use crate::range_diff::{
     self, RangeDiff, RangeDiffError, RangeDiffSourceProvider, RepoLocator, RestCompareRangeDiff,
     WorktreeMapping,
 };
+use crate::relay::{RelayManager, RelaySettingsSnapshot};
 use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::stacks::graphite::{detect_graphite, GraphiteVersion};
 use crate::stacks::ops::{
@@ -100,9 +101,11 @@ struct RangeDiffCacheKey {
 static RANGE_DIFF_CACHE: Lazy<std::sync::Mutex<HashMap<RangeDiffCacheKey, RangeDiff>>> =
     Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
 
-static GITHUB_UPLOAD_URL_RE: Lazy<regex::Regex> = Lazy::new(|| {
-    regex::Regex::new(r"^https://(?:user-images\.githubusercontent\.com|github\.com/.+/assets)/.+$")
-        .expect("valid github upload url regex")
+static DOTCOM_UPLOAD_URL_RE: Lazy<regex::Regex> = Lazy::new(|| {
+    regex::Regex::new(
+        r"^https://(?:user-images\.githubusercontent\.com|github\.com/.+/assets|github\.com/user-attachments/files)/.+$",
+    )
+    .expect("valid github upload url regex")
 });
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -2390,8 +2393,24 @@ fn sha256_hex(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn upload_url_is_valid(url: &str) -> bool {
-    GITHUB_UPLOAD_URL_RE.is_match(url)
+fn upload_url_is_valid(url: &str, web_origin: &str) -> bool {
+    if DOTCOM_UPLOAD_URL_RE.is_match(url) {
+        return true;
+    }
+    let Ok(url) = reqwest::Url::parse(url) else {
+        return false;
+    };
+    let Ok(origin) = reqwest::Url::parse(web_origin) else {
+        return false;
+    };
+    if url.scheme() != origin.scheme() || url.host_str() != origin.host_str() {
+        return false;
+    }
+    if url.port_or_known_default() != origin.port_or_known_default() {
+        return false;
+    }
+    let path = url.path();
+    path.contains("/assets/") || path.contains("/user-attachments/files/")
 }
 
 fn parse_upload_payload(payload: &serde_json::Value) -> Option<(String, Option<String>)> {
@@ -2862,7 +2881,7 @@ pub async fn upload_image_to_github_user_content_impl(
     }
 
     let selected_url = if let Some(url) = upload_url {
-        if !upload_url_is_valid(&url) {
+        if !upload_url_is_valid(&url, &web_origin) {
             return Err(IpcError {
                 code: "InvalidUploadUrl".to_string(),
                 message: format!("upload endpoint returned non-GitHub URL `{url}`"),
@@ -2870,8 +2889,11 @@ pub async fn upload_image_to_github_user_content_impl(
         }
         url
     } else {
-        let fallback_markdown_url =
-            format!("{}/assets/{}", web_origin.trim_end_matches('/'), sha256);
+        let fallback_markdown_url = format!(
+            "{}/user-attachments/files/{}",
+            web_origin.trim_end_matches('/'),
+            sha256
+        );
         let markdown_body = serde_json::json!({
             "text": format!("![pasted-image]({fallback_markdown_url})"),
             "mode": "gfm"
@@ -2885,17 +2907,13 @@ pub async fn upload_image_to_github_user_content_impl(
                 None,
             )
             .await;
-        let synthetic = format!(
-            "https://github.com/{}/assets/{}",
-            endpoints.locator.login, sha256
-        );
-        if !upload_url_is_valid(&synthetic) {
+        if !upload_url_is_valid(&fallback_markdown_url, &web_origin) {
             return Err(IpcError {
                 code: "InvalidUploadUrl".to_string(),
-                message: format!("fallback generated invalid URL `{synthetic}`"),
+                message: format!("fallback generated invalid URL `{fallback_markdown_url}`"),
             });
         }
-        synthetic
+        fallback_markdown_url
     };
 
     db.blob_store()
@@ -3199,6 +3217,27 @@ pub async fn set_graphite_enabled_impl(db: &Db, enabled: bool) -> Result<(), Ipc
     stack_ops::set_graphite_enabled(db, enabled)
         .await
         .map_err(IpcError::db)
+}
+
+pub async fn get_relay_settings_impl(
+    relay: &RelayManager,
+) -> Result<RelaySettingsSnapshot, IpcError> {
+    relay.settings_snapshot().await.map_err(IpcError::db)
+}
+
+pub async fn set_relay_enabled_impl(relay: &RelayManager, enabled: bool) -> Result<(), IpcError> {
+    relay.set_enabled(enabled).await.map_err(IpcError::db)
+}
+
+pub async fn set_relay_forward_secret_impl(
+    relay: &RelayManager,
+    secret: String,
+) -> Result<(), IpcError> {
+    relay.set_forward_secret(secret).await.map_err(IpcError::db)
+}
+
+pub async fn relay_local_url_impl(relay: &RelayManager) -> Result<String, IpcError> {
+    Ok(relay.local_url().await.unwrap_or_default())
 }
 
 #[tauri::command]
@@ -3771,6 +3810,40 @@ pub async fn set_graphite_enabled(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn get_relay_settings(
+    relay: tauri::State<'_, Arc<RelayManager>>,
+) -> Result<RelaySettingsSnapshot, IpcError> {
+    get_relay_settings_impl(relay.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_relay_enabled(
+    relay: tauri::State<'_, Arc<RelayManager>>,
+    enabled: bool,
+) -> Result<(), IpcError> {
+    set_relay_enabled_impl(relay.inner(), enabled).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_relay_forward_secret(
+    relay: tauri::State<'_, Arc<RelayManager>>,
+    secret: String,
+) -> Result<(), IpcError> {
+    set_relay_forward_secret_impl(relay.inner(), secret).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn relay_local_url(
+    relay: tauri::State<'_, Arc<RelayManager>>,
+) -> Result<String, IpcError> {
+    relay_local_url_impl(relay.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn list_notification_events(
     db: tauri::State<'_, Arc<Db>>,
     account_id: String,
@@ -3859,6 +3932,10 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             get_stack_op,
             get_graphite_status,
             set_graphite_enabled,
+            get_relay_settings,
+            set_relay_enabled,
+            set_relay_forward_secret,
+            relay_local_url,
             list_notification_rules,
             set_notification_rule,
             set_quiet_hours,
@@ -3966,6 +4043,10 @@ pub fn command_names() -> &'static [&'static str] {
         "get_stack_op",
         "get_graphite_status",
         "set_graphite_enabled",
+        "get_relay_settings",
+        "set_relay_enabled",
+        "set_relay_forward_secret",
+        "relay_local_url",
         "list_notification_rules",
         "set_notification_rule",
         "set_quiet_hours",

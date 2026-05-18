@@ -8,6 +8,7 @@ test.describe('m4 range-diff surface', () => {
     await mkdir(artifactRoot, { recursive: true });
 
     await page.goto('/pr/pr_1/range-diff');
+    await page.waitForFunction(() => Boolean(window.__RANGE_DIFF_DEBUG__));
     await page.evaluate(() => window.__RANGE_DIFF_DEBUG__?.setMode('local'));
     await page.reload();
 
@@ -28,6 +29,7 @@ test.describe('m4 range-diff surface', () => {
     await mkdir(artifactRoot, { recursive: true });
 
     await page.goto('/pr/pr_1/range-diff');
+    await page.waitForFunction(() => Boolean(window.__RANGE_DIFF_DEBUG__));
     await page.evaluate(() => window.__RANGE_DIFF_DEBUG__?.setMode('rest'));
     await page.reload();
 

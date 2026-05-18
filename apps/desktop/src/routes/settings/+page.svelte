@@ -3,8 +3,12 @@
   import { get } from 'svelte/store';
 
   import {
+    getRelaySettings,
     getGraphiteStatus,
+    relayLocalUrl,
     savePatToken,
+    setRelayEnabled,
+    setRelayForwardSecret,
     setGraphiteEnabled,
     testEndpoints,
     toAccountId
@@ -31,9 +35,15 @@
   let graphiteDetected = false;
   let graphiteEnabled = false;
   let graphiteBusy = false;
+  let relayEnabled = false;
+  let relayForwardSecret = '';
+  let relayHasSecret = false;
+  let relayBusy = false;
+  let relayError = '';
+  let relayLocalUrlStatus = '';
 
   onMount(async () => {
-    await refreshGraphite();
+    await Promise.all([refreshGraphite(), refreshRelay()]);
   });
 
   async function refreshGraphite(): Promise<void> {
@@ -56,6 +66,65 @@
       window.dispatchEvent(new CustomEvent('graphite:settings changed'));
     } finally {
       graphiteBusy = false;
+    }
+  }
+
+  async function refreshRelay(): Promise<void> {
+    try {
+      const settings = await getRelaySettings();
+      relayEnabled = settings.enabled;
+      relayHasSecret = settings.has_forward_secret;
+      relayError = '';
+      relayLocalUrlStatus = settings.local_url ?? '';
+    } catch (error) {
+      relayError = error instanceof Error ? error.message : 'Failed to load relay settings.';
+    }
+  }
+
+  async function toggleRelay(event: Event): Promise<void> {
+    const next = (event.currentTarget as HTMLInputElement).checked;
+    relayBusy = true;
+    try {
+      await setRelayEnabled(next);
+      relayEnabled = next;
+      const settings = await getRelaySettings();
+      relayHasSecret = settings.has_forward_secret;
+      relayLocalUrlStatus = settings.local_url ?? '';
+      relayError = '';
+    } catch (error) {
+      relayError = error instanceof Error ? error.message : 'Failed to update relay setting.';
+    } finally {
+      relayBusy = false;
+    }
+  }
+
+  async function saveRelaySecretValue(): Promise<void> {
+    relayBusy = true;
+    try {
+      await setRelayForwardSecret(relayForwardSecret);
+      const settings = await getRelaySettings();
+      relayHasSecret = settings.has_forward_secret;
+      relayLocalUrlStatus = settings.local_url ?? '';
+      relayError = '';
+    } catch (error) {
+      relayError = error instanceof Error ? error.message : 'Failed to store relay secret.';
+    } finally {
+      relayBusy = false;
+    }
+  }
+
+  async function copyRelayLocalUrl(): Promise<void> {
+    try {
+      const url = await relayLocalUrl();
+      if (!url) {
+        relayLocalUrlStatus = 'Relay receiver is not running.';
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      relayLocalUrlStatus = `Copied: ${url}`;
+    } catch (error) {
+      relayLocalUrlStatus =
+        error instanceof Error ? `Copy failed: ${error.message}` : 'Copy failed.';
     }
   }
 
@@ -177,6 +246,61 @@
             <span class="Label Label--secondary">gt not detected on PATH</span>
           {/if}
         </label>
+      </div>
+    </section>
+    <section class="Box mb-3">
+      <div class="Box-header">
+        <h2 class="f4 m-0">Webhook relay (optional)</h2>
+      </div>
+      <div class="Box-body">
+        <label class="d-flex flex-items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            checked={relayEnabled}
+            disabled={relayBusy}
+            on:change={toggleRelay}
+            data-testid="relay-enabled-toggle"
+          />
+          <span>Enable local webhook receiver</span>
+        </label>
+        <label class="d-block mb-2">
+          <span class="f6 text-bold">Relay forward secret</span>
+          <input
+            class="form-control mt-1"
+            type="password"
+            bind:value={relayForwardSecret}
+            autocomplete="off"
+            placeholder={relayHasSecret ? 'Stored in keychain' : 'Enter shared secret'}
+            data-testid="relay-forward-secret-input"
+          />
+        </label>
+        <div class="d-flex gap-2 mb-2">
+          <button
+            class="btn btn-sm"
+            type="button"
+            on:click={saveRelaySecretValue}
+            disabled={relayBusy}
+            data-testid="relay-save-secret-button"
+          >
+            Save relay secret
+          </button>
+          <button
+            class="btn btn-sm"
+            type="button"
+            on:click={copyRelayLocalUrl}
+            data-testid="relay-local-url-button"
+          >
+            Show local relay URL
+          </button>
+        </div>
+        {#if relayError}
+          <p class="color-fg-danger f6 mt-2 mb-0" data-testid="relay-settings-error">{relayError}</p>
+        {/if}
+        {#if relayLocalUrlStatus}
+          <p class="color-fg-muted f6 mt-2 mb-0" data-testid="relay-local-url-status">
+            {relayLocalUrlStatus}
+          </p>
+        {/if}
       </div>
     </section>
   {:else if activeTab === 'notifications'}

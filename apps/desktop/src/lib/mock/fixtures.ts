@@ -108,6 +108,15 @@ export const MOCK_SUBSCRIPTIONS: RepoSubscriptionItem[] = [
     watch_tier: 'cool',
     last_full_sync_at: BASE_TS - 60,
     updated_at: BASE_TS - 60
+  },
+  {
+    account_id: accountId(secondaryAccount.host, secondaryAccount.login),
+    repo_id: 'repo_2',
+    repo_owner: 'fixture-org',
+    repo_name: 'repo-2',
+    watch_tier: 'warm',
+    last_full_sync_at: BASE_TS - 60,
+    updated_at: BASE_TS - 60
   }
 ];
 

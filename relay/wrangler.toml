@@ -1,0 +1,14 @@
+name = "pr-cockpit-relay"
+main = "src/worker.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+GITHUB_WEBHOOK_SECRET = "<set via wrangler secret put>"
+RELAY_FORWARD_SECRET = "<set via wrangler secret put>"
+RELAY_DESTINATION_URL = "<set via wrangler secret put — e.g. https://my-tunnel.example.com/webhook>"
+
+# Uncomment for multi-destination routing support.
+# [[kv_namespaces]]
+# binding = "RELAY_DESTINATIONS"
+# id = "<set-your-kv-namespace-id>"

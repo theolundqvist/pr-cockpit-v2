@@ -34,6 +34,7 @@ import {
   type CleanupOutcome,
   type RediscoverSummary,
   type GraphiteIntegrationStatus,
+  type RelaySettingsSnapshot,
   type MergeMethod,
   type StackGraph,
   type StackOperationView
@@ -116,7 +117,9 @@ const mockStackOps = new Map<string, StackOperationView>();
 let mockStackOpSeq = 0;
 const mockStackInvocations: Array<{ command: string; payload: Record<string, unknown> }> = [];
 const GRAPHITE_STATUS_STORAGE_KEY = '__mock_graphite_status__';
+const RELAY_SETTINGS_STORAGE_KEY = '__mock_relay_settings__';
 let mockGraphiteStatus: GraphiteIntegrationStatus = readStoredGraphiteStatus();
+let mockRelaySettings: RelaySettingsSnapshot = readStoredRelaySettings();
 const mockAppliedSuggestionCommentIds = new Set<string>();
 const mockSuggestionBlocks: SuggestionBlock[] = [
   {
@@ -264,6 +267,44 @@ function writeStoredGraphiteStatus(status: GraphiteIntegrationStatus): void {
   } catch {
     // noop in constrained browser environments
   }
+}
+
+function readStoredRelaySettings(): RelaySettingsSnapshot {
+  if (typeof window === 'undefined') {
+    return { enabled: false, has_forward_secret: false, local_url: null };
+  }
+  try {
+    const raw = window.localStorage.getItem(RELAY_SETTINGS_STORAGE_KEY);
+    if (!raw) {
+      return { enabled: false, has_forward_secret: false, local_url: null };
+    }
+    const parsed = JSON.parse(raw) as RelaySettingsSnapshot;
+    return {
+      enabled: Boolean(parsed.enabled),
+      has_forward_secret: Boolean(parsed.has_forward_secret),
+      local_url: parsed.local_url ?? null
+    };
+  } catch {
+    return { enabled: false, has_forward_secret: false, local_url: null };
+  }
+}
+
+function writeStoredRelaySettings(settings: RelaySettingsSnapshot): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage.setItem(RELAY_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // noop in constrained browser environments
+  }
+}
+
+function recomputeMockRelayUrl(): string | null {
+  if (!mockRelaySettings.enabled || !mockRelaySettings.has_forward_secret) {
+    return null;
+  }
+  return 'http://127.0.0.1:49811/webhook';
 }
 
 const cautiousKinds = new Set<MutationKind>([
@@ -1358,6 +1399,50 @@ export async function setGraphiteEnabled(enabled: boolean): Promise<void> {
   }
   mockGraphiteStatus = { ...mockGraphiteStatus, enabled };
   writeStoredGraphiteStatus(mockGraphiteStatus);
+}
+
+export async function getRelaySettings(): Promise<RelaySettingsSnapshot> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.getRelaySettings());
+  }
+  mockRelaySettings = {
+    ...mockRelaySettings,
+    local_url: recomputeMockRelayUrl()
+  };
+  return { ...mockRelaySettings };
+}
+
+export async function setRelayEnabled(enabled: boolean): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setRelayEnabled(enabled));
+    return;
+  }
+  mockRelaySettings = {
+    ...mockRelaySettings,
+    enabled,
+    local_url: recomputeMockRelayUrl()
+  };
+  writeStoredRelaySettings(mockRelaySettings);
+}
+
+export async function setRelayForwardSecret(secret: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setRelayForwardSecret(secret));
+    return;
+  }
+  mockRelaySettings = {
+    ...mockRelaySettings,
+    has_forward_secret: secret.trim().length > 0,
+    local_url: recomputeMockRelayUrl()
+  };
+  writeStoredRelaySettings(mockRelaySettings);
+}
+
+export async function relayLocalUrl(): Promise<string> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.relayLocalUrl());
+  }
+  return recomputeMockRelayUrl() ?? '';
 }
 
 export async function emitMockStackChanged(

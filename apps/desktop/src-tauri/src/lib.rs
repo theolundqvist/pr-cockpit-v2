@@ -12,6 +12,7 @@ use crate::mutations::{MutationEngine, NetworkMonitor};
 use crate::notify::{
     dispatcher::TauriNotificationSender, NotificationEngine, NotificationEventEmitter,
 };
+use crate::relay::RelayManager;
 use crate::stacks::ops::install_stack_op_event_emitter;
 use crate::worktree::{
     watcher::WatchBackend, write::install_worktree_write_event_emitter, WorktreeService,
@@ -115,6 +116,9 @@ pub fn run() {
                 ))
                 .context("building notification engine")?,
             );
+            let relay_manager = Arc::new(RelayManager::new(Arc::clone(&db)));
+            tauri::async_runtime::block_on(relay_manager.bootstrap())
+                .context("starting relay receiver")?;
             let inbox_seed = tauri::async_runtime::block_on(ipc::ipc_init_inbox_impl(
                 db.as_ref(),
                 auth_service.as_ref(),
@@ -141,6 +145,7 @@ pub fn run() {
             app.manage(Arc::clone(&worktree_service));
             app.manage(Arc::clone(&notification_engine));
             app.manage(Arc::clone(&github));
+            app.manage(Arc::clone(&relay_manager));
             app.manage(inbox_seed_state);
 
             {
@@ -223,6 +228,7 @@ pub mod ipc;
 pub mod mutations;
 pub mod notify;
 pub mod range_diff;
+pub mod relay;
 pub mod render;
 pub mod stacks;
 pub mod storage;

@@ -1036,3 +1036,51 @@ Decision:
   - operation progress/failure event is `stack_op:<op_id>` carrying the latest `StackOperationView` payload for modal streaming and resume/abort UX.
 
 Reason: M6 stacked workflows require deterministic local execution and explicit user control over pauses/conflicts while preserving sync safety and avoiding hidden branch mutation behavior.
+
+### 2026-05-18: M6 webhook relay is self-deployed signed forwarding (no SaaS)
+
+Decision:
+
+- The webhook relay is an optional latency optimization only. Tiered polling
+  remains the source of truth and recovery path; relay signals are treated as
+  cheap refetch triggers, not authoritative state updates.
+- Deployment model is strictly self-hosted Cloudflare Worker (`relay/`) with no
+  shared production account, hosted endpoint, or default routing in this repo.
+- Security model is two-secret, directional HMAC:
+  - GitHub -> relay uses `GITHUB_WEBHOOK_SECRET` verified with timing-safe
+    comparison.
+  - Relay -> desktop uses a distinct `RELAY_FORWARD_SECRET` over
+    `body.nonce.timestamp`, plus nonce replay cache and a 5-minute timestamp
+    acceptance window.
+- Revoke flow is explicit and documented:
+  1. delete `GITHUB_WEBHOOK_SECRET`,
+  2. delete Worker deployment,
+  3. remove GitHub webhook,
+  4. restart desktop app to clear relay runtime state.
+
+Reason: this keeps relay optional, privacy-preserving, and operationally owned
+by each user while maintaining fail-closed ingress and replay protection.
+
+### 2026-05-18: M6 GHE parity fixture covers M1–M5 endpoint surface (wiremock-first)
+
+Decision:
+
+- A dedicated GHE wiremock fixture now stubs the full happy-path endpoint
+  surface consumed by M1–M5 flows:
+  inbox + PR detail (with pagination shape), notifications, `.diff`, compare,
+  comments/reviews/labels/assignees/thread resolution, suggestion apply, check
+  annotations, action log redirect + tail fetch, rerun run/suite, merge, merge
+  retarget mutations, and user-attachments upload pathing.
+- All fixture responses include GHE-style rate-limit headers to keep
+  multi-account meter behavior consistent on enterprise hosts.
+- GHE quirks are explicitly encoded:
+  - host-derived REST/GraphQL roots (`/api/v3`, `/api/graphql`),
+  - user attachment URLs on `https://<ghe-host>/user-attachments/files/...`,
+  - GraphQL/REST mixed mutation paths still normalized through one account
+    resolver.
+- Parity verification philosophy is wiremock-first and deterministic. Real GHE
+  server verification remains optional manual follow-up, not a blocking gate for
+  milestone acceptance.
+
+Reason: M6 must promote GHE from schema-readiness to functional parity without
+making CI dependent on external enterprise infrastructure.
