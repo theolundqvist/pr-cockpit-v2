@@ -7,7 +7,7 @@ use serde::Deserialize;
 
 use crate::db::{
     CheckRunRecord, CheckSuiteRecord, CommentRecord, Db, NotificationRecord, PrAssigneeRecord,
-    PrLabelRecord, PrReviewerRecord, PullRequestRecord, RepoRecord, ReviewRecord,
+    PrLabelRecord, PrPushRecord, PrReviewerRecord, PullRequestRecord, RepoRecord, ReviewRecord,
     ReviewThreadRecord, UserRecord,
 };
 
@@ -493,6 +493,7 @@ pub async fn reconcile_pr_detail(
     };
 
     let now = now_epoch_seconds()?;
+    let previous_push = db.latest_pr_push(&pr.id).await?;
     db.upsert_repo(&RepoRecord {
         id: repository.id.clone(),
         account_id: account_id.to_string(),
@@ -508,6 +509,28 @@ pub async fn reconcile_pr_detail(
         updated_at: parse_timestamp(&pr.updated_at),
     })
     .await?;
+
+    let commit_oids = pr
+        .commits
+        .nodes
+        .as_ref()
+        .map(|nodes| {
+            nodes
+                .iter()
+                .flatten()
+                .map(|node| node.commit.oid.clone())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let pending_push_record = build_push_record(
+        &pr.id,
+        account_id,
+        &pr.base_ref_oid,
+        &pr.head_ref_oid,
+        now,
+        previous_push.as_ref(),
+        &commit_oids,
+    );
 
     let author_id = if let Some(author) = &pr.author {
         upsert_user_if_present(
@@ -646,6 +669,9 @@ pub async fn reconcile_pr_detail(
         merged_at: pr.merged_at.as_deref().map(parse_timestamp),
     })
     .await?;
+    if let Some(push_record) = pending_push_record {
+        db.upsert_pr_push(&push_record).await?;
+    }
 
     let labels = pr
         .labels
@@ -958,6 +984,45 @@ pub async fn reconcile_pr_detail(
         repo: repository.name,
         number: pr.number,
     }))
+}
+
+fn build_push_record(
+    pr_id: &str,
+    account_id: &str,
+    base_sha: &str,
+    head_sha: &str,
+    observed_at: i64,
+    previous_push: Option<&crate::db::PrPushRow>,
+    commit_oids: &[String],
+) -> Option<PrPushRecord> {
+    let (push_kind, supersedes_head_sha) = match previous_push {
+        None => ("initial".to_string(), None),
+        Some(previous) => {
+            if previous.head_sha == head_sha {
+                return None;
+            }
+            let old_in_new_range = commit_oids.iter().any(|oid| oid == &previous.head_sha);
+            let kind = if old_in_new_range {
+                if previous.base_sha != base_sha {
+                    "merge-back"
+                } else {
+                    "fast-forward"
+                }
+            } else {
+                "force-push"
+            };
+            (kind.to_string(), Some(previous.head_sha.clone()))
+        }
+    };
+    Some(PrPushRecord {
+        pr_id: pr_id.to_string(),
+        account_id: account_id.to_string(),
+        head_sha: head_sha.to_string(),
+        base_sha: base_sha.to_string(),
+        observed_at,
+        push_kind,
+        supersedes_head_sha,
+    })
 }
 
 pub async fn reconcile_inbox_refresh(

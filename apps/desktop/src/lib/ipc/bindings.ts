@@ -57,6 +57,8 @@ export const commands = {
 	body_server_adjusted: boolean,
 	pending_overlay: PendingOverlay | null,
 } | null, IpcError>(__TAURI_INVOKE("ipc_pr_detail_summary", { input })),
+	listPrPushes: (prId: string) => typedError<PrPushView[], IpcError>(__TAURI_INVOKE("list_pr_pushes", { prId })),
+	computeRangeDiff: (prId: string, baseSha: string, oldHeadSha: string, newHeadSha: string) => typedError<RangeDiff, IpcError>(__TAURI_INVOKE("compute_range_diff", { prId, baseSha, oldHeadSha, newHeadSha })),
 	ipcPrTimeline: (input: PagedPrInput) => typedError<TimelinePage, IpcError>(__TAURI_INVOKE("ipc_pr_timeline", { input })),
 	ipcPrReviewThreads: (input: PagedPrInput) => typedError<ReviewThreadsPage, IpcError>(__TAURI_INVOKE("ipc_pr_review_threads", { input })),
 	ipcPrCheckSummary: (input: CheckSummaryInput) => typedError<PrCheckSummary, IpcError>(__TAURI_INVOKE("ipc_pr_check_summary", { input })),
@@ -181,6 +183,35 @@ export type CleanupOutcome = {
 	removed: boolean,
 };
 
+export type CommitMetadata = {
+	sha: string,
+	title: string,
+	body: string,
+	author_name: string | null,
+	committed_at: number | null,
+	patch_hash: string,
+	file_paths: string[],
+	additions: number,
+	deletions: number,
+};
+
+export type CommitPair = {
+	status: CommitPairStatus,
+	old: CommitMetadata | null,
+	new: CommitMetadata | null,
+	intra_diff: IntraDiff | null,
+};
+
+export type CommitPairStatus = "Unchanged" | "Modified" | "Added" | "Removed";
+
+export type CommitRange = {
+	base_sha: string,
+	head_sha: string,
+	commits: CommitMetadata[],
+};
+
+export type DiffSide = "Old" | "New";
+
 export type Draft = {
 	id: string,
 	account_id: string,
@@ -220,6 +251,20 @@ export type HardConflictPayload = {
 	diff: HardConflictDiff,
 };
 
+export type HighlightKind = "Unchanged" | "Added" | "Removed";
+
+export type HighlightSegment = {
+	start: number,
+	end: number,
+	kind: HighlightKind,
+};
+
+export type HighlightedLine = {
+	text: string,
+	segments: HighlightSegment[],
+	side: DiffSide,
+};
+
 export type InboxChangedEventPayload = {
 	account_id: string,
 };
@@ -257,6 +302,15 @@ export type InitInboxResponse = {
 	subscriptions: RepoSubscriptionItem[],
 	inbox: InboxItem[],
 	status: SystemStatusResponse | null,
+};
+
+export type IntraDiff = {
+	hunks: IntraHunk[],
+};
+
+export type IntraHunk = {
+	old_lines: HighlightedLine[],
+	new_lines: HighlightedLine[],
 };
 
 export type IpcError = {
@@ -565,6 +619,17 @@ export type PrProject = {
 	pending_overlay: PendingOverlay | null,
 };
 
+export type PrPushView = {
+	id: number,
+	pr_id: string,
+	account_id: string,
+	head_sha: string,
+	base_sha: string,
+	observed_at: number,
+	push_kind: string,
+	supersedes_head_sha: string | null,
+};
+
 export type PrReviewer = {
 	user_id: string,
 	login: string | null,
@@ -573,6 +638,15 @@ export type PrReviewer = {
 	requested_at: number,
 	pending_overlay: PendingOverlay | null,
 };
+
+export type RangeDiff = {
+	old_range: CommitRange,
+	new_range: CommitRange,
+	commit_pairs: CommitPair[],
+	mode: RangeDiffSource,
+};
+
+export type RangeDiffSource = "LocalGit" | "RestCompare";
 
 export type RateLimitBucket = {
 	account_id: string,

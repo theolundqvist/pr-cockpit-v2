@@ -392,6 +392,46 @@ pub struct PullRequestRecord {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrPushRecord {
+    pub pr_id: String,
+    pub account_id: String,
+    pub head_sha: String,
+    pub base_sha: String,
+    pub observed_at: i64,
+    pub push_kind: String,
+    pub supersedes_head_sha: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrPushRow {
+    pub id: i64,
+    pub pr_id: String,
+    pub account_id: String,
+    pub head_sha: String,
+    pub base_sha: String,
+    pub observed_at: i64,
+    pub push_kind: String,
+    pub supersedes_head_sha: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrForcePushPairRow {
+    pub pr_id: String,
+    pub base_sha: String,
+    pub old_head_sha: String,
+    pub new_head_sha: String,
+    pub occurred_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct PrRangeDiffContextRow {
+    pub pr_id: String,
+    pub account_id: String,
+    pub repo_owner: String,
+    pub repo_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PrLabelRecord {
     pub account_id: String,
     pub pr_id: String,

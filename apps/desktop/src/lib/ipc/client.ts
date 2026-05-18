@@ -18,6 +18,8 @@ import {
   type RateLimitBucket,
   type PendingMutationView,
   type PrDetailSummary,
+  type PrPushView,
+  type RangeDiff,
   type SubmittedMutation,
   type SystemStatusResponse,
   type CleanupError,
@@ -34,11 +36,13 @@ import {
   MOCK_REDISCOVER_SUMMARY,
   MOCK_PR_DETAIL,
   MOCK_PR_METADATA,
+  MOCK_PR_PUSHES,
   MOCK_SUBSCRIPTIONS,
   MOCK_THREADS,
   MOCK_TIMELINE,
   MOCK_WORKTREE_ROOTS,
   MOCK_WORKTREES,
+  mockRangeDiff,
   mockInboxForAccount,
   mockPatch,
   mockStatus
@@ -89,6 +93,38 @@ const mockRateLimitOverrides = new Map<
   string,
   Map<string, { remaining: number; limit_total: number; used?: number; reset_at: number }>
 >();
+let mockRangeDiffModeOverride: 'local' | 'rest' | null = null;
+const RANGE_DIFF_MODE_STORAGE_KEY = '__range_diff_mode_override__';
+
+function readStoredRangeDiffMode(): 'local' | 'rest' | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(RANGE_DIFF_MODE_STORAGE_KEY);
+    if (raw === 'local' || raw === 'rest') {
+      return raw;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function writeStoredRangeDiffMode(mode: 'local' | 'rest' | null): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    if (mode) {
+      window.localStorage.setItem(RANGE_DIFF_MODE_STORAGE_KEY, mode);
+    } else {
+      window.localStorage.removeItem(RANGE_DIFF_MODE_STORAGE_KEY);
+    }
+  } catch {
+    // noop in constrained browser environments
+  }
+}
 
 const cautiousKinds = new Set<MutationKind>([
   'submit_review',
@@ -494,6 +530,38 @@ export async function getPrSummary(
     return unwrap(commands.ipcPrDetailSummary({ account_id: accountId, pr_id: prId }));
   }
   return prId === 'pr_1' ? { ...mockPrDetail } : null;
+}
+
+export async function listPrPushes(prId: string): Promise<PrPushView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listPrPushes(prId));
+  }
+  return MOCK_PR_PUSHES[prId] ?? [];
+}
+
+export async function computeRangeDiff(
+  prId: string,
+  baseSha: string,
+  oldHeadSha: string,
+  newHeadSha: string
+): Promise<RangeDiff> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.computeRangeDiff(prId, baseSha, oldHeadSha, newHeadSha));
+  }
+  const mappedWorktreeExists = mockWorktrees.some(
+    (worktree) =>
+      worktree.mapped_pr_id === prId &&
+      ((worktree.mapping_confidence ?? 0) >= 0.75 || worktree.manual_override_pr_id === prId)
+  );
+  const selectedMode =
+    mockRangeDiffModeOverride === 'local'
+      ? 'LocalGit'
+      : mockRangeDiffModeOverride === 'rest'
+        ? 'RestCompare'
+        : mappedWorktreeExists
+          ? 'LocalGit'
+          : 'RestCompare';
+  return mockRangeDiff(selectedMode, baseSha, oldHeadSha, newHeadSha);
 }
 
 export async function getPrMetadata(accountId: string, prId: string) {
@@ -1123,6 +1191,10 @@ declare global {
       }>;
       clearMutationCalls: () => void;
     };
+    __RANGE_DIFF_DEBUG__?: {
+      setMode: (mode: 'local' | 'rest' | null) => void;
+      getMode: () => 'local' | 'rest' | null;
+    };
   }
 }
 
@@ -1195,5 +1267,16 @@ if (typeof window !== 'undefined' && !window.__M4_DEBUG__) {
     clearMutationCalls: () => {
       mockMutationCalls.splice(0, mockMutationCalls.length);
     }
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__RANGE_DIFF_DEBUG__) {
+  mockRangeDiffModeOverride = readStoredRangeDiffMode();
+  window.__RANGE_DIFF_DEBUG__ = {
+    setMode: (mode) => {
+      mockRangeDiffModeOverride = mode;
+      writeStoredRangeDiffMode(mode);
+    },
+    getMode: () => mockRangeDiffModeOverride
   };
 }
