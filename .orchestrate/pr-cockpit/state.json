@@ -1041,6 +1041,14 @@
     {
       "at": "2026-05-18T08:02:07.999Z",
       "message": "m5-editor-power-worktree-write: run.wait returned status=error; recovery probe found terminal status=error, accepting authoritative status"
+    },
+    {
+      "at": "2026-05-18T08:02:09.606Z",
+      "message": "m5-editor-power-worktree-write: run ended with status=error; see /workspace/.orchestrate/pr-cockpit/handoffs/m5-editor-power-worktree-write.md"
+    },
+    {
+      "at": "2026-05-18T08:02:09.608Z",
+      "message": "m5-editor-power-worktree-write: synthetic failure handoff written to /workspace/.orchestrate/pr-cockpit/handoffs/m5-editor-power-worktree-write-failure.md"
     }
   ]
 }
