@@ -199,15 +199,15 @@
       "dependsOn": [
         "verify-m4-merge-multiaccount"
       ],
-      "agentId": null,
-      "runId": null,
+      "agentId": "bc-fcc36435-3b73-4da2-a0a2-32447276d442",
+      "runId": "run-9839ee2e-541f-47ea-bcf9-b9d5a2eecc44",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T08:03:44.274Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T08:03:44.274Z",
+      "lastUpdate": "2026-05-18T08:03:48.145Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
