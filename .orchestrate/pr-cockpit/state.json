@@ -988,6 +988,10 @@
     {
       "at": "2026-05-18T06:43:11.023Z",
       "message": "m4-merge-multiaccount: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T06:43:26.970Z",
+      "message": "verify-m4-merge-multiaccount: spawn failed after 3 transient sub-attempts: Error: m4-merge-multiaccount: branch must be orch/pr-cockpit/m4-merge-multiaccount, got `orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-…"
     }
   ]
 }
