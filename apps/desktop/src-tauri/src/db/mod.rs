@@ -12,6 +12,7 @@ use tokio::fs;
 
 use self::blob_store::BlobStore;
 pub use self::types::*;
+use crate::render::extract_suggestion_blocks;
 
 static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 
@@ -512,6 +513,62 @@ impl Db {
                 })
             })
             .collect()
+    }
+
+    pub async fn list_suggestion_blocks(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<Vec<SuggestionBlockViewRow>> {
+        let rows = sqlx::query_as::<_, SuggestionBlockSourceRow>(
+            "SELECT
+               comment_id,
+               pr_id,
+               path,
+               body,
+               line,
+               start_line,
+               side,
+               original_commit_sha,
+               suggestion_author_login,
+               is_outdated
+             FROM suggestion_blocks
+             WHERE account_id = ?1 AND pr_id = ?2
+             ORDER BY comment_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut out = Vec::new();
+        for row in rows {
+            let parsed = extract_suggestion_blocks(
+                &row.comment_id,
+                &row.body,
+                row.start_line,
+                row.line,
+                row.side.as_deref(),
+                row.original_commit_sha.as_deref(),
+                row.suggestion_author_login.as_deref(),
+            );
+            for block in parsed {
+                out.push(SuggestionBlockViewRow {
+                    id: block.id,
+                    pr_id: row.pr_id.clone(),
+                    comment_id: block.comment_id,
+                    path: row.path.clone(),
+                    body: block.body,
+                    start_line: block.start_line,
+                    end_line: block.end_line,
+                    side: block.side,
+                    original_commit_sha: block.original_commit_sha,
+                    suggestion_author_login: block.suggestion_author_login,
+                    is_outdated: row.is_outdated,
+                });
+            }
+        }
+        Ok(out)
     }
 
     pub async fn pr_review_threads(
@@ -2450,6 +2507,41 @@ impl Db {
         .bind(&draft.body)
         .bind(draft.created_at)
         .bind(draft.updated_at)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn insert_suggestion_apply(&self, row: &SuggestionApplyRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO suggestion_applies(
+               account_id,
+               pr_id,
+               mutation_id,
+               mode,
+               commit_sha,
+               head_sha_before,
+               head_sha_after,
+               suggestion_comment_ids,
+               applied_at,
+               outcome,
+               error_kind
+             )
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        )
+        .bind(&row.account_id)
+        .bind(&row.pr_id)
+        .bind(&row.mutation_id)
+        .bind(&row.mode)
+        .bind(&row.commit_sha)
+        .bind(&row.head_sha_before)
+        .bind(&row.head_sha_after)
+        .bind(&row.suggestion_comment_ids)
+        .bind(row.applied_at)
+        .bind(&row.outcome)
+        .bind(&row.error_kind)
         .execute(tx.as_mut())
         .await?;
         tx.commit().await?;

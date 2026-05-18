@@ -6,7 +6,9 @@
   import HardConflictModal from '$lib/components/HardConflictModal.svelte';
   import InlineMutationErrorBanner from '$lib/components/InlineMutationErrorBanner.svelte';
   import MergeBox from '$lib/components/merge/MergeBox.svelte';
+  import NoOptimismButton from '$lib/components/merge/NoOptimismButton.svelte';
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
+  import SuggestionBatchModal from '$lib/components/suggestions/SuggestionBatchModal.svelte';
   import ServerAdjustedChip from '$lib/components/ServerAdjustedChip.svelte';
   import SyncErrorsTray from '$lib/components/SyncErrorsTray.svelte';
   import WorktreeBadge from '$lib/components/worktree/WorktreeBadge.svelte';
@@ -33,6 +35,7 @@
     PendingOverlay,
     PendingMutationView,
     PrPushView,
+    SuggestionBlock,
     SubmittedMutation
   } from '$lib/ipc/bindings';
   import { reduceConversationTimeline } from '$lib/timeline/reducer';
@@ -47,7 +50,9 @@
     'close_pr',
     'reopen_pr',
     'enable_auto_merge',
-    'disable_auto_merge'
+    'disable_auto_merge',
+    'apply_suggestion',
+    'apply_suggestion_batch'
   ];
 
   let bundle: PrDetailBundle = data.bundle;
@@ -69,7 +74,10 @@
   let milestoneValue = bundle.metadata.milestones[0]?.title ?? '';
   let projectValue = bundle.metadata.projects[0]?.project_title ?? '';
   let showReviewModal = false;
+  let showSuggestionBatchModal = false;
   let reviewBody = '';
+  let keySequence: string[] = [];
+  let keySequenceTimer: ReturnType<typeof setTimeout> | null = null;
   let confirmModal:
     | {
         kind: MutationKind;
@@ -122,6 +130,14 @@
     $inboxStore.find(
       (row) => row.pr_id === data.prId && row.account_id === data.activeAccountId
     ) ?? null;
+  $: suggestionBlocks = bundle.suggestion_blocks ?? [];
+  $: openSuggestionBlocks = suggestionBlocks.filter((suggestion) => !suggestion.is_outdated);
+  $: suggestionBlocksByComment = openSuggestionBlocks.reduce((acc, suggestion) => {
+    const existing = acc.get(suggestion.comment_id) ?? [];
+    existing.push(suggestion);
+    acc.set(suggestion.comment_id, existing);
+    return acc;
+  }, new Map<string, SuggestionBlock[]>());
 
   onMount(async () => {
     await Promise.all([
@@ -129,6 +145,7 @@
       refreshPending(),
       refreshPushHistory()
     ]);
+    window.addEventListener('keydown', onGlobalKeydown);
   });
 
   function overlayOptimism(overlay: PendingOverlay | null): PendingMutationView['optimism'] | null {
@@ -252,11 +269,48 @@
     showReviewModal = false;
   }
 
+  function onGlobalKeydown(event: KeyboardEvent): void {
+    if (event.defaultPrevented) {
+      return;
+    }
+    const target = event.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
+    const key = event.key.toLowerCase();
+    if (key !== 'g' && key !== 's') {
+      keySequence = [];
+      return;
+    }
+    keySequence = [...keySequence, key].slice(-2);
+    if (keySequenceTimer) {
+      clearTimeout(keySequenceTimer);
+    }
+    keySequenceTimer = setTimeout(() => {
+      keySequence = [];
+    }, 900);
+    if (keySequence.join(' ') === 'g s' && openSuggestionBlocks.length >= 2) {
+      event.preventDefault();
+      showSuggestionBatchModal = true;
+      keySequence = [];
+    }
+  }
+
   onDestroy(() => {
     for (const stop of unlisten) {
       stop();
     }
     unlisten = [];
+    if (keySequenceTimer) {
+      clearTimeout(keySequenceTimer);
+      keySequenceTimer = null;
+    }
+    window.removeEventListener('keydown', onGlobalKeydown);
   });
 </script>
 
@@ -363,6 +417,16 @@
 
   <div class="pr-layout">
     <section class="pr-main">
+      {#if openSuggestionBlocks.length >= 2}
+        <div class="flash flash-warn mb-2">
+          <div class="d-flex flex-items-center flex-justify-between gap-2">
+            <span>{openSuggestionBlocks.length} pending suggestions</span>
+            <button class="btn btn-sm btn-primary" type="button" on:click={() => (showSuggestionBatchModal = true)}>
+              Apply {openSuggestionBlocks.length}
+            </button>
+          </div>
+        </div>
+      {/if}
       <div class="UnderlineNav mb-2">
         <nav class="UnderlineNav-body" aria-label="Pull request sections">
           <button
@@ -469,6 +533,47 @@
                         {@html item.html}
                       </article>
                       <ServerAdjustedChip visible={item.bodyServerAdjusted} />
+                      {#if suggestionBlocksByComment.get(item.id)?.length}
+                        <div class="mt-2 d-flex flex-column gap-2">
+                          {#each suggestionBlocksByComment.get(item.id) ?? [] as suggestion}
+                            <div class="Box">
+                              <div class="Box-header d-flex flex-items-center flex-justify-between">
+                                <span class="f6 text-mono">
+                                  {suggestion.path}:{suggestion.start_line}-{suggestion.end_line}
+                                </span>
+                                <NoOptimismButton
+                                  kind="apply_suggestion"
+                                  payload={{
+                                    owner: activeInboxRow?.repo_owner ?? '',
+                                    repo: activeInboxRow?.repo_name ?? '',
+                                    pr_number: bundle.summary.pr_number,
+                                    pr_id: data.prId,
+                                    review_comment_id: suggestion.comment_id,
+                                    expected_head_sha: bundle.summary.head_sha,
+                                    target_id: suggestion.comment_id
+                                  }}
+                                  label="Apply suggestion"
+                                  pendingLabel="Applying…"
+                                  className="btn btn-sm btn-primary"
+                                  confirmTitle="Confirm suggestion apply"
+                                  confirmMessage="Apply this suggestion directly to the PR branch?"
+                                  disabled={suggestion.is_outdated || !activeInboxRow}
+                                  disabledReason={
+                                    suggestion.is_outdated
+                                      ? 'Suggestion is outdated and can no longer be applied.'
+                                      : 'Repository owner/name is unavailable.'
+                                  }
+                                  {submit}
+                                  onComplete={refreshBundle}
+                                />
+                              </div>
+                              <div class="Box-body">
+                                <pre class="m-0 f6">{suggestion.body}</pre>
+                              </div>
+                            </div>
+                          {/each}
+                        </div>
+                      {/if}
                       {#if item.reviewState}
                         <div class="mt-1"><span class="Label">{item.reviewState}</span></div>
                       {/if}
@@ -930,6 +1035,20 @@
       </div>
     </aside>
   </div>
+
+  <SuggestionBatchModal
+    open={showSuggestionBatchModal}
+    prId={data.prId}
+    expectedHeadSha={bundle.summary.head_sha}
+    suggestions={openSuggestionBlocks}
+    worktree={currentWorktree}
+    {submit}
+    on:close={() => (showSuggestionBatchModal = false)}
+    on:submitted={async () => {
+      showSuggestionBatchModal = false;
+      await refreshBundle();
+    }}
+  />
 
   <SyncErrorsTray
     open={syncTrayOpen}

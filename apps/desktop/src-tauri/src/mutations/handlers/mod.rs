@@ -13,6 +13,7 @@ pub mod reactions;
 pub mod review_comments;
 pub mod reviewers;
 pub mod reviews;
+pub mod suggestions;
 pub mod threads;
 pub mod viewed_files;
 
@@ -50,6 +51,8 @@ pub fn all() -> Vec<Arc<dyn Mutation>> {
         Arc::new(merge_queue::ReorderMergeQueue),
         Arc::new(merge_controls::ClosePr),
         Arc::new(merge_controls::ReopenPr),
+        Arc::new(suggestions::ApplySuggestion),
+        Arc::new(suggestions::ApplySuggestionBatch),
     ]
 }
 
@@ -88,5 +91,7 @@ pub fn has_handler(kind: MutationKind) -> bool {
             | MutationKind::ReorderMergeQueue
             | MutationKind::ClosePr
             | MutationKind::ReopenPr
+            | MutationKind::ApplySuggestion
+            | MutationKind::ApplySuggestionBatch
     )
 }
