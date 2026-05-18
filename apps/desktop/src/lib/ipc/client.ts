@@ -20,6 +20,7 @@ import {
   type PrDetailSummary,
   type PrPushView,
   type RangeDiff,
+  type SuggestionBlock,
   type SubmittedMutation,
   type SystemStatusResponse,
   type CleanupError,
@@ -73,6 +74,48 @@ const mockDrafts = new Map<string, Draft>();
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
+const mockAppliedSuggestionCommentIds = new Set<string>();
+const mockSuggestionBlocks: SuggestionBlock[] = [
+  {
+    id: 'comment_3:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_3',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let x = 1;',
+    start_line: 120,
+    end_line: 120,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-03',
+    is_outdated: false
+  },
+  {
+    id: 'comment_6:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_6',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let y = 2;',
+    start_line: 128,
+    end_line: 128,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-06',
+    is_outdated: false
+  },
+  {
+    id: 'comment_9:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_9',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let z = 3;',
+    start_line: 136,
+    end_line: 136,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-09',
+    is_outdated: false
+  }
+];
 const mockNotificationRules = new Map<string, NotificationRule[]>();
 const mockNotificationEvents = new Map<string, NotificationEventRow[]>();
 const mockNotificationSettings = new Map<
@@ -148,7 +191,9 @@ const noneKinds = new Set<MutationKind>([
   'enable_auto_merge',
   'disable_auto_merge',
   'close_pr',
-  'reopen_pr'
+  'reopen_pr',
+  'apply_suggestion',
+  'apply_suggestion_batch'
 ]);
 
 function isTauriRuntime(): boolean {
@@ -322,6 +367,12 @@ async function settleMockMutation(mutation: PendingMutationView): Promise<void> 
   }
   await emitMockEvent('mutation:applied', { mutation_id: mutation.id });
   const mutationInput = mockMutationInputs.get(mutation.id);
+  if (mutationInput?.kind === 'apply_suggestion_batch') {
+    const prId = (mutationInput.payload.pr_id as string | undefined) ?? 'unknown';
+    for (const step of ['opened', 'assertions_ok', 'patched', 'committed', 'pushed']) {
+      await emitMockEvent(`worktree_write:${prId}:${step}`, { pr_id: prId, step });
+    }
+  }
   if (mutationInput) {
     applyMockMutationSideEffects(mutationInput.kind, mutationInput.payload);
   }
@@ -424,6 +475,27 @@ function applyMockMutationSideEffects(kind: MutationKind, payload: Record<string
         merge_state_status: 'clean'
       };
       break;
+    case 'apply_suggestion': {
+      const commentId = optionalString(payload.review_comment_id);
+      if (commentId) {
+        mockAppliedSuggestionCommentIds.add(commentId);
+      }
+      break;
+    }
+    case 'apply_suggestion_batch': {
+      const suggestionIds = (payload.suggestion_ids as string[] | undefined) ?? [];
+      for (const suggestionId of suggestionIds) {
+        const commentId = suggestionId.split(':')[0];
+        if (commentId) {
+          mockAppliedSuggestionCommentIds.add(commentId);
+        }
+      }
+      mockPrDetail = {
+        ...mockPrDetail,
+        head_sha: `${mockPrDetail.head_sha.slice(0, 30)}${Date.now().toString().slice(-10)}`
+      };
+      break;
+    }
     default:
       break;
   }
@@ -659,6 +731,21 @@ export async function getReviewThreads(accountId: string, prId: string) {
     );
   }
   return prId === 'pr_1' ? MOCK_THREADS : { threads: [], next_offset: null };
+}
+
+export async function getSuggestionBlocks(
+  accountId: string,
+  prId: string
+): Promise<SuggestionBlock[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listSuggestionBlocks({ account_id: accountId, pr_id: prId }));
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockSuggestionBlocks
+    .filter((suggestion) => suggestion.pr_id === prId)
+    .filter((suggestion) => !mockAppliedSuggestionCommentIds.has(suggestion.comment_id));
 }
 
 export async function getCheckSummary(accountId: string, prId: string) {
@@ -973,6 +1060,22 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
     payload: parsed
   });
   await emitMockEvent('mutation:submitted', { mutation });
+  if (
+    kind === 'apply_suggestion_batch' &&
+    optionalString(parsed.expected_head_sha) &&
+    optionalString(parsed.expected_head_sha) !== mockPrDetail.head_sha
+  ) {
+    queueMicrotask(() => {
+      void failMockMutation(mutationId, 'conflict');
+    });
+    return {
+      mutation_id: mutationId,
+      deduped: false,
+      requires_confirmation: mutation.requires_connection_confirmation,
+      optimism_level: optimism,
+      projected_changes: [kind]
+    };
+  }
   if (mockNetState.state === 'online' && mockAutoSettleMutations) {
     queueMicrotask(() => {
       void settleMockMutation(mutation);
@@ -1264,6 +1367,14 @@ declare global {
       setMode: (mode: 'local' | 'rest' | null) => void;
       getMode: () => 'local' | 'rest' | null;
     };
+    __M5_SUGGESTION_DEBUG__?: {
+      emitWorktreeStep: (
+        prId: string,
+        step: 'opened' | 'assertions_ok' | 'patched' | 'committed' | 'pushed'
+      ) => Promise<void>;
+      setWorktreeDirty: (dirty: boolean) => Promise<void>;
+      resetSuggestions: () => void;
+    };
   }
 }
 
@@ -1319,6 +1430,7 @@ if (typeof window !== 'undefined' && !window.__M4_DEBUG__) {
     },
     resetPrDetail: () => {
       mockPrDetail = { ...MOCK_PR_DETAIL };
+      mockAppliedSuggestionCommentIds.clear();
     },
     setAutoSettleMutations: (enabled) => {
       mockAutoSettleMutations = enabled;
@@ -1356,5 +1468,35 @@ if (typeof window !== 'undefined' && !window.__RANGE_DIFF_DEBUG__) {
       writeStoredRangeDiffMode(mode);
     },
     getMode: () => mockRangeDiffModeOverride
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M5_SUGGESTION_DEBUG__) {
+  window.__M5_SUGGESTION_DEBUG__ = {
+    emitWorktreeStep: (prId, step) =>
+      emitMockEvent(`worktree_write:${prId}:${step}`, { pr_id: prId, step }),
+    setWorktreeDirty: async (dirty) => {
+      mockWorktrees = mockWorktrees.map((worktree) =>
+        worktree.mapped_pr_id === 'pr_1'
+          ? {
+              ...worktree,
+              dirty,
+              untracked_count: dirty ? 1 : 0,
+              modified_count: dirty ? 1 : 0
+            }
+          : worktree
+      );
+      await emitMockEvent('worktree:discovery completed', {
+        summary: {
+          ...MOCK_REDISCOVER_SUMMARY,
+          roots: mockWorktreeRoots,
+          discovered: mockWorktrees.length,
+          watched: mockWorktrees.length
+        }
+      });
+    },
+    resetSuggestions: () => {
+      mockAppliedSuggestionCommentIds.clear();
+    }
   };
 }

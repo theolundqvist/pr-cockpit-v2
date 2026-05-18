@@ -9,13 +9,6 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Emitter;
 
-#[path = "../worktree/mod.rs"]
-pub mod worktree;
-
-use self::worktree::{
-    CleanupError, CleanupOutcome, RediscoverSummary, WorktreeEventEmitter, WorktreeService,
-    WorktreeView,
-};
 use crate::api::GithubClient;
 use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
@@ -23,7 +16,8 @@ use crate::auth::{
 use crate::db::{
     CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrAssigneeRow,
     PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrPushRow,
-    PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
+    PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow,
+    SuggestionBlockViewRow, TimelineRow,
 };
 use crate::mutations::{
     ErrorKind, HardConflictDiff, HardConflictPayload, MutationEngine, MutationEvent, MutationKind,
@@ -41,6 +35,12 @@ use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::sync::{
     CacheInvalidationEmitter, RateLimitBudgetSnapshot, SyncSystemSnapshot, SyncTierStateStore,
 };
+use crate::worktree::{
+    write::WorktreeWriteEventEmitter, CleanupError, CleanupOutcome, RediscoverSummary,
+    WorktreeEventEmitter, WorktreeService, WorktreeView,
+};
+
+pub use crate::worktree;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct IpcError {
@@ -255,6 +255,21 @@ pub struct ReviewThread {
 pub struct ReviewThreadsPage {
     pub threads: Vec<ReviewThread>,
     pub next_offset: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SuggestionBlock {
+    pub id: String,
+    pub pr_id: String,
+    pub comment_id: String,
+    pub path: String,
+    pub body: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub side: String,
+    pub original_commit_sha: String,
+    pub suggestion_author_login: String,
+    pub is_outdated: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -841,6 +856,22 @@ fn map_review_thread_row(row: ReviewThreadRow) -> ReviewThread {
     }
 }
 
+fn map_suggestion_block_row(row: SuggestionBlockViewRow) -> SuggestionBlock {
+    SuggestionBlock {
+        id: row.id,
+        pr_id: row.pr_id,
+        comment_id: row.comment_id,
+        path: row.path,
+        body: row.body,
+        start_line: row.start_line,
+        end_line: row.end_line,
+        side: row.side,
+        original_commit_sha: row.original_commit_sha,
+        suggestion_author_login: row.suggestion_author_login,
+        is_outdated: row.is_outdated == 1,
+    }
+}
+
 fn map_check_run_row(row: CheckRunSummaryRow) -> CheckRunSummary {
     CheckRunSummary {
         id: row.id,
@@ -1284,6 +1315,28 @@ impl<R: tauri::Runtime> WorktreeEventEmitter for TauriWorktreeEventEmitter<R> {
     }
 }
 
+#[derive(Clone)]
+pub struct TauriWorktreeWriteEventEmitter<R: tauri::Runtime> {
+    app: tauri::AppHandle<R>,
+}
+
+impl<R: tauri::Runtime> TauriWorktreeWriteEventEmitter<R> {
+    pub fn new(app: tauri::AppHandle<R>) -> Self {
+        Self { app }
+    }
+}
+
+impl<R: tauri::Runtime> WorktreeWriteEventEmitter for TauriWorktreeWriteEventEmitter<R> {
+    fn emit_step(&self, pr_id: &str, step: &str) {
+        let event_name = format!("worktree_write:{pr_id}:{step}");
+        let payload = serde_json::json!({
+            "pr_id": pr_id,
+            "step": step,
+        });
+        let _ = self.app.emit(&event_name, payload);
+    }
+}
+
 pub fn fanout_mutation_event<R: tauri::Runtime>(
     emitter: &TauriCacheInvalidationEmitter<R>,
     event: MutationEvent,
@@ -1689,6 +1742,17 @@ pub async fn ipc_pr_review_threads_impl(
         threads,
         next_offset: has_more.then_some(offset + limit),
     })
+}
+
+pub async fn list_suggestion_blocks_impl(
+    db: &Db,
+    input: PrHandleInput,
+) -> Result<Vec<SuggestionBlock>, IpcError> {
+    let rows = db
+        .list_suggestion_blocks(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_suggestion_block_row).collect())
 }
 
 pub async fn ipc_pr_check_summary_impl(
@@ -2448,6 +2512,15 @@ pub async fn ipc_pr_review_threads(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_suggestion_blocks(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrHandleInput,
+) -> Result<Vec<SuggestionBlock>, IpcError> {
+    list_suggestion_blocks_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn ipc_pr_check_summary(
     db: tauri::State<'_, Arc<Db>>,
     input: CheckSummaryInput,
@@ -2767,6 +2840,7 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             compute_range_diff,
             ipc_pr_timeline,
             ipc_pr_review_threads,
+            list_suggestion_blocks,
             ipc_pr_check_summary,
             ipc_pr_files,
             ipc_pr_patch,
@@ -2853,6 +2927,7 @@ pub fn command_names() -> &'static [&'static str] {
         "compute_range_diff",
         "ipc_pr_timeline",
         "ipc_pr_review_threads",
+        "list_suggestion_blocks",
         "ipc_pr_check_summary",
         "ipc_pr_files",
         "ipc_pr_patch",

@@ -63,6 +63,7 @@ export const commands = {
 	computeRangeDiff: (prId: string, baseSha: string, oldHeadSha: string, newHeadSha: string) => typedError<RangeDiff, IpcError>(__TAURI_INVOKE("compute_range_diff", { prId, baseSha, oldHeadSha, newHeadSha })),
 	ipcPrTimeline: (input: PagedPrInput) => typedError<TimelinePage, IpcError>(__TAURI_INVOKE("ipc_pr_timeline", { input })),
 	ipcPrReviewThreads: (input: PagedPrInput) => typedError<ReviewThreadsPage, IpcError>(__TAURI_INVOKE("ipc_pr_review_threads", { input })),
+	listSuggestionBlocks: (input: PrHandleInput) => typedError<SuggestionBlock[], IpcError>(__TAURI_INVOKE("list_suggestion_blocks", { input })),
 	ipcPrCheckSummary: (input: CheckSummaryInput) => typedError<PrCheckSummary, IpcError>(__TAURI_INVOKE("ipc_pr_check_summary", { input })),
 	ipcPrFiles: (input: PrFilesInput) => typedError<PrFilesResponse, IpcError>(__TAURI_INVOKE("ipc_pr_files", { input })),
 	ipcPrPatch: (input: PrPatchInput) => typedError<PrPatchResponse, IpcError>(__TAURI_INVOKE("ipc_pr_patch", { input })),
@@ -358,7 +359,7 @@ export type MutationHardConflictEventPayload = {
 	conflict: HardConflictPayload,
 };
 
-export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "delete_head_ref" | "enqueue_merge_queue" | "dequeue_merge_queue" | "reorder_merge_queue" | "close_pr" | "reopen_pr";
+export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "delete_head_ref" | "enqueue_merge_queue" | "dequeue_merge_queue" | "reorder_merge_queue" | "close_pr" | "reopen_pr" | "apply_suggestion" | "apply_suggestion_batch";
 
 export type MutationReconciledEventPayload = {
 	mutation_id: string,
@@ -780,6 +781,20 @@ export type SubmittedMutation = {
 	requires_confirmation: boolean,
 	optimism_level: OptimismLevel,
 	projected_changes: string[],
+};
+
+export type SuggestionBlock = {
+	id: string,
+	pr_id: string,
+	comment_id: string,
+	path: string,
+	body: string,
+	start_line: number,
+	end_line: number,
+	side: string,
+	original_commit_sha: string,
+	suggestion_author_login: string,
+	is_outdated: boolean,
 };
 
 export type SyncReconciledEventPayload = {
