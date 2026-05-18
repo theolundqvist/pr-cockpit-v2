@@ -1,0 +1,12 @@
+
+> pr-cockpit@0.1.0 corpus /workspace
+> node ./tools/markdown-corpus/score.mjs
+
+entries=202
+structural_mean=0.302522
+visible_mean=0.000535
+weighted_mean=0.000115
+gate=0.015
+top1=cli-cli-4439054677,weighted=0.011282,accepted_drift=0.040000,contribution=0.000056
+top2=cli-cli-4460459346,weighted=0.003957,accepted_drift=0.015000,contribution=0.000020
+top3=cli-cli-4458926226,weighted=0.003957,accepted_drift=0.015000,contribution=0.000020

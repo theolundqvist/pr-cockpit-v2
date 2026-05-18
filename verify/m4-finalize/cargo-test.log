@@ -1,0 +1,430 @@
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.60s
+     Running unittests src/lib.rs (target/debug/deps/desktop_lib-5e00511ba97a33d7)
+
+running 15 tests
+test ipc::worktree::discovery::tests::parses_porcelain_entries ... ok
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_405 ... ok
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_409 ... ok
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_422 ... ok
+test auth::gh::tests::parses_status_sections_by_token_match ... ok
+test mutations::net::tests::api_error_marks_offline_immediately ... ok
+test mutations::net::tests::probe_transitions_offline_to_online ... ok
+test mutations::projector::tests::optimistic_prediction_stamps_pending_overlay ... ok
+test mutations::projector::tests::apply_forward_then_inverse_is_noop_for_single_row ... ok
+test render::tests::sanitizes_scripts ... ok
+test sync::tests::mergeable_backoff_emits_tick_schedule ... ok
+test tests::package_name_is_stable ... ok
+test render::tests::normalizes_github_issue_and_comment_autolinks ... ok
+test render::tests::normalizes_same_repo_pr_autolinks ... ok
+test render::tests::normalizes_same_repo_label_links ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (target/debug/deps/desktop-841ec3993b44579e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests fixtures/build.rs (target/debug/deps/fixture_build-763399c67c58d483)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generate_ipc_bindings.rs (target/debug/deps/generate_ipc_bindings-f7a6f5ae2aa583a4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_batch.rs (target/debug/deps/render_batch-b7b8e9d7c8296f78)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/airplane_drill.rs (target/debug/deps/airplane_drill-9d892637f141dc08)
+
+running 1 test
+test airplane_offline_queue_replay_drill ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/canonical_queries.rs (target/debug/deps/canonical_queries-5734fdc9db20866e)
+
+running 1 test
+test graphql_queries_are_canonicalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/composer_posting_identity.rs (target/debug/deps/composer_posting_identity-202fd088d1403729)
+
+running 2 tests
+test submit_rejects_unknown_posting_account_id ... ok
+test submit_uses_posting_account_token_when_provided ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/db_integration.rs (target/debug/deps/db_integration-400956628007316b)
+
+running 6 tests
+test fts_search_returns_expected_hits ... ok
+test open_fixture_loads_inbox_under_timing_budget_best_effort ... ok
+test migrations_apply_cleanly_to_empty_file ... ok
+test read_models_match_hand_rolled_selects_on_fixture ... ok
+test blob_store_round_trip_and_ref_counts_work ... ok
+test pr_file_rename_round_trip_surfaces_previous_path_and_similarity ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
+
+     Running tests/diff_polish_viewed_files_head_sha.rs (target/debug/deps/diff_polish_viewed_files_head_sha-c49332151f70b0a1)
+
+running 1 test
+test viewed_state_is_scoped_to_current_head_sha ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/ghe_endpoint_derivation.rs (target/debug/deps/ghe_endpoint_derivation-48ded4f6e2f62773)
+
+running 3 tests
+test resolve_login_for_host_targets_derived_and_overridden_api_bases ... ok
+test derives_default_dotcom_and_ghe_endpoints ... ok
+test hosts_toml_override_wins_for_matching_host ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/ghe_round_trip.rs (target/debug/deps/ghe_round_trip-9bb673beddb9d773)
+
+running 1 test
+test ghe_account_round_trip_uses_host_overrides_end_to_end ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/ghe_token_storage.rs (target/debug/deps/ghe_token_storage-c9e38b7a024721df)
+
+running 1 test
+test ghe_pat_stays_keyring_only_and_out_of_sqlite_and_logs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/ipc_bindings.rs (target/debug/deps/ipc_bindings-57daa2c4f145d62b)
+
+running 1 test
+test ipc_bindings_are_up_to_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/ipc_token_safety.rs (target/debug/deps/ipc_token_safety-9c2283ad813b1573)
+
+running 1 test
+test ipc_flow_tracing_does_not_leak_stubbed_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/multi_account_inbox.rs (target/debug/deps/multi_account_inbox-f4f5be4d5d2be123)
+
+running 1 test
+test list_inbox_none_returns_all_accounts_sorted_with_denormalized_badges ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/multi_account_rate_limit.rs (target/debug/deps/multi_account_rate_limit-9b0b4ebea45ed038)
+
+running 1 test
+test budgeter_scopes_throttle_by_account_and_emits_pressure_and_bypass ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/mutation_engine_proptest.rs (target/debug/deps/mutation_engine_proptest-d9ea65ce7dda536d)
+
+running 4 tests
+test dispatch_table_covers_full_kind_set ... ok
+test prop_projector_is_involution ... ok
+test prop_submit_then_rollback_restores_domain_state_for_all_kinds ... ok
+test prop_interleaved_submit_discard_is_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.00s
+
+     Running tests/mutations_collaboration.rs (target/debug/deps/mutations_collaboration-6bbc151da7f1504a)
+
+running 2 tests
+test collaboration_happy_paths_round_trip ... ok
+test collaboration_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.85s
+
+     Running tests/mutations_comments.rs (target/debug/deps/mutations_comments-09a986ea3afeabe5)
+
+running 2 tests
+test comments_happy_paths_round_trip ... ok
+test comments_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+     Running tests/mutations_e2e.rs (target/debug/deps/mutations_e2e-c2eef0e8dafe34f7)
+
+running 1 test
+test cross_family_e2e_reflects_optimistic_then_reconciled_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/mutations_harness.rs (target/debug/deps/mutations_harness-051ff16b9970a3d9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutations_pr_meta.rs (target/debug/deps/mutations_pr_meta-906b1633e8da1cba)
+
+running 2 tests
+test pr_meta_failure_paths_roll_back ... ok
+test pr_meta_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.29s
+
+     Running tests/mutations_review_comments.rs (target/debug/deps/mutations_review_comments-a9c3d221772efba9)
+
+running 2 tests
+test review_comment_422_rolls_back_and_marks_failed_mutation ... ok
+test review_comment_happy_path_line_multiline_and_reply_match_snapshot ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/mutations_reviews_threads.rs (target/debug/deps/mutations_reviews_threads-7e6f888838d66317)
+
+running 2 tests
+test review_and_thread_failure_paths_roll_back ... ok
+test review_and_thread_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+
+     Running tests/notifications_dedup.rs (target/debug/deps/notifications_dedup-a98c8fca824e2a99)
+
+running 1 test
+test duplicate_events_dispatch_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running tests/notifications_focus_mode.rs (target/debug/deps/notifications_focus_mode-4328d9aedf4267e5)
+
+running 1 test
+test focus_mode_suppresses_all_os_notifications ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/notifications_per_repo_filters.rs (target/debug/deps/notifications_per_repo_filters-0dd98b1e2a41484e)
+
+running 1 test
+test allow_list_limits_dispatch_and_deny_takes_precedence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/notifications_quiet_hours.rs (target/debug/deps/notifications_quiet_hours-3b4888886a3308a7)
+
+running 1 test
+test quiet_hours_suppress_os_dispatch_but_record_events ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/notifications_rule_engine.rs (target/debug/deps/notifications_rule_engine-26052c1ad9de4fbd)
+
+running 7 tests
+test ci_fail_and_recover_triggers_fire ... ok
+test approved_trigger_fires ... ok
+test mention_trigger_fires ... ok
+test changes_requested_trigger_fires ... ok
+test review_requested_trigger_fires ... ok
+test mutation_failure_trigger_fires_for_non_network ... ok
+test merge_conflict_trigger_fires ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s
+
+     Running tests/online_demo.rs (target/debug/deps/online_demo-c62f7aea5dc5f43e)
+
+running 1 test
+test optional_online_inbox_refresh_demo ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/perf_smoke.rs (target/debug/deps/perf_smoke-a08d5e7a0f35d707)
+
+running 1 test
+test inbox_cold_paint_fixture_budget_smoke ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/push_history_reconcile.rs (target/debug/deps/push_history_reconcile-c96aa57a814821d3)
+
+running 1 test
+test reconcile_records_push_rows_with_expected_kind_transitions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/range_diff_fallback.rs (target/debug/deps/range_diff_fallback-d4494e90bbd37af1)
+
+running 1 test
+test missing_worktree_commits_fall_back_to_rest_compare ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/range_diff_local_git.rs (target/debug/deps/range_diff_local_git-2b6a7fa4b7b4d936)
+
+running 1 test
+test local_git_provider_builds_modified_pair_with_highlights ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests/range_diff_rest_compare.rs (target/debug/deps/range_diff_rest_compare-03944538f99360be)
+
+running 1 test
+test rest_compare_provider_matches_modified_commit_pair ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/render.rs (target/debug/deps/render-50a8d020863fc4fd)
+
+running 10 tests
+test binary_detection_classifies_images_and_binary ... ok
+test renders_alert_block ... ok
+test renders_issue_autolink ... ok
+test renders_emoji_shortcode ... ok
+test renders_sha_autolink ... ok
+test renders_suggestion_fence ... ok
+test renders_user_autolink ... ok
+test mini_corpus_smoke_snapshot ... ok
+test uses_render_cache_on_second_render ... ok
+test pr_file_blob_ipc_resolves_fixture_image_blob ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/renderer_isolation.rs (target/debug/deps/renderer_isolation-018ee44d58deb486)
+
+running 1 test
+test renderer_does_not_reach_sqlite_or_github_directly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/sync_integration.rs (target/debug/deps/sync_integration-3cfae61710c17a5c)
+
+running 6 tests
+test mergeable_null_recovery_uses_expected_virtual_clock_schedule ... ok
+test rate_limit_budgeter_throttles_background_only ... ok
+test etag_304_round_trip_avoids_counter_decrement_and_db_writes ... ok
+test pr_detail_reconcile_upserts_expected_sqlite_rows ... ok
+test tiered_scheduler_honors_focus_pause_and_foreground_bypass ... ok
+test notifications_change_detector_honors_headers_and_emits_refetch_targets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.73s
+
+     Running tests/token_safety.rs (target/debug/deps/token_safety-35527d26369050bb)
+
+running 1 test
+test token_safety_guards_all_auth_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/worktree_cleanup_safety.rs (target/debug/deps/worktree_cleanup_safety-8987348a10a6f396)
+
+running 1 test
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpGBDA2W/user-clean/.git/
+[master (root-commit) 318711a] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpGBDA2W/app-dirty/.git/
+[master (root-commit) 318711a] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpGBDA2W/app-clean/.git/
+[master (root-commit) 318711a] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+test cleanup_safety_gates_fail_closed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/worktree_discovery.rs (target/debug/deps/worktree_discovery-44ac05f80eee7729)
+
+running 1 test
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpVAyqYV/dev/repo-a/.git/
+[master (root-commit) 318711a] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+Preparing worktree (new branch 'repo-a-wt')
+HEAD is now at 318711a seed
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpVAyqYV/dev/repo-b/.git/
+[master (root-commit) 318711a] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+Preparing worktree (new branch 'repo-b-wt')
+HEAD is now at 318711a seed
+test discovery_and_watcher_refresh_state_is_deterministic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+
+     Running tests/worktree_mapping_signals.rs (target/debug/deps/worktree_mapping_signals-2b19de0a2eda9c88)
+
+running 3 tests
+test manual_override_wins_and_clearing_restores_auto ... ok
+test low_confidence_branch_convention_only ... ok
+test high_confidence_uses_remote_upstream_and_head_sha ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests desktop_lib
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
