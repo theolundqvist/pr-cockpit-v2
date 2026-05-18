@@ -111,12 +111,12 @@
       "handoffPath": "handoffs/m5-finalize.md",
       "startedAt": "2026-05-18T14:33:35.616Z",
       "finishedAt": "2026-05-18T15:13:11.239Z",
-      "lastUpdate": "2026-05-18T15:13:11.239Z",
+      "lastUpdate": "2026-05-18T15:13:12.407Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "live-ui-verified",
       "attempts": 1
     },
     {
@@ -130,17 +130,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T15:13:19.094Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T15:13:19.094Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     }
   ],
   "attention": [
@@ -191,6 +192,10 @@
     {
       "at": "2026-05-18T14:45:40.254Z",
       "message": "m5-finalize: tool_call idle 324524ms; last=2026-05-18T14:40:15.730Z"
+    },
+    {
+      "at": "2026-05-18T15:13:12.407Z",
+      "message": "m5-finalize: verification self-reported (live-ui-verified)"
     }
   ]
 }
