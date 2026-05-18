@@ -170,6 +170,14 @@
     {
       "at": "2026-05-18T12:29:55.875Z",
       "message": "m5-command-palette: tool_call idle 324242ms; last=2026-05-18T12:24:31.633Z"
+    },
+    {
+      "at": "2026-05-18T13:37:55.252Z",
+      "message": "m5-command-palette: SSE idle 342403ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T13:37:55.253Z",
+      "message": "m5-command-palette: tool_call idle 342405ms; last=2026-05-18T13:32:12.848Z"
     }
   ]
 }
