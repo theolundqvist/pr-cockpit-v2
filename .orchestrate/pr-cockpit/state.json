@@ -266,7 +266,7 @@
     {
       "name": "verify-m6-stacks-relay-polish",
       "type": "verifier",
-      "branch": "orch/pr-cockpit/verify-m6-stacks-relay-polish",
+      "branch": "`orch/pr-cockpit/m6-stacks-relay-polish` (verifier evidence committed at `7e4176e` on top of HEAD `5b14043`; `v1.0.0` annotated tag on origin → `5b14043`)",
       "startingRef": "orch/pr-cockpit/m6-stacks-relay-polish",
       "dependsOn": [
         "m6-stacks-relay-polish"
@@ -274,12 +274,12 @@
       "agentId": "bc-6e1842c9-378f-4dfe-980a-0e030f52acd7",
       "runId": "run-afb1a130-eea6-4ef6-8d92-cc962ebff2b2",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-m6-stacks-relay-polish.md",
       "startedAt": "2026-05-18T22:39:05.197Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T22:39:07.735Z",
+      "finishedAt": "2026-05-18T23:16:12.465Z",
+      "lastUpdate": "2026-05-18T23:16:12.465Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
