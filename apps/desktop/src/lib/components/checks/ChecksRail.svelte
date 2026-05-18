@@ -129,7 +129,13 @@
                 />
               {/if}
             </div>
-            <button class="btn btn-sm" type="button" on:click={() => rerunCheckSuite(suite.id)}>
+            <button
+              class="btn btn-sm"
+              type="button"
+              data-command-check-suite-id={suite.id}
+              data-command-action="rerun-check-suite"
+              on:click={() => rerunCheckSuite(suite.id)}
+            >
               <span class="octicon octicon-sync" aria-hidden="true"></span>
               Rerun suite
             </button>
@@ -160,7 +166,14 @@
                       <span class="octicon octicon-terminal" aria-hidden="true"></span>
                     </button>
                   {/if}
-                  <button class="btn btn-sm" type="button" disabled={!run.rest_id} on:click={() => rerunCheckRun(run)}>
+                  <button
+                    class="btn btn-sm"
+                    type="button"
+                    data-command-check-run-id={run.id}
+                    data-command-action="rerun-check-run"
+                    disabled={!run.rest_id}
+                    on:click={() => rerunCheckRun(run)}
+                  >
                     <span class="octicon octicon-sync" aria-hidden="true"></span>
                     Rerun
                   </button>

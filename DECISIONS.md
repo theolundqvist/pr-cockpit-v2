@@ -177,6 +177,38 @@ Decision:
   then replaces that literal text on success or removes it on failure while
   showing inline retry/dismiss chips.
 
+### 2026-05-18: M5 command palette + keyboard layer contracts
+
+Decision:
+
+- **Command registry is a static + dynamic merge over one O(1) index.**
+  We keep one in-memory `Map<id, Command>` for constant-time dispatch and a
+  separately maintained sorted id array for default palette ordering.
+  Static commands live in `src/lib/commands/commands.ts`; dynamic saved-reply
+  commands are refreshed per active account via `list_saved_replies` and
+  registered as `savedReply.insert.{id}`.
+- **Input-focus suppression is strict for plain keys and permissive for modified keys.**
+  When an `input/textarea/select/contenteditable` owns focus, non-modifier
+  bindings (`c`, `r`, `v`, `j`, `k`) are ignored so typing is not hijacked.
+  Modifier-bearing shortcuts (`Ctrl+K`, `Ctrl+Shift+R`, `Ctrl+Alt+Y`) remain
+  active.
+- **Sequence shortcuts use a two-key state machine with a 500 ms timeout.**
+  `g` is the lead key and second-key matches (`i`, `p`, `s`, `S`, `G`) must
+  arrive within 500 ms; otherwise the sequence resets without dispatch.
+- **Palette performance strategy is preload + frame-debounce + conditional virtualization.**
+  The palette component is mounted eagerly (hidden) so open path is render-light,
+  search recompute is debounced to 16 ms and scheduled with
+  `requestIdleCallback` when available, and result rendering switches to
+  `@tanstack/svelte-virtual` when rows exceed 50.
+- **Recently used persistence is localStorage-backed and command-id based.**
+  Last five invoked command ids are stored under `palette.recent` and rendered
+  as a sticky "Recently used" section at the top of the palette.
+- **Open-in-browser destinations are explicit and host-aware.**
+  `pr.openInGithub` resolves the active PR canonical URL
+  (`https://<host>/<owner>/<repo>/pull/<number>`). `inbox.openInGithub` targets
+  the issues-style inbox URL (`https://<host>/issues?q=author%3A%40me`) to match
+  GitHub’s issue-navigation semantics.
+
 ### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
 
 Decision:

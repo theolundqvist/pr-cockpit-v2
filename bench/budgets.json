@@ -98,6 +98,20 @@
       "unit": "ms",
       "budget": 16.7,
       "baseline": 16.2
+    },
+    "command_palette_open_ms": {
+      "source": "command_palette",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 75,
+      "baseline": 75
+    },
+    "command_palette_result_ms": {
+      "source": "command_palette",
+      "kind": "max",
+      "unit": "ms",
+      "budget": 150,
+      "baseline": 150
     }
   }
 }

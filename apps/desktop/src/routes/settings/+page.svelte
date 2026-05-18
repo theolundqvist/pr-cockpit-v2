@@ -87,6 +87,9 @@
       >
         Saved replies
       </button>
+      <a class="UnderlineNav-item" href="/settings/keyboard" data-testid="settings-tab-keyboard">
+        Keyboard
+      </a>
     </div>
   </nav>
 

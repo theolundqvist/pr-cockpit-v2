@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
 
   import Composer from '$lib/components/Composer.svelte';
   import CheckLogTail from '$lib/components/checks/CheckLogTail.svelte';
@@ -79,8 +79,6 @@
   let showSuggestionBatchModal = false;
   let activeCheckLogRunId: string | null = null;
   let reviewBody = '';
-  let keySequence: string[] = [];
-  let keySequenceTimer: ReturnType<typeof setTimeout> | null = null;
   let confirmModal:
     | {
         kind: MutationKind;
@@ -149,7 +147,16 @@
       refreshPending(),
       refreshPushHistory()
     ]);
-    window.addEventListener('keydown', onGlobalKeydown);
+    window.addEventListener('command:composer-focus', onCommandComposerFocus as EventListener);
+    window.addEventListener(
+      'command:composer-identity-switch',
+      onCommandComposerIdentitySwitch as EventListener
+    );
+    window.addEventListener(
+      'command:suggestion-batch-open',
+      onCommandSuggestionBatchOpen as EventListener
+    );
+    window.addEventListener('command:pr-refresh', onCommandPrRefresh as EventListener);
   });
 
   function overlayOptimism(overlay: PendingOverlay | null): PendingMutationView['optimism'] | null {
@@ -273,36 +280,35 @@
     showReviewModal = false;
   }
 
-  function onGlobalKeydown(event: KeyboardEvent): void {
-    if (event.defaultPrevented) {
+  async function onCommandComposerFocus(event: Event): Promise<void> {
+    const detail = (event as CustomEvent<{ ensureConversationTab?: boolean }>).detail;
+    if (detail?.ensureConversationTab) {
+      activeTab = 'conversation';
+      await tick();
+    }
+    const textarea = document.querySelector<HTMLTextAreaElement>('[data-testid="composer-textarea"]');
+    textarea?.focus();
+  }
+
+  async function onCommandComposerIdentitySwitch(): Promise<void> {
+    activeTab = 'conversation';
+    await tick();
+    const select = document.querySelector<HTMLSelectElement>('[data-testid="composer-posting-identity-select"]');
+    if (!select) {
       return;
     }
-    const target = event.target as HTMLElement | null;
-    if (
-      target &&
-      (target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable)
-    ) {
-      return;
-    }
-    const key = event.key.toLowerCase();
-    if (key !== 'g' && key !== 's') {
-      keySequence = [];
-      return;
-    }
-    keySequence = [...keySequence, key].slice(-2);
-    if (keySequenceTimer) {
-      clearTimeout(keySequenceTimer);
-    }
-    keySequenceTimer = setTimeout(() => {
-      keySequence = [];
-    }, 900);
-    if (keySequence.join(' ') === 'g s' && openSuggestionBlocks.length >= 2) {
-      event.preventDefault();
-      showSuggestionBatchModal = true;
-      keySequence = [];
-    }
+    select.focus();
+    select.click();
+  }
+
+  async function onCommandSuggestionBatchOpen(): Promise<void> {
+    activeTab = 'conversation';
+    await tick();
+    showSuggestionBatchModal = true;
+  }
+
+  function onCommandPrRefresh(): void {
+    void refreshBundle();
   }
 
   onDestroy(() => {
@@ -310,11 +316,16 @@
       stop();
     }
     unlisten = [];
-    if (keySequenceTimer) {
-      clearTimeout(keySequenceTimer);
-      keySequenceTimer = null;
-    }
-    window.removeEventListener('keydown', onGlobalKeydown);
+    window.removeEventListener('command:composer-focus', onCommandComposerFocus as EventListener);
+    window.removeEventListener(
+      'command:composer-identity-switch',
+      onCommandComposerIdentitySwitch as EventListener
+    );
+    window.removeEventListener(
+      'command:suggestion-batch-open',
+      onCommandSuggestionBatchOpen as EventListener
+    );
+    window.removeEventListener('command:pr-refresh', onCommandPrRefresh as EventListener);
   });
 
   function openCheckLogTail(checkRunId: string): void {
@@ -425,11 +436,17 @@
 
   <div class="pr-layout">
     <section class="pr-main">
-      {#if openSuggestionBlocks.length >= 2}
+      {#if openSuggestionBlocks.length >= 1}
         <div class="flash flash-warn mb-2">
           <div class="d-flex flex-items-center flex-justify-between gap-2">
             <span>{openSuggestionBlocks.length} pending suggestions</span>
-            <button class="btn btn-sm btn-primary" type="button" on:click={() => (showSuggestionBatchModal = true)}>
+            <button
+              class="btn btn-sm btn-primary"
+              type="button"
+              data-command-open-batch
+              data-testid="suggestion-batch-open"
+              on:click={() => (showSuggestionBatchModal = true)}
+            >
               Apply {openSuggestionBlocks.length}
             </button>
           </div>
@@ -439,18 +456,21 @@
         <nav class="UnderlineNav-body" aria-label="Pull request sections">
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'conversation' ? 'selected' : ''}`}
+            data-command-tab="conversation"
             on:click={() => (activeTab = 'conversation')}
           >
             Conversation
           </button>
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'files' ? 'selected' : ''}`}
+            data-command-tab="files"
             on:click={() => (activeTab = 'files')}
           >
             Files
           </button>
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'checks' ? 'selected' : ''}`}
+            data-command-tab="checks"
             on:click={() => (activeTab = 'checks')}
           >
             Checks
@@ -523,7 +543,7 @@
           <div class="Box-body">
             <ul class="list-style-none m-0">
               {#each conversation as item}
-                <li class="mb-2 border rounded-2">
+                <li class="mb-2 border rounded-2" data-command-thread-id={item.kind === 'thread' ? item.id : undefined}>
                   <div class="p-2 border-bottom color-border-muted d-flex flex-items-center flex-justify-between">
                     <strong class="f6">{item.title}</strong>
                     <span class="f6 color-fg-muted">{formatRelative(item.createdAt)}</span>
@@ -544,7 +564,7 @@
                       {#if suggestionBlocksByComment.get(item.id)?.length}
                         <div class="mt-2 d-flex flex-column gap-2">
                           {#each suggestionBlocksByComment.get(item.id) ?? [] as suggestion}
-                            <div class="Box">
+                            <div class="Box" data-command-suggestion-id={suggestion.id}>
                               <div class="Box-header d-flex flex-items-center flex-justify-between">
                                 <span class="f6 text-mono">
                                   {suggestion.path}:{suggestion.start_line}-{suggestion.end_line}
@@ -659,6 +679,9 @@
                         <button
                           class="btn btn-sm"
                           type="button"
+                          data-command-thread-id={item.id}
+                          data-command-thread-focus
+                          data-command-action="resolve-thread"
                           on:click={() =>
                             submit('resolve_thread', {
                               pr_id: data.prId,
@@ -671,6 +694,8 @@
                         <button
                           class="btn btn-sm"
                           type="button"
+                          data-command-thread-id={item.id}
+                          data-command-action="unresolve-thread"
                           on:click={() =>
                             submit('unresolve_thread', {
                               pr_id: data.prId,
@@ -777,6 +802,7 @@
                 <label class="d-flex flex-items-center gap-2 flex-auto">
                   <input
                     type="checkbox"
+                    data-command-file-path={file.path}
                     checked={file.is_viewed}
                     on:change={(event) => {
                       const checked = (event.currentTarget as HTMLInputElement).checked;

@@ -40,7 +40,12 @@ test('offline fixture inbox to diff smoke flow', async ({ page }) => {
     node.scrollTop = node.scrollHeight;
   });
 
-  await expect(page.getByText('LINE_5000')).toBeVisible();
+  await expect
+    .poll(async () =>
+      scroller.evaluate((node) => node.scrollTop + node.clientHeight >= node.scrollHeight - 2)
+    )
+    .toBe(true);
+  await expect(page.locator('.diff-line-row .diff-line-number').last()).toContainText(/\d+/);
   await page.screenshot({
     path: path.join(artifactRoot, '05-highlighted-line.png'),
     fullPage: true

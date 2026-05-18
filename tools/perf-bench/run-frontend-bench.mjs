@@ -224,6 +224,42 @@ async function measurePreloadedOpenSamples(page, sampleCount) {
   };
 }
 
+async function measureInboxPaintSamples(page, sampleCount) {
+  const paintSamples = [];
+  const domContentLoadedSamples = [];
+
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByText("Pull Request Inbox").waitFor();
+    const sample = await page.evaluate(() => {
+      const paints = performance.getEntriesByType("paint");
+      const firstPaint = paints.find((entry) => entry.name === "first-paint")?.startTime ?? null;
+      const firstContentfulPaint =
+        paints.find((entry) => entry.name === "first-contentful-paint")?.startTime ?? null;
+      const timing = performance.timing;
+      const navStart = timing.navigationStart || 0;
+      const domContentLoaded = timing.domContentLoadedEventEnd
+        ? timing.domContentLoadedEventEnd - navStart
+        : null;
+      const chosenPaint = firstContentfulPaint ?? firstPaint ?? domContentLoaded ?? 0;
+      return {
+        paint: chosenPaint,
+        domContentLoaded: domContentLoaded ?? 0,
+      };
+    });
+    paintSamples.push(sample.paint);
+    domContentLoadedSamples.push(sample.domContentLoaded);
+    await delay(80);
+  }
+
+  return {
+    bestPaint: Math.min(...paintSamples),
+    bestDomContentLoaded: Math.min(...domContentLoadedSamples),
+    paintSamples,
+    domContentLoadedSamples,
+  };
+}
+
 async function main() {
   if (!browserFactories[browserName]) {
     throw new Error(`unsupported PERF_BROWSER=${browserName}`);
@@ -254,23 +290,7 @@ async function main() {
       });
     }
 
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByText("Pull Request Inbox").waitFor();
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page.getByText("Pull Request Inbox").waitFor();
-
-    const inboxPaint = await page.evaluate(() => {
-      const paints = performance.getEntriesByType("paint");
-      const firstPaint = paints.find((entry) => entry.name === "first-paint")?.startTime ?? null;
-      const firstContentfulPaint =
-        paints.find((entry) => entry.name === "first-contentful-paint")?.startTime ?? null;
-      const timing = performance.timing;
-      const navStart = timing.navigationStart || 0;
-      const domContentLoaded = timing.domContentLoadedEventEnd
-        ? timing.domContentLoadedEventEnd - navStart
-        : null;
-      return { firstPaint, firstContentfulPaint, domContentLoaded };
-    });
+    const inboxPaintStats = await measureInboxPaintSamples(page, timingSampleCount);
 
     const preloadedOpenStats = await measurePreloadedOpenSamples(page, timingSampleCount);
 
@@ -320,9 +340,9 @@ async function main() {
 
     const metrics = {
       inbox_first_paint_ms: Number(
-        (inboxPaint.firstContentfulPaint ?? inboxPaint.firstPaint ?? inboxPaint.domContentLoaded ?? 0).toFixed(2),
+        inboxPaintStats.bestPaint.toFixed(2),
       ),
-      inbox_dom_content_loaded_ms: Number((inboxPaint.domContentLoaded ?? 0).toFixed(2)),
+      inbox_dom_content_loaded_ms: Number(inboxPaintStats.bestDomContentLoaded.toFixed(2)),
       pr_detail_open_preloaded_ms: Number(preloadedOpenStats.best.toFixed(2)),
       pr_detail_open_cold_ms: Number(coldOpenMs.toFixed(2)),
       file_open_in_diff_cached_ms: Number(fileOpenStats.best.toFixed(2)),
@@ -346,6 +366,10 @@ async function main() {
             policy: "best_of_n_min",
             sample_count: timingSampleCount,
             metrics: {
+              inbox_first_paint_ms: inboxPaintStats.paintSamples.map((value) => Number(value.toFixed(2))),
+              inbox_dom_content_loaded_ms: inboxPaintStats.domContentLoadedSamples.map((value) =>
+                Number(value.toFixed(2)),
+              ),
               pr_detail_open_preloaded_ms: preloadedOpenStats.samples.map((value) => Number(value.toFixed(2))),
               file_open_in_diff_cached_ms: fileOpenStats.samples.map((value) => Number(value.toFixed(2))),
               diff_scroll_frame_p95_ms: scrollStats.samples.map((sample) => Number(sample.frameP95Ms.toFixed(2))),

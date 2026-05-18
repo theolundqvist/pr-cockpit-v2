@@ -205,6 +205,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(invoke_handler)
         .run(tauri::generate_context!())
         .expect("error while running desktop app");

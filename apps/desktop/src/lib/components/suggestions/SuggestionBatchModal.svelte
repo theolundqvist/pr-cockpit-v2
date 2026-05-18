@@ -95,7 +95,13 @@
 
 {#if open}
   <div class="conflict-modal-backdrop" role="presentation">
-    <div class="conflict-modal Box" role="dialog" aria-modal="true" aria-label="Apply suggestions">
+    <div
+      class="conflict-modal Box"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Apply suggestions"
+      data-testid="suggestion-batch-modal"
+    >
       <div class="Box-header d-flex flex-items-center flex-justify-between">
         <h2 class="f5 m-0">Apply suggestions</h2>
         <button class="btn btn-sm" type="button" on:click={() => dispatch('close')}>Close</button>

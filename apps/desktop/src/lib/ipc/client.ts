@@ -1,4 +1,5 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { open as openExternal } from '@tauri-apps/plugin-shell';
 
 import {
   commands,
@@ -89,6 +90,7 @@ type MockImageUploadStep =
 const mockImageUploadQueue: MockImageUploadStep[] = [];
 const mockImageUploadInvocations: Array<{ account_id: string; mime: string; size_bytes: number }> =
   [];
+const mockExternalOpenInvocations: string[] = [];
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
@@ -1599,6 +1601,14 @@ export async function uploadImageToGithubUserContent(
   };
 }
 
+export async function openExternalUrl(url: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await openExternal(url);
+    return;
+  }
+  mockExternalOpenInvocations.push(url);
+}
+
 export async function setMockNetworkState(accountId: string, state: NetState): Promise<void> {
   mockNetState = state;
   await emitMockEvent(`network:${accountId} changed`, { account_id: accountId, state });
@@ -1735,6 +1745,10 @@ declare global {
       queueImageUploadSuccess: (url: string, alt?: string) => void;
       resetImageUploadQueue: () => void;
       imageUploadInvocations: () => Array<{ account_id: string; mime: string; size_bytes: number }>;
+    };
+    __COMMANDS_DEBUG__?: {
+      externalOpenInvocations: () => string[];
+      clearExternalOpenInvocations: () => void;
     };
   }
 }
@@ -1903,5 +1917,14 @@ if (typeof window !== 'undefined' && !window.__M5_SAVED_REPLIES_DEBUG__) {
       mockImageUploadInvocations.splice(0, mockImageUploadInvocations.length);
     },
     imageUploadInvocations: () => [...mockImageUploadInvocations]
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__COMMANDS_DEBUG__) {
+  window.__COMMANDS_DEBUG__ = {
+    externalOpenInvocations: () => [...mockExternalOpenInvocations],
+    clearExternalOpenInvocations: () => {
+      mockExternalOpenInvocations.splice(0, mockExternalOpenInvocations.length);
+    }
   };
 }
