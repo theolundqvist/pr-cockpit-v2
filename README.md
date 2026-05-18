@@ -84,12 +84,14 @@ Status: **v1.0 — milestones M1–M6 complete; ready for daily-driving**.
   `apps/desktop/src-tauri/tests/multi_account_inbox.rs`,
   `apps/desktop/src-tauri/tests/multi_account_rate_limit.rs`,
   `apps/desktop/src-tauri/tests/composer_posting_identity.rs`).
-- GHE schema readiness is shipped for host-aware endpoint/auth plumbing against
-  a stubbed enterprise host (proofs:
+- GHE full compatibility is shipped for host-aware endpoint/auth plumbing plus
+  M1–M6 happy-path feature parity against a stubbed enterprise host (proofs:
   `apps/desktop/playwright/m4-ghe.spec.ts`,
+  `apps/desktop/playwright/m6-ghe-full-parity.spec.ts`,
   `apps/desktop/src-tauri/tests/ghe_endpoint_derivation.rs`,
   `apps/desktop/src-tauri/tests/ghe_round_trip.rs`,
-  `apps/desktop/src-tauri/tests/ghe_token_storage.rs`).
+  `apps/desktop/src-tauri/tests/ghe_token_storage.rs`,
+  `apps/desktop/src-tauri/tests/ghe_full_parity.rs`).
 - Offline/airplane behavior: queued safe mutations replay on reconnect with
   explicit connection-required affordances for unsafe writes (proof drill:
   `apps/desktop/src-tauri/tests/airplane_drill.rs`).
@@ -107,6 +109,11 @@ PR Cockpit ships an optional self-hosted webhook relay recipe using Cloudflare
 Workers for low-latency sync nudges without SaaS intermediaries. Deployment and
 revoke instructions (including signing and forwarding secrets) live in
 [`relay/README.md`](relay/README.md).
+
+## M6 smoke artifacts
+
+Manual smoke evidence for stack operations, GHE parity, relay toggles, and demo
+capture lives in [`artifacts/m6-smoke/README.md`](artifacts/m6-smoke/README.md).
 
 ## Quick start (desktop cockpit)
 
@@ -130,13 +137,13 @@ For headless checks without a desktop display server, run:
 pnpm --filter desktop test:smoke
 ```
 
-## CI quality gates (M5)
+## CI quality gates (M6)
 
 The required local/CI gate matrix is:
 
 ```bash
 cargo fmt --check
-cargo clippy --workspace -- -D warnings
+cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 pnpm typecheck
 pnpm svelte-check
@@ -144,6 +151,8 @@ pnpm lint
 pnpm test
 pnpm bench
 pnpm corpus
+xvfb-run -a pnpm exec playwright test apps/desktop/playwright/*.spec.ts
+cd relay && pnpm install --ignore-workspace && pnpm test && pnpm exec wrangler deploy --dry-run
 ```
 
 ## License and changelog

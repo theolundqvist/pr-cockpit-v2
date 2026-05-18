@@ -1,5 +1,41 @@
 # Decisions
 
+## M6 contract decisions (promoted for v1.0)
+
+These M6 contracts consolidate the `m6-stacks`, `m6-relay-and-ghe`, and
+`m6-polish` worker outputs. They are the v1.0 release contract:
+
+1. **Stack model and detection are graph-first with linear-first rendering.**
+   Stack sync builds directed edges where `base.ref == another_open_pr.head.ref`
+   inside the same repo/account component, classifies linear vs DAG, persists
+   `stack_id` + `stack_position`, and keeps ambiguous diamonds/cycles as warned
+   DAGs instead of dropping topology.
+2. **Stack operations are deterministic and pause-safe.**
+   Rebase is sequential local git (`fetch/checkout/rebase`) with conflict pause
+   + resume/abort; merge is sequential merge + base-retarget (`updatePullRequest`)
+   after each step, pausing immediately on failure.
+3. **Graphite usage is explicit opt-in only.**
+   Detection on PATH is not consent; `gt` paths run only when the user enables
+   Graphite in settings, and non-zero `gt` exits surface a warning before
+   plain-git fallback.
+4. **Webhook relay remains self-hosted and signed end-to-end.**
+   The Cloudflare Worker recipe is deploy-it-yourself only (no SaaS endpoint),
+   verifies GitHub signatures, signs relay-forward payloads, and documents revoke
+   by removing secrets/deployment/webhook.
+5. **GHE parity is wiremock-first and host-pure.**
+   M1–M6 feature paths run against host-derived enterprise endpoints with no
+   accidental `api.github.com` fallback for enterprise accounts.
+6. **Markdown corpus regression gate is tightened to <= 1.0%.**
+   The sole accepted carve-out remains explicit and source-controlled
+   (`cli-cli-4439054677` accepted drift `0.042`).
+7. **PLAN §10 performance budgets stay hard-gated with documented methodology.**
+   `pnpm bench` remains hard-budget + baseline-comparator checked; frontend and
+   palette metrics use min-of-5 policy, and cloud-runner baseline recalibration
+   is documented when needed.
+8. **v1 demo artifact pipeline is Playwright + xvfb -> GIF.**
+   `m6-demo-gif.spec.ts` records the walkthrough and publishes
+   `artifacts/m6-demo/demo.gif` consumed by README.
+
 ## M5 contract decisions (promoted for M6+)
 
 These M5 contracts are consolidated from the four M5 worker handoffs and are
@@ -72,7 +108,7 @@ These M4 contracts are stable inputs for M5+ unless explicitly superseded:
    Aggregated inbox rows carry host/login identity, composer posting identity is
    explicit via `posting_account_id`, and budget pressure/bypass signals are
    emitted per-account.
-6. **GHE readiness is host-aware schema/auth plumbing, not full parity.**
+6. **GHE readiness is host-aware schema/auth plumbing, not full parity (superseded by M6 parity).**
    Endpoint routing derives from host (+ optional host overrides), PAT works for
    dotcom and GHE, while device flow/gh import stay dotcom-only in M4.
 

@@ -60,6 +60,14 @@ Format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
 - GHE compatibility pass across M1–M5 happy paths against stubbed host fixtures.
 - Demo GIF in README, MIT license, changelog publication, and markdown corpus
   tightened to ≤ 1.0%.
+- Migration chain audit completed and pinned in-order:
+  `0001_initial_schema` -> `0002_read_models` -> `0003_search_fts` ->
+  `0004_auth_accounts` -> `0005_optimistic_writes` ->
+  `0006_offline_queue_and_drafts` -> `0007_diff_polish` -> `0008_worktree` ->
+  `0009_notifications` -> `0010_merge_surface` -> `0011_push_history` ->
+  `0012_multi_account_rate_limits` -> `0013_suggestion_apply` ->
+  `0014_check_annotations_aux` -> `0015_saved_replies` -> `0016_image_uploads`
+  -> `0017_stacks` (with required `.down.sql` companions present).
 
 ### Performance
 
