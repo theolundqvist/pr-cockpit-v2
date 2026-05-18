@@ -64,7 +64,7 @@ The scorer reports:
 - Visible-character mismatch ratio (text-only distance).
 - Weighted score over the full corpus.
 
-CI fails if weighted score is `> 0.015` (1.5%) for M3.
+CI fails if weighted score is `> 0.01` (1.0%) for M6.
 
 ### Top-drift diagnostics
 

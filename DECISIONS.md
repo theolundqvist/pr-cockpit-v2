@@ -1084,3 +1084,21 @@ Decision:
 
 Reason: M6 must promote GHE from schema-readiness to functional parity without
 making CI dependent on external enterprise infrastructure.
+
+### 2026-05-18: M6 markdown corpus gate tightened to 1.0% with explicit single-entry carve-out
+
+Decision:
+
+- Tighten markdown corpus gate from `0.015` to `0.01` in
+  `tools/markdown-corpus/score.mjs`.
+- Keep the M3 accepted-drift mechanism and apply a single explicit carve-out for
+  `cli-cli-4439054677` by updating `accepted_drift` from `0.040` to `0.042`.
+- No renderer behavior changes were made for this pass.
+
+Reason:
+
+`cli-cli-4439054677` still exceeds 1.0% per-entry weighted drift without the
+carve-out because GitHub injects label-chip metadata text that does not exist in
+the markdown body input available to PR Cockpit's comrak pipeline. That gap is
+server metadata, not markdown syntax parity, so it remains documented as an
+explicit corpus exception instead of introducing brittle renderer heuristics.

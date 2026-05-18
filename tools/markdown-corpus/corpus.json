@@ -218,7 +218,7 @@
     "body": "Just reopened the PR, and I'll review it. Quick look, it seems on the right path, although I have to dig deeper to make sure it's not missing anything, especially that the PR queries are so intertwined and complex.\n\nThat said, please follow our [contribution guideline](https://github.com/cli/cli/blob/trunk/.github/CONTRIBUTING.md) and don't open PRs before we've fully triaged the issue. I also won't mark this as https://github.com/cli/cli/labels/help%20wanted as other community members may attempt to submit a PR.",
     "oracle_html_sha": "5360f291c19f2bb72710638e1dbbac33207a43c06fc984b699adf530ec4a25dc",
     "repo": "cli/cli",
-    "accepted_drift": 0.04
+    "accepted_drift": 0.042
   },
   {
     "id": "cli-cli-4438501641",

@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CORPUS_JSON = path.join(__dirname, "corpus.json");
 const ORACLE_DIR = path.join(__dirname, "oracle");
-const GATE = 0.015;
+const GATE = 0.01;
 
 function sha256(input) {
   return createHash("sha256").update(input).digest("hex");
