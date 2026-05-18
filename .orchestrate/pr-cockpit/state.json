@@ -111,13 +111,13 @@
       "handoffPath": "handoffs/m3-diff-worktree-notifs.md",
       "startedAt": "2026-05-17T20:42:20.475Z",
       "finishedAt": "2026-05-18T00:12:39.546Z",
-      "lastUpdate": "2026-05-18T00:12:39.546Z",
+      "lastUpdate": "2026-05-18T00:12:40.377Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "verify-m3-diff-worktree-notifs",
@@ -130,17 +130,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T00:12:48.227Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T00:12:48.227Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m4-merge-multiaccount",
@@ -817,6 +818,10 @@
     {
       "at": "2026-05-18T00:06:16.709Z",
       "message": "m3-diff-worktree-notifs: tool_call idle 345904ms; last=2026-05-18T00:00:30.805Z"
+    },
+    {
+      "at": "2026-05-18T00:12:40.377Z",
+      "message": "m3-diff-worktree-notifs: verification self-reported (live-ui-verified)"
     }
   ]
 }
