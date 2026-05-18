@@ -242,7 +242,7 @@
     {
       "name": "m6-stacks-relay-polish",
       "type": "subplanner",
-      "branch": "orch/pr-cockpit/m6-stacks-relay-polish",
+      "branch": "`orch/m6-stacks-relay-polish/m6-tag-v1` (deliverable; commit `5c77a19` on top of verifier-signed-off `5b14043` on top of m6-finalize tip `afa4a34`). The `v1.0.0` annotated tag is pushed to origin pointing at the verifier-signed-off commit `5b14043` (tag object `704ec560`). My orchestration scratch lives on `orch/pr-cockpit/m5-editor-power-worktree-write` at `0c3cf48`.",
       "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
       "dependsOn": [
         "verify-m5-editor-power-worktree-write"
@@ -250,12 +250,12 @@
       "agentId": "bc-9a1a2582-4f85-429b-9282-f41b528a0536",
       "runId": "run-aebebeda-d6aa-4a25-adea-a38669c53043",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m6-stacks-relay-polish.md",
       "startedAt": "2026-05-18T16:54:58.675Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T16:55:02.270Z",
+      "finishedAt": "2026-05-18T22:36:59.066Z",
+      "lastUpdate": "2026-05-18T22:36:59.071Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
