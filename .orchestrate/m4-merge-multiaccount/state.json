@@ -63,36 +63,37 @@
       "handoffPath": "handoffs/m4-multi-account.md",
       "startedAt": "2026-05-18T03:16:44.480Z",
       "finishedAt": "2026-05-18T04:14:21.904Z",
-      "lastUpdate": "2026-05-18T04:14:21.905Z",
+      "lastUpdate": "2026-05-18T04:14:22.845Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "m4-ghe-readiness",
       "type": "worker",
       "branch": "orch/m4-merge-multiaccount/m4-ghe-readiness",
-      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "startingRef": "orch/m4-merge-multiaccount/m4-multi-account",
       "dependsOn": [
         "m4-multi-account"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T04:14:26.459Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T04:14:26.459Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m4-finalize",
@@ -157,6 +158,10 @@
     {
       "at": "2026-05-18T03:16:37.608Z",
       "message": "m4-force-push-range-diff: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-18T04:14:22.845Z",
+      "message": "m4-multi-account: verification self-reported (live-ui-verified)"
     }
   ]
 }
