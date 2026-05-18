@@ -36,6 +36,24 @@ These M6 contracts consolidate the `m6-stacks`, `m6-relay-and-ghe`, and
    `m6-demo-gif.spec.ts` records the walkthrough and publishes
    `artifacts/m6-demo/demo.gif` consumed by README.
 
+### 2026-05-18: v1.0.0 released
+
+Decision:
+
+- Release tag `v1.0.0` is published after upstream `m6-verify` returned
+  `live-ui-verified` and confirmed M1-M6 acceptance criteria coverage.
+- Annotated tag `v1.0.0` points to commit
+  `5b14043d485b0429b1c65bd41493e5e3b62b3847` on
+  `orch/m6-stacks-relay-polish/m6-tag-v1`.
+- Release metadata references `CHANGELOG.md` and `PERF_REPORT.md` as the
+  canonical v1.0 scope and performance records.
+
+Next steps for the human dogfooder (AUTONOMY_BRIEF.md "Done"):
+
+- Run PR Cockpit as the primary GitHub PR client for two consecutive weeks.
+- Record and triage outcomes; v1.0 remains accepted only if zero critical issues
+  are found during that dogfooding window.
+
 ## M5 contract decisions (promoted for M6+)
 
 These M5 contracts are consolidated from the four M5 worker handoffs and are
