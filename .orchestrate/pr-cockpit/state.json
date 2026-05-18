@@ -161,11 +161,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-05-18T00:54:26.310Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "verify-m4-merge-multiaccount",
