@@ -867,6 +867,14 @@
     {
       "at": "2026-05-18T03:08:27.502Z",
       "message": "m4-merge-multiaccount: tool_call idle 352059ms; last=2026-05-18T03:02:35.443Z"
+    },
+    {
+      "at": "2026-05-18T03:24:56.757Z",
+      "message": "m4-merge-multiaccount: SSE idle 357227ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T03:24:56.759Z",
+      "message": "m4-merge-multiaccount: tool_call idle 357229ms; last=2026-05-18T03:18:59.530Z"
     }
   ]
 }
