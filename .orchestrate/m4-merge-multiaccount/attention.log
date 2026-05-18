@@ -1,2 +1,11 @@
 [2026-05-18T01:08:35.050Z] m4-merge-surface: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
 [2026-05-18T01:09:52.224Z] m4-merge-surface: respawned by self-planner (was error)
+[2026-05-18T02:17:08.587Z] m4-merge-surface: verification self-reported (live-ui-verified)
+[2026-05-18T03:16:37.608Z] m4-force-push-range-diff: verification self-reported (unit-test-verified)
+[2026-05-18T04:14:22.845Z] m4-multi-account: verification self-reported (live-ui-verified)
+[2026-05-18T05:07:23.010Z] m4-ghe-readiness: verification self-reported (live-ui-verified)
+[2026-05-18T05:19:28.252Z] m4-finalize: SSE idle 339697ms, polled status=running; watchdog still waiting
+[2026-05-18T05:19:28.253Z] m4-finalize: tool_call idle 339698ms; last=2026-05-18T05:13:48.555Z
+[2026-05-18T05:32:54.344Z] m4-finalize: SSE idle 357798ms, polled status=running; watchdog still waiting
+[2026-05-18T05:32:54.345Z] m4-finalize: tool_call idle 357799ms; last=2026-05-18T05:26:56.546Z
+[2026-05-18T05:52:18.045Z] m4-finalize: verification self-reported (live-ui-verified)
