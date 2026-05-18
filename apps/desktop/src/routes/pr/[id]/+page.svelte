@@ -2,6 +2,8 @@
   import { onDestroy, onMount } from 'svelte';
 
   import Composer from '$lib/components/Composer.svelte';
+  import CheckLogTail from '$lib/components/checks/CheckLogTail.svelte';
+  import ChecksRail from '$lib/components/checks/ChecksRail.svelte';
   import DiffViewer from '$lib/components/DiffViewer.svelte';
   import HardConflictModal from '$lib/components/HardConflictModal.svelte';
   import InlineMutationErrorBanner from '$lib/components/InlineMutationErrorBanner.svelte';
@@ -75,6 +77,7 @@
   let projectValue = bundle.metadata.projects[0]?.project_title ?? '';
   let showReviewModal = false;
   let showSuggestionBatchModal = false;
+  let activeCheckLogRunId: string | null = null;
   let reviewBody = '';
   let keySequence: string[] = [];
   let keySequenceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -131,6 +134,7 @@
       (row) => row.pr_id === data.prId && row.account_id === data.activeAccountId
     ) ?? null;
   $: suggestionBlocks = bundle.suggestion_blocks ?? [];
+  $: checkAnnotations = bundle.check_annotations ?? [];
   $: openSuggestionBlocks = suggestionBlocks.filter((suggestion) => !suggestion.is_outdated);
   $: suggestionBlocksByComment = openSuggestionBlocks.reduce((acc, suggestion) => {
     const existing = acc.get(suggestion.comment_id) ?? [];
@@ -312,6 +316,10 @@
     }
     window.removeEventListener('keydown', onGlobalKeydown);
   });
+
+  function openCheckLogTail(checkRunId: string): void {
+    activeCheckLogRunId = checkRunId;
+  }
 </script>
 
 <main class="pr-detail px-3 py-3">
@@ -809,29 +817,28 @@
           patch={bundle.patch}
           files={bundle.files}
           reviewThreads={bundle.review_threads}
+          checkAnnotations={checkAnnotations}
           accountId={data.activeAccountId}
           prId={data.prId}
           headSha={bundle.summary.head_sha}
           pullRequestNodeId={bundle.summary.pr_id}
           on:reviewcommentsubmitted={refreshBundle}
+          on:openlogtail={(event) => openCheckLogTail(event.detail.checkRunId)}
         />
       {:else}
-        <div class="Box">
-          <div class="Box-header">Check runs</div>
-          <ul class="Box-body list-style-none m-0">
-            {#if bundle.checks.runs.length === 0}
-              <li class="f6 color-fg-muted">No checks found for this PR.</li>
-            {:else}
-              {#each bundle.checks.runs as run}
-                <li class="d-flex flex-items-center flex-justify-between py-2 border-bottom color-border-muted">
-                  <span>{run.name}</span>
-                  <span class="Label">{run.conclusion ?? run.status}</span>
-                </li>
-              {/each}
-            {/if}
-          </ul>
-        </div>
+        <ChecksRail
+          accountId={data.activeAccountId}
+          prId={data.prId}
+          owner={activeInboxRow?.repo_owner ?? ''}
+          repo={activeInboxRow?.repo_name ?? ''}
+          headSha={bundle.summary.head_sha}
+          checks={bundle.checks}
+          pendingMutations={pendingMutations}
+          on:openlogtail={(event) => openCheckLogTail(event.detail.checkRunId)}
+        />
       {/if}
+
+      <CheckLogTail checkRunId={activeCheckLogRunId} on:close={() => (activeCheckLogRunId = null)} />
     </section>
 
     <aside class="pr-rail">

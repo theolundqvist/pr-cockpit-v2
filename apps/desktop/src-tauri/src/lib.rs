@@ -45,7 +45,7 @@ impl AccountResolver for AuthAccountResolver {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let specta_builder = ipc::specta_builder::<tauri::Wry>();
+    let specta_builder = ipc::specta_builder();
     let invoke_handler = specta_builder.invoke_handler();
 
     #[cfg(debug_assertions)]

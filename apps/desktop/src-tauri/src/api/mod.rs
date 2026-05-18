@@ -14,6 +14,8 @@ use crate::auth::token_client::TokenClient;
 use crate::auth::{derive_endpoint_config, AccountLocator};
 use crate::db::{Db, PrPatchRecord, SyncCursorUpdate};
 
+pub mod check_logs;
+
 pub const PR_DETAIL_QUERY: &str = include_str!("queries/PrDetail.graphql");
 pub const INBOX_REFRESH_QUERY: &str = include_str!("queries/InboxRefresh.graphql");
 pub const ADD_PULL_REQUEST_REVIEW_THREAD_REPLY_MUTATION: &str =
@@ -42,7 +44,9 @@ pub const DEQUEUE_PULL_REQUEST_MUTATION: &str =
     include_str!("queries/mutations/dequeuePullRequest.graphql");
 pub const REORDER_MERGE_QUEUE_ENTRY_MUTATION: &str =
     include_str!("queries/mutations/reorderMergeQueueEntry.graphql");
-pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-18.m4.v1";
+pub const RERUN_CHECK_SUITE_MUTATION: &str =
+    include_str!("queries/mutations/rerunCheckSuite.graphql");
+pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-18.m5.v1";
 pub const INBOX_REFRESH_QUERY_REVISION: &str = "2026-05-17.m1.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -442,6 +446,37 @@ impl GithubClient {
         }
         let payload = response.json::<T>().await?;
         Ok((payload, rate_limit))
+    }
+
+    pub async fn rest_get_stream(
+        &self,
+        account_id: &str,
+        path: &str,
+    ) -> Result<(reqwest::Response, Option<RateLimitSnapshot>)> {
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        let url = format!("{}{}", resolved.api_base_url, path);
+        let response = self
+            .token_client
+            .request_with(&resolved.locator, reqwest::Method::GET, &url, headers, None)
+            .await?;
+        let rate_limit = parse_rate_limit_headers(response.headers());
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<body unavailable>".to_string());
+            return Err(anyhow!("rest get stream failed ({status}): {body}"));
+        }
+        Ok((response, rate_limit))
     }
 
     pub async fn get_json_conditional<T: DeserializeOwned>(

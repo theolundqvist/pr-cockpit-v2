@@ -13,18 +13,22 @@
   } from '$lib/diff/parser';
   import { languageFromPath } from '$lib/highlight/language';
   import { HighlightWorkerClient } from '$lib/highlight/worker-client';
-  import { getPrFileBlob } from '$lib/ipc/client';
-  import type { PrFile, ReviewThread } from '$lib/ipc/bindings';
+  import { getCheckAnnotationsForFile, getPrFileBlob } from '$lib/ipc/client';
+  import type { CheckAnnotationView, PrFile, ReviewThread } from '$lib/ipc/bindings';
 
   export let patch = '';
   export let files: PrFile[] = [];
   export let reviewThreads: ReviewThread[] = [];
+  export let checkAnnotations: CheckAnnotationView[] = [];
   export let accountId = '';
   export let prId = '';
   export let headSha = '';
   export let pullRequestNodeId = '';
 
-  const dispatch = createEventDispatcher<{ reviewcommentsubmitted: void }>();
+  const dispatch = createEventDispatcher<{
+    reviewcommentsubmitted: void;
+    openlogtail: { checkRunId: string };
+  }>();
 
   let mode: 'unified' | 'side-by-side' = 'unified';
   let scrollElement: HTMLDivElement | null = null;
@@ -37,6 +41,11 @@
   let displayFiles: ParsedDiffFile[] = [];
   let rows: DiffRow[] = [];
   let threadByRowId = new Map<string, ReviewThread[]>();
+  let annotationByRowId = new Map<string, CheckAnnotationView[]>();
+  let fileScopedAnnotations = new Map<string, CheckAnnotationView[]>();
+  const annotationFetchInFlight = new Set<string>();
+  let expandedAnnotationId: string | null = null;
+  let annotationsScopeKey = '';
 
   type SelectionAnchor = { filePath: string; side: 'LEFT' | 'RIGHT'; line: number };
   type SelectionRange = {
@@ -55,7 +64,14 @@
   $: displayFiles = mergePatchAndMetadata(parsedFiles, files);
   $: rows = flattenDiffRows(displayFiles);
   $: threadByRowId = buildThreadIndex(rows, reviewThreads);
+  $: annotationByRowId = buildAnnotationIndex(rows, effectiveAnnotations());
   $: void preloadImageAssets(files);
+  $: scopeKey = `${accountId}:${prId}`;
+  $: if (annotationsScopeKey !== scopeKey) {
+    annotationsScopeKey = scopeKey;
+    fileScopedAnnotations = new Map();
+    annotationFetchInFlight.clear();
+  }
 
   const virtualizer = createVirtualizer({
     count: rows.length,
@@ -93,6 +109,55 @@
     size: number;
   }>;
   $: void requestViewportHighlight(visibleItems, rows, displayFiles);
+  let visibleFilePaths: string[] = [];
+  $: visibleFilePaths = collectVisibleFilePaths(visibleItems, rows);
+  $: void loadVisibleAnnotations(visibleFilePaths);
+
+  function effectiveAnnotations(): CheckAnnotationView[] {
+    if (fileScopedAnnotations.size === 0) {
+      return checkAnnotations;
+    }
+    const loadedPaths = new Set(fileScopedAnnotations.keys());
+    const merged = checkAnnotations.filter((annotation) => !loadedPaths.has(annotation.anchor_path));
+    for (const scoped of fileScopedAnnotations.values()) {
+      merged.push(...scoped);
+    }
+    return merged;
+  }
+
+  function collectVisibleFilePaths(
+    virtualRows: Array<{ index: number }>,
+    diffRows: DiffRow[]
+  ): string[] {
+    const paths = new Set<string>();
+    for (const virtualRow of virtualRows) {
+      const row = diffRows[virtualRow.index];
+      if (!row) {
+        continue;
+      }
+      paths.add(row.file.path);
+    }
+    return [...paths];
+  }
+
+  async function loadVisibleAnnotations(paths: string[]): Promise<void> {
+    if (!accountId || !prId || paths.length === 0) {
+      return;
+    }
+    for (const filePath of paths) {
+      if (fileScopedAnnotations.has(filePath) || annotationFetchInFlight.has(filePath)) {
+        continue;
+      }
+      annotationFetchInFlight.add(filePath);
+      try {
+        const scoped = await getCheckAnnotationsForFile(accountId, prId, filePath);
+        fileScopedAnnotations.set(filePath, scoped);
+        fileScopedAnnotations = new Map(fileScopedAnnotations);
+      } finally {
+        annotationFetchInFlight.delete(filePath);
+      }
+    }
+  }
 
   function metadataForPath(path: string): PrFile | undefined {
     return files.find((entry) => entry.path === path);
@@ -258,6 +323,62 @@
       }
     }
     return index;
+  }
+
+  function buildAnnotationIndex(
+    diffRows: DiffRow[],
+    annotations: CheckAnnotationView[]
+  ): Map<string, CheckAnnotationView[]> {
+    const index = new Map<string, CheckAnnotationView[]>();
+    for (const row of diffRows) {
+      if (row.kind !== 'line') {
+        continue;
+      }
+      const matches = annotations.filter((annotation) => annotationMatchesRow(annotation, row));
+      if (matches.length > 0) {
+        index.set(row.id, matches);
+      }
+    }
+    return index;
+  }
+
+  function annotationMatchesRow(
+    annotation: CheckAnnotationView,
+    row: DiffRow & { kind: 'line' }
+  ): boolean {
+    if (annotation.anchor_path !== row.file.path || annotation.anchor_side !== 'RIGHT') {
+      return false;
+    }
+    if (!row.line.rightLine) {
+      return false;
+    }
+    return row.line.rightLine >= annotation.start_line && row.line.rightLine <= annotation.end_line;
+  }
+
+  function annotationTone(annotation: CheckAnnotationView): string {
+    const level = annotation.annotation_level.toLowerCase();
+    if (level === 'failure' || level === 'fail') {
+      return 'failure';
+    }
+    if (level === 'warning' || level === 'warn') {
+      return 'warning';
+    }
+    return 'notice';
+  }
+
+  function annotationIcon(annotation: CheckAnnotationView): string {
+    const tone = annotationTone(annotation);
+    if (tone === 'failure') {
+      return 'octicon-x-circle';
+    }
+    if (tone === 'warning') {
+      return 'octicon-alert';
+    }
+    return 'octicon-info';
+  }
+
+  function toggleAnnotation(annotationId: string): void {
+    expandedAnnotationId = expandedAnnotationId === annotationId ? null : annotationId;
   }
 
   function lineForSide(row: DiffRow & { kind: 'line' }, side: 'LEFT' | 'RIGHT'): number | null {
@@ -554,6 +675,48 @@
                 />
               </div>
             {/if}
+            {#if annotationByRowId.get(row.id)}
+              <div class="diff-annotation-row">
+                {#each annotationByRowId.get(row.id) ?? [] as annotation}
+                  {@const tone = annotationTone(annotation)}
+                  <button
+                    class={`check-annotation-chip tone-${tone} ${annotation.is_outdated ? 'is-outdated' : ''}`}
+                    type="button"
+                    on:click={() => toggleAnnotation(annotation.annotation_id)}
+                  >
+                    <span class={`octicon ${annotationIcon(annotation)}`} aria-hidden="true"></span>
+                    <span>{annotation.title ?? annotation.annotation_level}</span>
+                    {#if annotation.is_outdated}
+                      <span class="Label Label--attention">outdated</span>
+                    {/if}
+                  </button>
+                  {#if expandedAnnotationId === annotation.annotation_id}
+                    <div class={`Box check-annotation-panel tone-${tone}`}>
+                      <div class="Box-header d-flex flex-items-center gap-2">
+                        <strong>{annotation.title ?? annotation.check_run_name}</strong>
+                        <span class="Label Label--secondary">{annotation.annotation_level}</span>
+                      </div>
+                      <div class="Box-body">
+                        <p class="mb-2">{annotation.message}</p>
+                        {#if annotation.raw_details}
+                          <details>
+                            <summary class="f6">Raw details</summary>
+                            <pre class="text-mono f6">{annotation.raw_details}</pre>
+                          </details>
+                        {/if}
+                        <button
+                          class="btn btn-sm mt-2"
+                          type="button"
+                          on:click={() => dispatch('openlogtail', { checkRunId: annotation.check_run_id })}
+                        >
+                          View raw log
+                        </button>
+                      </div>
+                    </div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
             {#if threadByRowId.get(row.id)}
               <div class="diff-thread-row">
                 {#each threadByRowId.get(row.id) ?? [] as thread}
@@ -588,6 +751,53 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+  }
+
+  .diff-annotation-row {
+    margin: 4px 0 8px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .check-annotation-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--borderColor-default, #d0d7de);
+    border-left-width: 4px;
+    border-radius: 6px;
+    background: var(--bgColor-default, #ffffff);
+    padding: 4px 8px;
+    width: fit-content;
+  }
+
+  .check-annotation-chip.is-outdated {
+    opacity: 0.72;
+  }
+
+  .check-annotation-chip.tone-failure,
+  .check-annotation-panel.tone-failure {
+    border-left-color: var(--fgColor-danger, #cf222e);
+  }
+
+  .check-annotation-chip.tone-warning,
+  .check-annotation-panel.tone-warning {
+    border-left-color: var(--fgColor-attention, #9a6700);
+  }
+
+  .check-annotation-chip.tone-notice,
+  .check-annotation-panel.tone-notice {
+    border-left-color: var(--fgColor-accent, #0969da);
+  }
+
+  .check-annotation-panel {
+    border-left-width: 4px;
+  }
+
+  .check-annotation-panel pre {
+    margin-top: 6px;
+    white-space: pre-wrap;
   }
 
   .image-diff-grid {

@@ -1,5 +1,6 @@
 import type {
   AccountsListResponse,
+  CheckAnnotationView,
   InitInboxResponse,
   InboxItem,
   PrCheckSummary,
@@ -493,21 +494,151 @@ export const MOCK_THREADS: ReviewThreadsPage = {
 };
 
 export const MOCK_CHECKS: PrCheckSummary = {
-  total_runs: 10,
-  successful_runs: 10,
-  failed_runs: 0,
-  pending_runs: 0,
-  runs: Array.from({ length: 10 }, (_value, idx) => ({
-    id: `run_${Math.floor(idx / 5) + 1}_${(idx % 5) + 1}`,
-    name: `suite-${Math.floor(idx / 5) + 1}-run-${(idx % 5) + 1}`,
-    status: 'completed',
-    conclusion: 'success',
-    details_url: `https://example.test/check-runs/${Math.floor(idx / 5) + 1}/${(idx % 5) + 1}`,
-    started_at: BASE_TS + 720 + idx,
-    completed_at: BASE_TS + 730 + idx,
-    app_name: idx < 5 ? 'ci-linux' : 'ci-macos'
-  }))
+  total_runs: 4,
+  successful_runs: 2,
+  failed_runs: 1,
+  pending_runs: 1,
+  runs: [
+    {
+      id: 'run_suite_a_1',
+      check_suite_id: 'suite_a',
+      rest_id: 7001,
+      name: 'lint',
+      status: 'completed',
+      conclusion: 'failure',
+      details_url: 'https://github.com/fixture-org/repo-1/actions/runs/1/jobs/7001',
+      started_at: BASE_TS + 720,
+      completed_at: BASE_TS + 730,
+      app_name: 'ci-linux',
+      check_suite_status: 'completed',
+      check_suite_conclusion: 'failure',
+      check_run_head_sha: MOCK_PR_DETAIL.head_sha
+    },
+    {
+      id: 'run_suite_a_2',
+      check_suite_id: 'suite_a',
+      rest_id: 7002,
+      name: 'typecheck',
+      status: 'completed',
+      conclusion: 'neutral',
+      details_url: 'https://github.com/fixture-org/repo-1/actions/runs/1/jobs/7002',
+      started_at: BASE_TS + 721,
+      completed_at: BASE_TS + 731,
+      app_name: 'ci-linux',
+      check_suite_status: 'completed',
+      check_suite_conclusion: 'failure',
+      check_run_head_sha: MOCK_PR_DETAIL.head_sha
+    },
+    {
+      id: 'run_suite_b_1',
+      check_suite_id: 'suite_b',
+      rest_id: 7101,
+      name: 'unit-tests',
+      status: 'completed',
+      conclusion: 'success',
+      details_url: 'https://github.com/fixture-org/repo-1/actions/runs/2/jobs/7101',
+      started_at: BASE_TS + 722,
+      completed_at: BASE_TS + 732,
+      app_name: 'ci-macos',
+      check_suite_status: 'completed',
+      check_suite_conclusion: 'success',
+      check_run_head_sha: MOCK_PR_DETAIL.head_sha
+    },
+    {
+      id: 'run_suite_c_1',
+      check_suite_id: 'suite_c',
+      rest_id: 7201,
+      name: 'integration',
+      status: 'queued',
+      conclusion: null,
+      details_url: 'https://github.com/fixture-org/repo-1/actions/runs/3/jobs/7201',
+      started_at: BASE_TS + 723,
+      completed_at: null,
+      app_name: 'ci-windows',
+      check_suite_status: 'in_progress',
+      check_suite_conclusion: null,
+      check_run_head_sha: MOCK_PR_DETAIL.head_sha
+    }
+  ]
 };
+
+export const MOCK_CHECK_ANNOTATIONS: CheckAnnotationView[] = [
+  {
+    annotation_id: 'run_suite_a_1:ann-12',
+    check_run_id: 'run_suite_a_1',
+    check_suite_id: 'suite_a',
+    check_run_rest_id: 7001,
+    check_run_name: 'lint',
+    check_run_status: 'completed',
+    check_run_conclusion: 'failure',
+    check_run_details_url: 'https://github.com/fixture-org/repo-1/actions/runs/1/jobs/7001',
+    check_run_head_sha: MOCK_PR_DETAIL.head_sha,
+    is_outdated: false,
+    path: 'src/foo.ts',
+    start_line: 12,
+    end_line: 12,
+    start_column: 1,
+    end_column: 8,
+    annotation_level: 'failure',
+    title: 'Lint failure',
+    message: 'Unexpected any. Please provide a concrete type.',
+    raw_details: 'eslint(no-explicit-any)',
+    anchor_line: 12,
+    anchor_side: 'RIGHT',
+    anchor_path: 'src/foo.ts',
+    anchor_signature_hash: 'mock-hash-12'
+  },
+  {
+    annotation_id: 'run_suite_a_2:ann-28',
+    check_run_id: 'run_suite_a_2',
+    check_suite_id: 'suite_a',
+    check_run_rest_id: 7002,
+    check_run_name: 'typecheck',
+    check_run_status: 'completed',
+    check_run_conclusion: 'neutral',
+    check_run_details_url: 'https://github.com/fixture-org/repo-1/actions/runs/1/jobs/7002',
+    check_run_head_sha: MOCK_PR_DETAIL.head_sha,
+    is_outdated: false,
+    path: 'src/foo.ts',
+    start_line: 28,
+    end_line: 28,
+    start_column: 1,
+    end_column: 20,
+    annotation_level: 'warning',
+    title: 'Deprecated call',
+    message: 'This helper is deprecated and will be removed.',
+    raw_details: 'ts(6385)',
+    anchor_line: 28,
+    anchor_side: 'RIGHT',
+    anchor_path: 'src/foo.ts',
+    anchor_signature_hash: 'mock-hash-28'
+  },
+  {
+    annotation_id: 'run_suite_b_1:ann-47',
+    check_run_id: 'run_suite_b_1',
+    check_suite_id: 'suite_b',
+    check_run_rest_id: 7101,
+    check_run_name: 'unit-tests',
+    check_run_status: 'completed',
+    check_run_conclusion: 'success',
+    check_run_details_url: 'https://github.com/fixture-org/repo-1/actions/runs/2/jobs/7101',
+    check_run_head_sha: 'outdated_head_sha_000000000000000000000000000000000001',
+    is_outdated: true,
+    path: 'src/foo.ts',
+    start_line: 47,
+    end_line: 47,
+    start_column: 1,
+    end_column: 10,
+    annotation_level: 'notice',
+    title: 'Coverage note',
+    message: 'No assertion for the error branch.',
+    raw_details: 'jest/expect-expect',
+    anchor_line: 47,
+    anchor_side: 'RIGHT',
+    anchor_path: 'src/foo.ts',
+    anchor_signature_hash: 'mock-hash-47'
+  }
+];
 
 export const MOCK_FILES: PrFilesResponse = {
   files: [
@@ -528,6 +659,25 @@ export const MOCK_FILES: PrFilesResponse = {
       patch_blob_sha: '356fb2a44e36283baed13a4f96756b377d5eec0cd8340a2f5a35eb0af7b118f6',
       viewed_by_account_id: accountId(primaryAccount.host, primaryAccount.login),
       viewed_at_head_sha: MOCK_PR_DETAIL.head_sha,
+      pending_overlay: null
+    },
+    {
+      account_id: accountId(primaryAccount.host, primaryAccount.login),
+      pr_id: 'pr_1',
+      head_sha: MOCK_PR_DETAIL.head_sha,
+      path: 'src/foo.ts',
+      old_path: 'src/foo.ts',
+      previous_path: 'src/foo.ts',
+      status: 'modified',
+      additions: 60,
+      deletions: 0,
+      is_binary: false,
+      kind: 'text',
+      rename_similarity: null,
+      is_viewed: false,
+      patch_blob_sha: 'mock-foo-sha',
+      viewed_by_account_id: null,
+      viewed_at_head_sha: null,
       pending_overlay: null
     },
     {
@@ -638,6 +788,16 @@ function buildLargePatch(): string {
     lines.push(
       `+pub const LINE_${idx.toString().padStart(4, '0')}: &str = "synthetic fixture line ${idx.toString().padStart(4, '0')}";`
     );
+  }
+  lines.push(
+    'diff --git a/src/foo.ts b/src/foo.ts',
+    'index 2222222..3333333 100644',
+    '--- a/src/foo.ts',
+    '+++ b/src/foo.ts',
+    '@@ -0,0 +1,60 @@'
+  );
+  for (let idx = 1; idx <= 60; idx += 1) {
+    lines.push(`+export const fooLine${idx} = ${idx};`);
   }
   patchCache = `${lines.join('\n')}\n`;
   return patchCache;

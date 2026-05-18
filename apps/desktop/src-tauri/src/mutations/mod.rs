@@ -83,6 +83,8 @@ pub enum MutationKind {
     ReopenPr,
     ApplySuggestion,
     ApplySuggestionBatch,
+    RerunCheckRun,
+    RerunCheckSuite,
 }
 
 impl MutationKind {
@@ -122,6 +124,8 @@ impl MutationKind {
             Self::ReopenPr => "reopen_pr",
             Self::ApplySuggestion => "apply_suggestion",
             Self::ApplySuggestionBatch => "apply_suggestion_batch",
+            Self::RerunCheckRun => "rerun_check_run",
+            Self::RerunCheckSuite => "rerun_check_suite",
         }
     }
 }
@@ -165,6 +169,8 @@ impl FromStr for MutationKind {
             "reopen_pr" => Self::ReopenPr,
             "apply_suggestion" => Self::ApplySuggestion,
             "apply_suggestion_batch" => Self::ApplySuggestionBatch,
+            "rerun_check_run" => Self::RerunCheckRun,
+            "rerun_check_suite" => Self::RerunCheckSuite,
             other => return Err(anyhow!("unknown mutation kind `{other}`")),
         };
         Ok(kind)

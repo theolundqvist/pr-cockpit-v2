@@ -1,0 +1,9 @@
+mutation RerunCheckSuite($checkSuiteId: ID!) {
+  rerunCheckSuite(input: { checkSuiteId: $checkSuiteId }) {
+    checkSuite {
+      id
+      status
+      conclusion
+    }
+  }
+}
