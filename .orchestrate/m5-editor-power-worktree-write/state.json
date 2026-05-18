@@ -127,15 +127,15 @@
       "dependsOn": [
         "m5-finalize"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-c367c269-956d-4898-9af8-991ab18899bd",
+      "runId": "run-d5f54363-589f-497f-85cb-1b3f4ea4379d",
+      "parentAgentId": "bc-fcc36435-3b73-4da2-a0a2-32447276d442",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T15:13:19.094Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T15:13:19.094Z",
+      "lastUpdate": "2026-05-18T15:13:22.306Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -196,6 +196,14 @@
     {
       "at": "2026-05-18T15:13:12.407Z",
       "message": "m5-finalize: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T15:27:23.600Z",
+      "message": "m5-verify: SSE idle 333619ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T15:27:23.600Z",
+      "message": "m5-verify: tool_call idle 333619ms; last=2026-05-18T15:21:49.981Z"
     }
   ]
 }
