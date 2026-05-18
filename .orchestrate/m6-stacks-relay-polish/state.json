@@ -103,15 +103,15 @@
       "dependsOn": [
         "m6-finalize"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-277e0f4d-25e0-49cb-bac0-9d2a5aadfde9",
+      "runId": "run-a68de5dc-582a-401c-aa9d-07025322d966",
+      "parentAgentId": "bc-9a1a2582-4f85-429b-9282-f41b528a0536",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T21:36:12.825Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T21:36:12.825Z",
+      "lastUpdate": "2026-05-18T21:36:15.551Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -191,6 +191,14 @@
     {
       "at": "2026-05-18T21:36:12.555Z",
       "message": "m6-finalize: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T21:49:18.345Z",
+      "message": "m6-verify: SSE idle 326237ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T21:49:18.346Z",
+      "message": "m6-verify: tool_call idle 326238ms; last=2026-05-18T21:43:52.108Z"
     }
   ]
 }
