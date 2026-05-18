@@ -1,0 +1,10 @@
+mutation ReorderMergeQueueEntry($id: ID!, $mode: MergeQueueEntryMoveToPosition!) {
+  reorderMergeQueueEntry(input: { id: $id, moveToPosition: $mode }) {
+    mergeQueueEntry {
+      id
+      position
+      state
+      estimatedTimeToMerge
+    }
+  }
+}

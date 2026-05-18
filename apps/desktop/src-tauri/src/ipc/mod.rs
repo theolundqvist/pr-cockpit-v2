@@ -126,6 +126,28 @@ pub struct PrDetailSummary {
     pub head_sha: String,
     pub mergeable_state: Option<String>,
     pub merge_state_status: Option<String>,
+    pub merge_commit_allowed: Option<bool>,
+    pub squash_merge_allowed: Option<bool>,
+    pub rebase_merge_allowed: Option<bool>,
+    pub delete_branch_on_merge_default: Option<bool>,
+    pub viewer_can_merge: Option<bool>,
+    pub viewer_can_enable_auto_merge: Option<bool>,
+    pub viewer_can_disable_auto_merge: Option<bool>,
+    pub viewer_can_update_branch: Option<bool>,
+    pub viewer_can_delete_head_ref: Option<bool>,
+    pub auto_merge_enabled: Option<bool>,
+    pub auto_merge_method: Option<String>,
+    pub auto_merge_commit_headline: Option<String>,
+    pub auto_merge_commit_body: Option<String>,
+    pub auto_merge_enabled_by_login: Option<String>,
+    pub auto_merge_enabled_at: Option<i64>,
+    pub merge_queue_entry_id: Option<String>,
+    pub merge_queue_entry_position: Option<i64>,
+    pub merge_queue_entry_state: Option<String>,
+    pub merge_queue_entry_estimated_ms: Option<i64>,
+    pub branch_protection_summary_json: Option<String>,
+    pub repo_has_merge_queue: Option<bool>,
+    pub head_ref_state: Option<String>,
     pub additions: i64,
     pub deletions: i64,
     pub changed_files: i64,
@@ -609,6 +631,18 @@ impl tauri_specta::Event for MutationRolledBackEventPayload {
     const NAME: &'static str = "mutation:rolled-back";
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct MergeableBackoffTickEventPayload {
+    pub account_id: String,
+    pub pr_id: String,
+    pub attempt: i64,
+    pub next_sleep_seconds: i64,
+}
+
+impl tauri_specta::Event for MergeableBackoffTickEventPayload {
+    const NAME: &'static str = "mergeable_backoff:<account_id>:<pr_id> tick";
+}
+
 fn normalize_page(input_limit: Option<i64>, input_offset: Option<i64>) -> (i64, i64) {
     let limit = input_limit.unwrap_or(50).clamp(1, 200);
     let offset = input_offset.unwrap_or(0).max(0);
@@ -661,6 +695,28 @@ fn map_pr_detail_summary(row: PrDetailSummaryRow) -> PrDetailSummary {
         head_sha: row.head_sha,
         mergeable_state: row.mergeable_state,
         merge_state_status: row.merge_state_status,
+        merge_commit_allowed: row.merge_commit_allowed.map(|value| value == 1),
+        squash_merge_allowed: row.squash_merge_allowed.map(|value| value == 1),
+        rebase_merge_allowed: row.rebase_merge_allowed.map(|value| value == 1),
+        delete_branch_on_merge_default: row.delete_branch_on_merge_default.map(|value| value == 1),
+        viewer_can_merge: row.viewer_can_merge.map(|value| value == 1),
+        viewer_can_enable_auto_merge: row.viewer_can_enable_auto_merge.map(|value| value == 1),
+        viewer_can_disable_auto_merge: row.viewer_can_disable_auto_merge.map(|value| value == 1),
+        viewer_can_update_branch: row.viewer_can_update_branch.map(|value| value == 1),
+        viewer_can_delete_head_ref: row.viewer_can_delete_head_ref.map(|value| value == 1),
+        auto_merge_enabled: row.auto_merge_enabled.map(|value| value == 1),
+        auto_merge_method: row.auto_merge_method,
+        auto_merge_commit_headline: row.auto_merge_commit_headline,
+        auto_merge_commit_body: row.auto_merge_commit_body,
+        auto_merge_enabled_by_login: row.auto_merge_enabled_by_login,
+        auto_merge_enabled_at: row.auto_merge_enabled_at,
+        merge_queue_entry_id: row.merge_queue_entry_id,
+        merge_queue_entry_position: row.merge_queue_entry_position,
+        merge_queue_entry_state: row.merge_queue_entry_state,
+        merge_queue_entry_estimated_ms: row.merge_queue_entry_estimated_ms,
+        branch_protection_summary_json: row.branch_protection_summary_json,
+        repo_has_merge_queue: row.repo_has_merge_queue.map(|value| value == 1),
+        head_ref_state: row.head_ref_state,
         additions: row.additions,
         deletions: row.deletions,
         changed_files: row.changed_files,
@@ -949,6 +1005,10 @@ pub fn network_changed_event_name(account_id: &str) -> String {
     format!("network:{account_id} changed")
 }
 
+pub fn mergeable_backoff_tick_event_name(account_id: &str, pr_id: &str) -> String {
+    format!("mergeable_backoff:{account_id}:{pr_id} tick")
+}
+
 pub fn mutation_hard_conflict_event_name(mutation_id: &str) -> String {
     format!("mutation:{mutation_id} hard-conflict")
 }
@@ -1065,6 +1125,29 @@ impl<R: tauri::Runtime> TauriCacheInvalidationEmitter<R> {
         let payload = MutationRolledBackEventPayload { mutation_id };
         let _ = self.app.emit(
             <MutationRolledBackEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    pub fn emit_mergeable_backoff_tick_event(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        attempt: i64,
+        next_sleep_seconds: i64,
+    ) {
+        let payload = MergeableBackoffTickEventPayload {
+            account_id: account_id.to_string(),
+            pr_id: pr_id.to_string(),
+            attempt,
+            next_sleep_seconds,
+        };
+        let _ = self.app.emit(
+            &mergeable_backoff_tick_event_name(account_id, pr_id),
+            payload.clone(),
+        );
+        let _ = self.app.emit(
+            <MergeableBackoffTickEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
     }
@@ -1198,6 +1281,16 @@ impl<R: tauri::Runtime> CacheInvalidationEmitter for TauriCacheInvalidationEmitt
             <SyncReconciledEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
+    }
+
+    fn emit_mergeable_backoff_tick(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        attempt: i64,
+        next_sleep_seconds: i64,
+    ) {
+        self.emit_mergeable_backoff_tick_event(account_id, pr_id, attempt, next_sleep_seconds);
     }
 }
 
@@ -2358,6 +2451,7 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             MutationReconciledEventPayload,
             MutationFailedEventPayload,
             MutationRolledBackEventPayload,
+            MergeableBackoffTickEventPayload,
             WorktreeChangedEventPayload,
             WorktreeDiscoveryCompletedEventPayload,
             NotificationEventPayload

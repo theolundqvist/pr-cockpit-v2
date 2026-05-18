@@ -358,7 +358,10 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
         | MutationKind::ConvertToDraft
         | MutationKind::MarkReadyForReview
         | MutationKind::EnableAutoMerge
-        | MutationKind::DisableAutoMerge => {}
+        | MutationKind::DisableAutoMerge
+        | MutationKind::EnqueueMergeQueue
+        | MutationKind::DequeueMergeQueue
+        | MutationKind::ReorderMergeQueue => {}
         MutationKind::MarkFileViewed => {
             Mock::given(method("PUT"))
                 .and(path(
@@ -408,6 +411,13 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
                 .mount(server)
                 .await;
         }
+        MutationKind::DeleteHeadRef => {
+            Mock::given(method("DELETE"))
+                .and(path("/repos/octo/hello-world/git/refs/heads/feature"))
+                .respond_with(ResponseTemplate::new(204))
+                .mount(server)
+                .await;
+        }
     }
 }
 
@@ -440,7 +450,10 @@ pub async fn mount_failure(server: &MockServer, kind: MutationKind) {
         | MutationKind::ConvertToDraft
         | MutationKind::MarkReadyForReview
         | MutationKind::EnableAutoMerge
-        | MutationKind::DisableAutoMerge => "/graphql",
+        | MutationKind::DisableAutoMerge
+        | MutationKind::EnqueueMergeQueue
+        | MutationKind::DequeueMergeQueue
+        | MutationKind::ReorderMergeQueue => "/graphql",
         MutationKind::MarkFileViewed | MutationKind::UnmarkFileViewed => {
             "/repos/octo/hello-world/pulls/1/files/src%2Flib.rs/viewed"
         }
@@ -451,6 +464,7 @@ pub async fn mount_failure(server: &MockServer, kind: MutationKind) {
         MutationKind::SetMilestone => "/repos/octo/hello-world/issues/1",
         MutationKind::UpdateBranch => "/repos/octo/hello-world/pulls/1/update-branch",
         MutationKind::Merge => "/repos/octo/hello-world/pulls/1/merge",
+        MutationKind::DeleteHeadRef => "/repos/octo/hello-world/git/refs/heads/feature",
     };
     Mock::given(path(endpoint))
         .respond_with(conflict)
@@ -605,6 +619,18 @@ pub fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
             "merge_method": "merge",
             "expected_head_sha": "head",
         }),
+        MutationKind::DeleteHeadRef => serde_json::json!({}),
+        MutationKind::EnqueueMergeQueue => serde_json::json!({
+            "expected_head_oid": "head",
+            "jump": false,
+        }),
+        MutationKind::DequeueMergeQueue => serde_json::json!({
+            "merge_queue_entry_id": "queue-entry-1",
+        }),
+        MutationKind::ReorderMergeQueue => serde_json::json!({
+            "merge_queue_entry_id": "queue-entry-1",
+            "mode": "TOP",
+        }),
         MutationKind::ClosePr | MutationKind::ReopenPr => serde_json::json!({
             "previous_state": "open",
         }),
@@ -680,6 +706,28 @@ pub async fn seed_graph(db: &Db, account_id: &str) -> Result<()> {
         head_repo_id: Some(REPO_ID.to_string()),
         mergeable_state: Some("MERGEABLE".to_string()),
         merge_state_status: Some("CLEAN".to_string()),
+        merge_commit_allowed: None,
+        squash_merge_allowed: None,
+        rebase_merge_allowed: None,
+        delete_branch_on_merge_default: None,
+        viewer_can_merge: None,
+        viewer_can_enable_auto_merge: None,
+        viewer_can_disable_auto_merge: None,
+        viewer_can_update_branch: None,
+        viewer_can_delete_head_ref: None,
+        auto_merge_enabled: None,
+        auto_merge_method: None,
+        auto_merge_commit_headline: None,
+        auto_merge_commit_body: None,
+        auto_merge_enabled_by_login: None,
+        auto_merge_enabled_at: None,
+        merge_queue_entry_id: None,
+        merge_queue_entry_position: None,
+        merge_queue_entry_state: None,
+        merge_queue_entry_estimated_ms: None,
+        branch_protection_summary_json: None,
+        repo_has_merge_queue: None,
+        head_ref_state: None,
         additions: 1,
         deletions: 1,
         changed_files: 1,

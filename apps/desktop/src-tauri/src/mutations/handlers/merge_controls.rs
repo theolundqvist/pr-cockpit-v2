@@ -2,10 +2,11 @@ use anyhow::Result;
 
 use crate::api::{DISABLE_PULL_REQUEST_AUTOMERGE_MUTATION, ENABLE_PULL_REQUEST_AUTOMERGE_MUTATION};
 use crate::db::PullRequestRecord;
+use crate::mutations::engine::MutationApplyError;
 use crate::mutations::patch::{Patch, PatchValue, RowMutation};
 use crate::mutations::{
-    ApplyCtx, BoxMutationFuture, Mutation, MutationKind, OptimismLevel, PredictCtx,
-    PredictedEffect, ServerCallShape, ServerNode, ServerResponse,
+    ApplyCtx, BoxMutationFuture, HardConflictDiff, Mutation, MutationKind, OptimismLevel,
+    PredictCtx, PredictedEffect, ReconcileCtx, ServerCallShape, ServerNode, ServerResponse,
 };
 
 use super::common::{
@@ -21,6 +22,8 @@ pub struct DisableAutoMerge;
 pub struct UpdateBranch;
 #[derive(Debug)]
 pub struct Merge;
+#[derive(Debug)]
+pub struct DeleteHeadRef;
 #[derive(Debug)]
 pub struct ClosePr;
 #[derive(Debug)]
@@ -53,7 +56,7 @@ impl Mutation for EnableAutoMerge {
                     Some(ctx.idempotency_key),
                 )
                 .await
-                .map_err(map_apply_error)?;
+                .map_err(map_merge_apply_error)?;
             Ok(ServerResponse {
                 upserts: Vec::new(),
                 markdown_overlays: Vec::new(),
@@ -90,7 +93,7 @@ impl Mutation for DisableAutoMerge {
                     Some(ctx.idempotency_key),
                 )
                 .await
-                .map_err(map_apply_error)?;
+                .map_err(map_merge_apply_error)?;
             Ok(ServerResponse {
                 upserts: Vec::new(),
                 markdown_overlays: Vec::new(),
@@ -171,7 +174,7 @@ impl Mutation for UpdateBranch {
                     Some(ctx.idempotency_key),
                 )
                 .await
-                .map_err(map_apply_error)?;
+                .map_err(map_merge_apply_error)?;
             Ok(ServerResponse {
                 upserts: Vec::new(),
                 markdown_overlays: Vec::new(),
@@ -219,7 +222,7 @@ impl Mutation for Merge {
                     Some(ctx.idempotency_key),
                 )
                 .await
-                .map_err(map_apply_error)?;
+                .map_err(map_merge_apply_error)?;
             let _merged = payload
                 .as_ref()
                 .and_then(|value| value.merged)
@@ -257,6 +260,83 @@ impl Mutation for Merge {
                 head_repo_id: optional_str(ctx.input_json, "head_repo_id").map(ToString::to_string),
                 mergeable_state: Some("MERGED".to_string()),
                 merge_state_status: Some("MERGED".to_string()),
+                merge_commit_allowed: ctx
+                    .input_json
+                    .get("merge_commit_allowed")
+                    .and_then(serde_json::Value::as_bool),
+                squash_merge_allowed: ctx
+                    .input_json
+                    .get("squash_merge_allowed")
+                    .and_then(serde_json::Value::as_bool),
+                rebase_merge_allowed: ctx
+                    .input_json
+                    .get("rebase_merge_allowed")
+                    .and_then(serde_json::Value::as_bool),
+                delete_branch_on_merge_default: ctx
+                    .input_json
+                    .get("delete_branch_on_merge_default")
+                    .and_then(serde_json::Value::as_bool),
+                viewer_can_merge: ctx
+                    .input_json
+                    .get("viewer_can_merge")
+                    .and_then(serde_json::Value::as_bool),
+                viewer_can_enable_auto_merge: ctx
+                    .input_json
+                    .get("viewer_can_enable_auto_merge")
+                    .and_then(serde_json::Value::as_bool),
+                viewer_can_disable_auto_merge: ctx
+                    .input_json
+                    .get("viewer_can_disable_auto_merge")
+                    .and_then(serde_json::Value::as_bool),
+                viewer_can_update_branch: ctx
+                    .input_json
+                    .get("viewer_can_update_branch")
+                    .and_then(serde_json::Value::as_bool),
+                viewer_can_delete_head_ref: ctx
+                    .input_json
+                    .get("viewer_can_delete_head_ref")
+                    .and_then(serde_json::Value::as_bool),
+                auto_merge_enabled: ctx
+                    .input_json
+                    .get("auto_merge_enabled")
+                    .and_then(serde_json::Value::as_bool),
+                auto_merge_method: optional_str(ctx.input_json, "auto_merge_method")
+                    .map(ToString::to_string),
+                auto_merge_commit_headline: optional_str(
+                    ctx.input_json,
+                    "auto_merge_commit_headline",
+                )
+                .map(ToString::to_string),
+                auto_merge_commit_body: optional_str(ctx.input_json, "auto_merge_commit_body")
+                    .map(ToString::to_string),
+                auto_merge_enabled_by_login: optional_str(
+                    ctx.input_json,
+                    "auto_merge_enabled_by_login",
+                )
+                .map(ToString::to_string),
+                auto_merge_enabled_at: optional_i64(ctx.input_json, "auto_merge_enabled_at"),
+                merge_queue_entry_id: optional_str(ctx.input_json, "merge_queue_entry_id")
+                    .map(ToString::to_string),
+                merge_queue_entry_position: optional_i64(
+                    ctx.input_json,
+                    "merge_queue_entry_position",
+                ),
+                merge_queue_entry_state: optional_str(ctx.input_json, "merge_queue_entry_state")
+                    .map(ToString::to_string),
+                merge_queue_entry_estimated_ms: optional_i64(
+                    ctx.input_json,
+                    "merge_queue_entry_estimated_ms",
+                ),
+                branch_protection_summary_json: optional_str(
+                    ctx.input_json,
+                    "branch_protection_summary_json",
+                )
+                .map(ToString::to_string),
+                repo_has_merge_queue: ctx
+                    .input_json
+                    .get("repo_has_merge_queue")
+                    .and_then(serde_json::Value::as_bool),
+                head_ref_state: Some("ACTIVE".to_string()),
                 additions: optional_i64(ctx.input_json, "additions").unwrap_or(0),
                 deletions: optional_i64(ctx.input_json, "deletions").unwrap_or(0),
                 changed_files: optional_i64(ctx.input_json, "changed_files").unwrap_or(0),
@@ -271,12 +351,74 @@ impl Mutation for Merge {
                 merged_at: Some(now),
             };
             Ok(ServerResponse {
-                upserts: vec![ServerNode::PullRequest(record)],
+                upserts: vec![ServerNode::PullRequest(Box::new(record))],
                 markdown_overlays: Vec::new(),
                 id_mappings: Vec::new(),
                 refetch_pr_ids: vec![pr_id.to_string()],
                 hard_conflict: None,
             })
+        })
+    }
+}
+
+impl Mutation for DeleteHeadRef {
+    fn kind(&self) -> MutationKind {
+        MutationKind::DeleteHeadRef
+    }
+    fn optimism(&self) -> OptimismLevel {
+        OptimismLevel::None
+    }
+    fn predict(&self, _ctx: &PredictCtx<'_>) -> Result<PredictedEffect> {
+        Ok(no_op_effect(ServerCallShape::None))
+    }
+    fn apply<'a>(&'a self, ctx: &'a ApplyCtx<'_>) -> BoxMutationFuture<'a, Result<ServerResponse>> {
+        Box::pin(async move {
+            let owner = required_str(ctx.input_json, "owner")?;
+            let repo = required_str(ctx.input_json, "repo")?;
+            let pr_id = required_str(ctx.input_json, "pr_id")?;
+            let branch = required_str(ctx.input_json, "head_ref")?;
+            let encoded_branch = branch.replace('/', "%2F");
+            let path = format!("/repos/{owner}/{repo}/git/refs/heads/{encoded_branch}");
+            let _ = ctx
+                .github
+                .rest_mutation_json::<serde_json::Value>(
+                    ctx.account_id,
+                    reqwest::Method::DELETE,
+                    &path,
+                    None,
+                    Some(ctx.idempotency_key),
+                )
+                .await
+                .map_err(map_apply_error)?;
+            Ok(ServerResponse {
+                upserts: Vec::new(),
+                markdown_overlays: Vec::new(),
+                id_mappings: Vec::new(),
+                refetch_pr_ids: vec![pr_id.to_string()],
+                hard_conflict: None,
+            })
+        })
+    }
+
+    fn reconcile<'a>(
+        &'a self,
+        ctx: &'a ReconcileCtx<'_>,
+        response: ServerResponse,
+    ) -> BoxMutationFuture<'a, Result<()>> {
+        Box::pin(async move {
+            let pr_id = required_str(ctx.input_json, "pr_id")?;
+            let now = now_epoch_seconds()?;
+            sqlx::query(
+                "UPDATE pull_requests
+                 SET head_ref_state = 'DELETED', updated_at = ?3
+                 WHERE account_id = ?1 AND id = ?2",
+            )
+            .bind(ctx.account_id)
+            .bind(pr_id)
+            .bind(now)
+            .execute(ctx.db.pool())
+            .await?;
+            super::super::reconciler::reconcile(ctx, response).await
         })
     }
 }
@@ -433,4 +575,112 @@ async fn apply_state_patch(ctx: &ApplyCtx<'_>, state: &str) -> Result<ServerResp
         refetch_pr_ids: vec![pr_id.to_string()],
         hard_conflict: None,
     })
+}
+
+fn map_merge_apply_error(error: anyhow::Error) -> anyhow::Error {
+    let mapped = map_apply_error(error);
+    if let Some(apply_error) = mapped.downcast_ref::<MutationApplyError>() {
+        if let Some(status) = apply_error.http_status {
+            if let Some(diff) = merge_hard_conflict(status, &apply_error.message) {
+                return MutationApplyError::conflict(apply_error.message.clone(), Some(diff))
+                    .into();
+            }
+        }
+    }
+    mapped
+}
+
+fn merge_hard_conflict(status: i64, raw_message: &str) -> Option<HardConflictDiff> {
+    let github_message = extract_github_error_message(raw_message);
+    match status {
+        405 if github_message.contains("Pull Request is not mergeable") => Some(HardConflictDiff {
+            summary: "Pull request is not mergeable yet.".to_string(),
+            local_body: None,
+            server_body: Some(github_message),
+            changed_fields: vec!["mergeable_state".to_string()],
+        }),
+        409 if github_message.contains("Head branch was modified") => Some(HardConflictDiff {
+            summary: "Head branch changed before merge completed.".to_string(),
+            local_body: None,
+            server_body: Some(github_message),
+            changed_fields: vec!["head_sha".to_string()],
+        }),
+        422 if github_message.contains("approving review is required") => {
+            let required = first_integer_in(&github_message).unwrap_or(1);
+            Some(HardConflictDiff {
+                summary: format!(
+                    "Branch protection blocked merge: {required} approval(s) required."
+                ),
+                local_body: None,
+                server_body: Some(github_message),
+                changed_fields: vec!["required_approving_review_count".to_string()],
+            })
+        }
+        _ => None,
+    }
+}
+
+fn extract_github_error_message(raw_message: &str) -> String {
+    if let Some(json_start) = raw_message.find('{') {
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw_message[json_start..]) {
+            if let Some(message) = value.get("message").and_then(serde_json::Value::as_str) {
+                return message.to_string();
+            }
+        }
+    }
+    raw_message.to_string()
+}
+
+fn first_integer_in(text: &str) -> Option<i64> {
+    let mut current = String::new();
+    for ch in text.chars() {
+        if ch.is_ascii_digit() {
+            current.push(ch);
+        } else if !current.is_empty() {
+            return current.parse::<i64>().ok();
+        }
+    }
+    if current.is_empty() {
+        None
+    } else {
+        current.parse::<i64>().ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::merge_hard_conflict;
+
+    #[test]
+    fn merge_hard_conflict_maps_405() {
+        let body = r#"rest mutation failed (405 Method Not Allowed): {"message":"Pull Request is not mergeable","documentation_url":"https://docs.github.com/rest/pulls/pulls#merge-a-pull-request","status":"405"}"#;
+        let conflict = merge_hard_conflict(405, body).expect("405 should map to hard conflict");
+        assert_eq!(conflict.summary, "Pull request is not mergeable yet.");
+        assert_eq!(conflict.changed_fields, vec!["mergeable_state".to_string()]);
+    }
+
+    #[test]
+    fn merge_hard_conflict_maps_409() {
+        let body = r#"rest mutation failed (409 Conflict): {"message":"Head branch was modified. Review and try the merge again.","documentation_url":"https://docs.github.com/rest/pulls/pulls#merge-a-pull-request","status":"409"}"#;
+        let conflict = merge_hard_conflict(409, body).expect("409 should map to hard conflict");
+        assert_eq!(
+            conflict.summary,
+            "Head branch changed before merge completed."
+        );
+        assert_eq!(conflict.changed_fields, vec!["head_sha".to_string()]);
+    }
+
+    #[test]
+    fn merge_hard_conflict_maps_422() {
+        let body = r#"rest mutation failed (422 Unprocessable Entity): {"message":"At least 1 approving review is required by reviewers with write access.","documentation_url":"https://docs.github.com/rest/pulls/pulls#merge-a-pull-request","status":"422"}"#;
+        let conflict = merge_hard_conflict(422, body).expect("422 should map to hard conflict");
+        assert_eq!(
+            conflict.summary,
+            "Branch protection blocked merge: 1 approval(s) required."
+        );
+        assert_eq!(
+            conflict.changed_fields,
+            vec!["required_approving_review_count".to_string()]
+        );
+    }
 }

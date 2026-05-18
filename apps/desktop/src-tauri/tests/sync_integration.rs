@@ -254,6 +254,28 @@ async fn etag_304_round_trip_avoids_counter_decrement_and_db_writes() -> Result<
             head_repo_id: Some("R_NODE_1".to_string()),
             mergeable_state: None,
             merge_state_status: None,
+            merge_commit_allowed: None,
+            squash_merge_allowed: None,
+            rebase_merge_allowed: None,
+            delete_branch_on_merge_default: None,
+            viewer_can_merge: None,
+            viewer_can_enable_auto_merge: None,
+            viewer_can_disable_auto_merge: None,
+            viewer_can_update_branch: None,
+            viewer_can_delete_head_ref: None,
+            auto_merge_enabled: None,
+            auto_merge_method: None,
+            auto_merge_commit_headline: None,
+            auto_merge_commit_body: None,
+            auto_merge_enabled_by_login: None,
+            auto_merge_enabled_at: None,
+            merge_queue_entry_id: None,
+            merge_queue_entry_position: None,
+            merge_queue_entry_state: None,
+            merge_queue_entry_estimated_ms: None,
+            branch_protection_summary_json: None,
+            repo_has_merge_queue: None,
+            head_ref_state: None,
             additions: 0,
             deletions: 0,
             changed_files: 0,
@@ -359,16 +381,20 @@ async fn etag_304_round_trip_avoids_counter_decrement_and_db_writes() -> Result<
 async fn mergeable_null_recovery_uses_expected_virtual_clock_schedule() -> Result<()> {
     let clock = Arc::new(MockClock::default());
     let attempts = Arc::new(AtomicUsize::new(0));
-    run_mergeable_backoff(clock.as_ref(), {
-        let attempts = Arc::clone(&attempts);
-        move || {
+    run_mergeable_backoff(
+        clock.as_ref(),
+        {
             let attempts = Arc::clone(&attempts);
-            async move {
-                let index = attempts.fetch_add(1, Ordering::SeqCst);
-                Ok(index < 5)
+            move || {
+                let attempts = Arc::clone(&attempts);
+                async move {
+                    let index = attempts.fetch_add(1, Ordering::SeqCst);
+                    Ok(index < 5)
+                }
             }
-        }
-    })
+        },
+        |_attempt, _duration| {},
+    )
     .await?;
     assert_eq!(
         clock.durations(),

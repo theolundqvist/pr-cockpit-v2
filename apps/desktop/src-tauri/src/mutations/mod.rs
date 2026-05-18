@@ -75,6 +75,10 @@ pub enum MutationKind {
     DisableAutoMerge,
     UpdateBranch,
     Merge,
+    DeleteHeadRef,
+    EnqueueMergeQueue,
+    DequeueMergeQueue,
+    ReorderMergeQueue,
     ClosePr,
     ReopenPr,
 }
@@ -108,6 +112,10 @@ impl MutationKind {
             Self::DisableAutoMerge => "disable_auto_merge",
             Self::UpdateBranch => "update_branch",
             Self::Merge => "merge",
+            Self::DeleteHeadRef => "delete_head_ref",
+            Self::EnqueueMergeQueue => "enqueue_merge_queue",
+            Self::DequeueMergeQueue => "dequeue_merge_queue",
+            Self::ReorderMergeQueue => "reorder_merge_queue",
             Self::ClosePr => "close_pr",
             Self::ReopenPr => "reopen_pr",
         }
@@ -145,6 +153,10 @@ impl FromStr for MutationKind {
             "disable_auto_merge" => Self::DisableAutoMerge,
             "update_branch" => Self::UpdateBranch,
             "merge" => Self::Merge,
+            "delete_head_ref" => Self::DeleteHeadRef,
+            "enqueue_merge_queue" => Self::EnqueueMergeQueue,
+            "dequeue_merge_queue" => Self::DequeueMergeQueue,
+            "reorder_merge_queue" => Self::ReorderMergeQueue,
             "close_pr" => Self::ClosePr,
             "reopen_pr" => Self::ReopenPr,
             other => return Err(anyhow!("unknown mutation kind `{other}`")),
@@ -193,7 +205,7 @@ pub struct PredictedEffect {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ServerNode {
-    PullRequest(PullRequestRecord),
+    PullRequest(Box<PullRequestRecord>),
     Comment(CommentRecord),
     Review(ReviewRecord),
     ReviewThread(ReviewThreadRecord),

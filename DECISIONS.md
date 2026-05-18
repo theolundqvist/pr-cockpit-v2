@@ -1,5 +1,30 @@
 # Decisions
 
+### 2026-05-18: M4 merge surface contracts (queue reorder mutation, no-optimism button lifecycle, branch-protection JSON, backoff event schema, merge+delete sequencing)
+
+Decision:
+
+- Merge queue reordering uses GraphQL `reorderMergeQueueEntry` with `moveToPosition` (`TOP` / `BOTTOM`) instead of an update-position variant. This matches the surfaced schema in our canonical GitHub query/mutation set and keeps queue movement semantics explicit and low-risk without inventing position arithmetic in the client.
+- `NoOptimismButton` is the canonical non-optimistic mutation UX contract for merge-family controls:
+  1. user click opens a confirmation modal,
+  2. confirm starts inline spinner and submits mutation,
+  3. UI remains pending until `mutation:reconciled`/`mutation:failed` for that `mutation_id`,
+  4. reconcile shows success chip and invokes completion callback,
+  5. failure renders `InlineMutationErrorBanner` with retry/discard.
+  This differs from optimistic paths, which project DB changes immediately and only reconcile/rollback afterward.
+- Branch-protection summary JSON persisted on `pull_requests.branch_protection_summary_json` is:
+  `{ requires_approving_reviews, required_approving_review_count, requires_status_checks, required_status_check_contexts, requires_strict_status_checks, restricts_pushes, restricts_review_dismissals }`
+  (snake_case keys, booleans defaulted false, required context list defaulted empty).
+- Mergeable-null backoff event schema is `mergeable_backoff:<account_id>:<pr_id> tick` with payload:
+  `{ account_id: string, pr_id: string, attempt: i64, next_sleep_seconds: i64 }`, emitted for each scheduled poll sleep step.
+- Delete-branch-on-merge sequencing is strict:
+  1. submit `merge`,
+  2. await `mutation:reconciled` for merge mutation id,
+  3. then submit `delete_head_ref`,
+  4. treat delete as a second non-optimistic confirmation lifecycle with its own reconcile/failure handling.
+
+Reason: M4 needs deterministic merge controls with explicit server-truth gating and reproducible queue/backoff semantics that match GitHub behavior while preserving PLAN §3.2 non-optimistic UX guarantees.
+
 ## M3 contract decisions (promoted for M4+)
 
 These M3 contracts are promoted because downstream milestones depend on them:

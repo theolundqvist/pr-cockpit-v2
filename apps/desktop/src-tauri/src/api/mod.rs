@@ -35,7 +35,13 @@ pub const ENABLE_PULL_REQUEST_AUTOMERGE_MUTATION: &str =
     include_str!("queries/mutations/enablePullRequestAutoMerge.graphql");
 pub const DISABLE_PULL_REQUEST_AUTOMERGE_MUTATION: &str =
     include_str!("queries/mutations/disablePullRequestAutoMerge.graphql");
-pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-17.m1.v1";
+pub const ENQUEUE_PULL_REQUEST_MUTATION: &str =
+    include_str!("queries/mutations/enqueuePullRequest.graphql");
+pub const DEQUEUE_PULL_REQUEST_MUTATION: &str =
+    include_str!("queries/mutations/dequeuePullRequest.graphql");
+pub const REORDER_MERGE_QUEUE_ENTRY_MUTATION: &str =
+    include_str!("queries/mutations/reorderMergeQueueEntry.graphql");
+pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-18.m4.v1";
 pub const INBOX_REFRESH_QUERY_REVISION: &str = "2026-05-17.m1.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

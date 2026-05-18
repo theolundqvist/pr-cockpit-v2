@@ -7,6 +7,7 @@ pub mod comments;
 mod common;
 pub mod labels;
 pub mod merge_controls;
+pub mod merge_queue;
 pub mod pr_meta;
 pub mod reactions;
 pub mod review_comments;
@@ -43,6 +44,10 @@ pub fn all() -> Vec<Arc<dyn Mutation>> {
         Arc::new(merge_controls::DisableAutoMerge),
         Arc::new(merge_controls::UpdateBranch),
         Arc::new(merge_controls::Merge),
+        Arc::new(merge_controls::DeleteHeadRef),
+        Arc::new(merge_queue::EnqueueMergeQueue),
+        Arc::new(merge_queue::DequeueMergeQueue),
+        Arc::new(merge_queue::ReorderMergeQueue),
         Arc::new(merge_controls::ClosePr),
         Arc::new(merge_controls::ReopenPr),
     ]
@@ -77,6 +82,10 @@ pub fn has_handler(kind: MutationKind) -> bool {
             | MutationKind::DisableAutoMerge
             | MutationKind::UpdateBranch
             | MutationKind::Merge
+            | MutationKind::DeleteHeadRef
+            | MutationKind::EnqueueMergeQueue
+            | MutationKind::DequeueMergeQueue
+            | MutationKind::ReorderMergeQueue
             | MutationKind::ClosePr
             | MutationKind::ReopenPr
     )

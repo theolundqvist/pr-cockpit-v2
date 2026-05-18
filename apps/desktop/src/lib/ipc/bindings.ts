@@ -23,6 +23,28 @@ export const commands = {
 	head_sha: string,
 	mergeable_state: string | null,
 	merge_state_status: string | null,
+	merge_commit_allowed: boolean | null,
+	squash_merge_allowed: boolean | null,
+	rebase_merge_allowed: boolean | null,
+	delete_branch_on_merge_default: boolean | null,
+	viewer_can_merge: boolean | null,
+	viewer_can_enable_auto_merge: boolean | null,
+	viewer_can_disable_auto_merge: boolean | null,
+	viewer_can_update_branch: boolean | null,
+	viewer_can_delete_head_ref: boolean | null,
+	auto_merge_enabled: boolean | null,
+	auto_merge_method: string | null,
+	auto_merge_commit_headline: string | null,
+	auto_merge_commit_body: string | null,
+	auto_merge_enabled_by_login: string | null,
+	auto_merge_enabled_at: number | null,
+	merge_queue_entry_id: string | null,
+	merge_queue_entry_position: number | null,
+	merge_queue_entry_state: string | null,
+	merge_queue_entry_estimated_ms: number | null,
+	branch_protection_summary_json: string | null,
+	repo_has_merge_queue: boolean | null,
+	head_ref_state: string | null,
 	additions: number,
 	deletions: number,
 	changed_files: number,
@@ -87,6 +109,7 @@ export const commands = {
 /** Events */
 export const events = {
 	inboxAccountIdChanged: makeEvent<InboxChangedEventPayload>("inbox:account:<id> changed"),
+	mergeableBackoffAccountIdPrIdTick: makeEvent<MergeableBackoffTickEventPayload>("mergeable_backoff:<account_id>:<pr_id> tick"),
 	mutationApplied: makeEvent<MutationAppliedEventPayload>("mutation:applied"),
 	mutationFailed: makeEvent<MutationFailedEventPayload>("mutation:failed"),
 	mutationHardConflict: makeEvent<MutationHardConflictEventPayload>("mutation:hard-conflict"),
@@ -243,6 +266,13 @@ export type ListDraftsInput = {
 	target_id: string | null,
 };
 
+export type MergeableBackoffTickEventPayload = {
+	account_id: string,
+	pr_id: string,
+	attempt: number,
+	next_sleep_seconds: number,
+};
+
 export type MutationAppliedEventPayload = {
 	mutation_id: string,
 };
@@ -259,7 +289,7 @@ export type MutationHardConflictEventPayload = {
 	conflict: HardConflictPayload,
 };
 
-export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "close_pr" | "reopen_pr";
+export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "delete_head_ref" | "enqueue_merge_queue" | "dequeue_merge_queue" | "reorder_merge_queue" | "close_pr" | "reopen_pr";
 
 export type MutationReconciledEventPayload = {
 	mutation_id: string,
@@ -396,6 +426,28 @@ export type PrDetailSummary = {
 	head_sha: string,
 	mergeable_state: string | null,
 	merge_state_status: string | null,
+	merge_commit_allowed: boolean | null,
+	squash_merge_allowed: boolean | null,
+	rebase_merge_allowed: boolean | null,
+	delete_branch_on_merge_default: boolean | null,
+	viewer_can_merge: boolean | null,
+	viewer_can_enable_auto_merge: boolean | null,
+	viewer_can_disable_auto_merge: boolean | null,
+	viewer_can_update_branch: boolean | null,
+	viewer_can_delete_head_ref: boolean | null,
+	auto_merge_enabled: boolean | null,
+	auto_merge_method: string | null,
+	auto_merge_commit_headline: string | null,
+	auto_merge_commit_body: string | null,
+	auto_merge_enabled_by_login: string | null,
+	auto_merge_enabled_at: number | null,
+	merge_queue_entry_id: string | null,
+	merge_queue_entry_position: number | null,
+	merge_queue_entry_state: string | null,
+	merge_queue_entry_estimated_ms: number | null,
+	branch_protection_summary_json: string | null,
+	repo_has_merge_queue: boolean | null,
+	head_ref_state: string | null,
 	additions: number,
 	deletions: number,
 	changed_files: number,

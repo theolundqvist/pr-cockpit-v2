@@ -1,4 +1,4 @@
-# revision: 2026-05-17.m1.v1
+# revision: 2026-05-18.m4.v1
 query PrDetail(
   $owner: String!
   $repo: String!
@@ -23,6 +23,26 @@ query PrDetail(
       isDraft
       mergeable
       mergeStateStatus
+      viewerCanMerge
+      viewerCanEnableAutoMerge
+      viewerCanDisableAutoMerge
+      viewerCanUpdateBranch
+      viewerCanDeleteHeadRef
+      autoMergeRequest {
+        mergeMethod
+        commitHeadline
+        commitBody
+        enabledAt
+        enabledBy {
+          login
+        }
+      }
+      mergeQueueEntry {
+        id
+        position
+        state
+        estimatedTimeToMerge
+      }
       createdAt
       updatedAt
       closedAt
@@ -80,7 +100,31 @@ query PrDetail(
       baseRefName
       baseRefOid
       headRefName
+      headRef {
+        id
+        name
+      }
       headRefOid
+      repository {
+        mergeCommitAllowed
+        squashMergeAllowed
+        rebaseMergeAllowed
+        deleteBranchOnMerge
+        mergeQueue {
+          id
+        }
+        defaultBranchRef {
+          branchProtectionRule {
+            requiresApprovingReviews
+            requiredApprovingReviewCount
+            requiresStatusChecks
+            requiredStatusCheckContexts
+            requiresStrictStatusChecks
+            restrictsPushes
+            restrictsReviewDismissals
+          }
+        }
+      }
       headRepository {
         id
         owner {

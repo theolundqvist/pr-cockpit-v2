@@ -46,6 +46,10 @@ pub fn handler_for(kind: MutationKind) -> Option<Arc<dyn Mutation>> {
         }
         MutationKind::UpdateBranch => Some(Arc::new(handlers::merge_controls::UpdateBranch)),
         MutationKind::Merge => Some(Arc::new(handlers::merge_controls::Merge)),
+        MutationKind::DeleteHeadRef => Some(Arc::new(handlers::merge_controls::DeleteHeadRef)),
+        MutationKind::EnqueueMergeQueue => Some(Arc::new(handlers::merge_queue::EnqueueMergeQueue)),
+        MutationKind::DequeueMergeQueue => Some(Arc::new(handlers::merge_queue::DequeueMergeQueue)),
+        MutationKind::ReorderMergeQueue => Some(Arc::new(handlers::merge_queue::ReorderMergeQueue)),
         MutationKind::ClosePr => Some(Arc::new(handlers::merge_controls::ClosePr)),
         MutationKind::ReopenPr => Some(Arc::new(handlers::merge_controls::ReopenPr)),
     }
