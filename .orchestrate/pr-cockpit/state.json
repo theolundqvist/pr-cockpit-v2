@@ -195,21 +195,21 @@
       "name": "m5-editor-power-worktree-write",
       "type": "subplanner",
       "branch": "orch/pr-cockpit/m5-editor-power-worktree-write",
-      "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
+      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "verify-m4-merge-multiaccount"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T08:03:44.274Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T08:02:53.214Z",
+      "lastUpdate": "2026-05-18T08:03:44.274Z",
       "note": "respawned by self-planner (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -1049,6 +1049,10 @@
     {
       "at": "2026-05-18T08:02:09.608Z",
       "message": "m5-editor-power-worktree-write: synthetic failure handoff written to /workspace/.orchestrate/pr-cockpit/handoffs/m5-editor-power-worktree-write-failure.md"
+    },
+    {
+      "at": "2026-05-18T08:02:54.187Z",
+      "message": "m5-editor-power-worktree-write: respawned by self-planner (was error); resuming from orch/pr-cockpit/m5-editor-power-worktree-write"
     }
   ]
 }
