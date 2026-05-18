@@ -1,0 +1,12 @@
+[verifier] running cargo fmt --check -> cargo-fmt.log
+[verifier] cargo fmt --check OK
+[verifier] running cargo clippy -> cargo-clippy.log
+[verifier] cargo clippy OK
+[verifier] running cargo test -> cargo-test.log
+[verifier] cargo test FAILED
+==== pnpm ipc:bindings exit=0 ====
+==== pnpm typecheck exit=0 ====
+==== pnpm svelte-check exit=0 ====
+==== pnpm lint exit=0 ====
+==== pnpm test exit=0 ====
+==== pnpm corpus exit=0 ====

@@ -1,0 +1,776 @@
+   Compiling unicode-ident v1.0.24
+   Compiling cfg-if v1.0.4
+   Compiling equivalent v1.0.2
+   Compiling hashbrown v0.17.1
+   Compiling proc-macro2 v1.0.106
+   Compiling libc v0.2.186
+   Compiling serde_core v1.0.228
+   Compiling quote v1.0.45
+   Compiling syn v2.0.117
+   Compiling indexmap v2.14.0
+   Compiling memchr v2.8.0
+   Compiling heck v0.5.0
+   Compiling itoa v1.0.18
+   Compiling scopeguard v1.2.0
+   Compiling lock_api v0.4.14
+   Compiling smallvec v1.15.1
+   Compiling pin-project-lite v0.2.17
+   Compiling siphasher v1.0.3
+   Compiling futures-core v0.3.32
+   Compiling stable_deref_trait v1.2.1
+   Compiling once_cell v1.21.4
+   Compiling bitflags v2.11.1
+   Compiling zmij v1.0.21
+   Compiling bytes v1.11.1
+   Compiling writeable v0.6.3
+   Compiling litemap v0.8.2
+   Compiling percent-encoding v2.3.2
+   Compiling utf8_iter v1.0.4
+   Compiling futures-io v0.3.32
+   Compiling icu_normalizer_data v2.2.0
+   Compiling icu_properties_data v2.2.0
+   Compiling log v0.4.29
+   Compiling form_urlencoded v1.2.2
+   Compiling slab v0.4.12
+   Compiling winnow v1.0.3
+   Compiling futures-task v0.3.32
+   Compiling base64 v0.22.1
+   Compiling phf_shared v0.13.1
+   Compiling futures-sink v0.3.32
+   Compiling fnv v1.0.7
+   Compiling typenum v1.20.0
+   Compiling regex-syntax v0.8.10
+   Compiling phf_generator v0.13.1
+   Compiling synstructure v0.13.2
+   Compiling new_debug_unreachable v1.0.6
+   Compiling futures-channel v0.3.32
+   Compiling http v1.4.0
+   Compiling parking_lot_core v0.9.12
+   Compiling aho-corasick v1.1.4
+   Compiling parking_lot v0.12.5
+   Compiling serde_derive v1.0.228
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling zerofrom v0.1.8
+   Compiling zerovec-derive v0.11.3
+   Compiling yoke v0.8.2
+   Compiling displaydoc v0.2.5
+   Compiling thiserror-impl v2.0.18
+   Compiling zerotrie v0.2.4
+   Compiling zerovec v0.11.6
+   Compiling thiserror-impl v1.0.69
+   Compiling serde v1.0.228
+   Compiling tinystr v0.8.3
+   Compiling toml_datetime v0.6.3
+   Compiling serde_spanned v0.6.9
+   Compiling icu_locale_core v2.2.0
+   Compiling toml_edit v0.20.2
+   Compiling potential_utf v0.1.5
+   Compiling icu_collections v2.2.0
+   Compiling thiserror v2.0.18
+   Compiling thiserror v1.0.69
+   Compiling zeroize_derive v1.4.3
+   Compiling futures-macro v0.3.32
+   Compiling zeroize v1.8.2
+   Compiling icu_provider v2.2.0
+   Compiling icu_properties v2.2.0
+   Compiling serde_json v1.0.149
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling toml v0.8.2
+   Compiling system-deps v6.2.2
+   Compiling strsim v0.11.1
+   Compiling precomputed-hash v0.1.1
+   Compiling futures-util v0.3.32
+   Compiling syn v1.0.109
+   Compiling powerfmt v0.2.0
+   Compiling glib-sys v0.18.1
+   Compiling gobject-sys v0.18.0
+   Compiling time-core v0.1.8
+   Compiling num-conv v0.2.1
+   Compiling alloc-no-stdlib v2.0.4
+   Compiling darling_core v0.23.0
+   Compiling alloc-stdlib v0.2.2
+   Compiling phf_macros v0.13.1
+   Compiling quick-xml v0.39.4
+   Compiling byteorder v1.5.0
+   Compiling utf-8 v0.7.6
+   Compiling brotli-decompressor v5.0.0
+   Compiling icu_normalizer v2.2.0
+   Compiling darling_macro v0.23.0
+   Compiling darling v0.23.0
+   Compiling idna_adapter v1.2.2
+   Compiling crossbeam-utils v0.8.21
+   Compiling gio-sys v0.18.1
+   Compiling phf_codegen v0.13.1
+   Compiling dtoa v1.0.11
+   Compiling toml_writer v1.1.1+spec-1.1.0
+   Compiling dtoa-short v0.3.5
+   Compiling idna v1.1.0
+   Compiling cssparser-macros v0.6.1
+   Compiling errno v0.3.14
+   Compiling same-file v1.0.6
+   Compiling signal-hook-registry v1.4.8
+   Compiling walkdir v2.5.0
+   Compiling url v2.5.8
+   Compiling typeid v1.0.3
+   Compiling unic-common v0.9.0
+   Compiling unic-char-range v0.9.0
+   Compiling unic-char-property v0.9.0
+   Compiling unic-ucd-version v0.9.0
+   Compiling phf v0.13.1
+   Compiling string_cache_codegen v0.6.1
+   Compiling unic-ucd-ident v0.9.0
+   Compiling serde_with_macros v3.20.0
+   Compiling futures-executor v0.3.32
+   Compiling web_atoms v0.2.4
+   Compiling serde_spanned v1.1.1
+   Compiling subtle v2.6.1
+   Compiling getrandom v0.4.2
+   Compiling string_cache v0.9.0
+   Compiling mio v1.2.0
+   Compiling dunce v1.0.5
+   Compiling ctor v0.8.0
+   Compiling uuid v1.23.1
+   Compiling proc-macro-error-attr v1.0.4
+   Compiling anyhow v1.0.102
+   Compiling selectors v0.36.1
+   Compiling tendril v0.5.0
+   Compiling gdk-sys v0.18.2
+   Compiling derive_more-impl v2.1.1
+   Compiling tokio-macros v2.7.0
+   Compiling socket2 v0.6.3
+   Compiling glob v0.3.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling tokio v1.52.3
+   Compiling markup5ever v0.38.0
+   Compiling proc-macro-error v1.0.4
+   Compiling derive_more v2.1.1
+   Compiling toml v1.1.2+spec-1.1.0
+   Compiling cssparser v0.36.0
+   Compiling rustix v1.1.4
+   Compiling deranged v0.5.8
+   Compiling regex-automata v0.4.14
+   Compiling serde_derive_internals v0.29.1
+   Compiling servo_arc v0.4.3
+   Compiling const-oid v0.9.6
+   Compiling indexmap v1.9.3
+   Compiling bit-set v0.8.0
+   Compiling regex v1.12.3
+   Compiling schemars_derive v0.8.22
+   Compiling time v0.3.47
+   Compiling generic-array v0.14.9
+   Compiling html5ever v0.38.0
+   Compiling cfb v0.7.3
+   Compiling erased-serde v0.4.10
+   Compiling jsonptr v0.6.3
+   Compiling proc-macro-crate v2.0.2
+   Compiling cargo-platform v0.1.9
+   Compiling tracing-attributes v0.1.31
+   Compiling getrandom v0.2.17
+   Compiling schemars v0.8.22
+   Compiling dom_query v0.27.0
+   Compiling glib-macros v0.18.5
+   Compiling cargo_metadata v0.19.2
+   Compiling json-patch v3.0.1
+   Compiling serde-untagged v0.1.9
+   Compiling infer v0.19.0
+   Compiling plist v1.9.0
+   Compiling urlpattern v0.3.0
+   Compiling serde_with v3.20.0
+   Compiling brotli v8.0.2
+   Compiling gdk-pixbuf-sys v0.18.0
+   Compiling pango-sys v0.18.0
+   Compiling cairo-sys-rs v0.18.2
+   Compiling cpufeatures v0.2.17
+   Compiling simd-adler32 v0.3.9
+   Compiling glib v0.18.5
+   Compiling atk-sys v0.18.2
+   Compiling parking v2.2.1
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.8.9
+   Compiling crc32fast v1.5.0
+   Compiling libm v0.2.16
+   Compiling tauri-utils v2.9.2
+   Compiling zerocopy-derive v0.8.48
+   Compiling option-ext v0.2.0
+   Compiling num-traits v0.2.19
+   Compiling zerocopy v0.8.48
+   Compiling flate2 v1.1.9
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.6
+   Compiling tracing-core v0.1.36
+   Compiling phf_shared v0.11.3
+   Compiling digest v0.10.7
+   Compiling gtk-sys v0.18.2
+   Compiling gio v0.18.4
+   Compiling phf_generator v0.11.3
+   Compiling tracing v0.1.44
+   Compiling bitflags v1.3.2
+   Compiling getrandom v0.1.16
+   Compiling rand_core v0.6.4
+   Compiling toml v0.9.12+spec-1.1.0
+   Compiling rand_core v0.5.1
+   Compiling dirs-sys v0.5.0
+   Compiling embed-resource v3.0.9
+   Compiling concurrent-queue v2.5.0
+   Compiling time-macros v0.2.27
+   Compiling spin v0.9.8
+   Compiling base64ct v1.8.3
+   Compiling pem-rfc7468 v0.7.0
+   Compiling tauri-winres v0.3.6
+   Compiling dirs v6.0.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling cargo_toml v0.22.3
+   Compiling cairo-rs v0.18.5
+   Compiling toml_edit v0.19.15
+   Compiling tauri-build v2.6.2
+   Compiling proc-macro-crate v1.3.1
+   Compiling pango v0.18.3
+   Compiling gdk-pixbuf v0.18.5
+   Compiling rand_chacha v0.2.2
+   Compiling memoffset v0.9.1
+   Compiling der v0.7.10
+   Compiling gdk v0.18.2
+   Compiling rand_pcg v0.2.1
+   Compiling soup3-sys v0.5.0
+   Compiling javascriptcore-rs-sys v1.1.1
+   Compiling allocator-api2 v0.2.21
+   Compiling foldhash v0.1.5
+   Compiling atomic-waker v1.1.2
+   Compiling siphasher v0.3.11
+   Compiling phf_shared v0.8.0
+   Compiling hashbrown v0.15.5
+   Compiling gtk v0.18.2
+   Compiling rand v0.7.3
+   Compiling spki v0.7.3
+   Compiling field-offset v0.3.6
+   Compiling gtk3-macros v0.18.2
+   Compiling sha2 v0.10.9
+   Compiling atk v0.18.2
+   Compiling tauri-plugin v2.6.2
+   Compiling fdeflate v0.3.7
+   Compiling webkit2gtk-sys v2.0.2
+   Compiling fastrand v2.4.1
+   Compiling phf_generator v0.8.0
+   Compiling pkcs8 v0.10.2
+   Compiling getrandom v0.3.4
+   Compiling tauri v2.11.2
+   Compiling event-listener v5.4.1
+   Compiling gdkx11-sys v0.18.2
+   Compiling x11 v2.21.0
+   Compiling string_cache_codegen v0.5.4
+   Compiling tokio-util v0.7.18
+   Compiling dpi v0.1.2
+   Compiling specta-macros v2.0.0-rc.25
+   Compiling javascriptcore-rs v1.1.2
+   Compiling soup3 v0.5.0
+   Compiling toml_edit v0.25.11+spec-1.1.0
+   Compiling enumflags2_derive v0.7.12
+   Compiling http-body v1.0.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling raw-window-handle v0.6.2
+   Compiling ryu v1.0.23
+   Compiling proc-macro-crate v3.5.0
+   Compiling specta v2.0.0-rc.25
+   Compiling cookie v0.18.1
+   Compiling x11-dl v2.21.0
+   Compiling libdbus-sys v0.2.7
+   Compiling png v0.17.16
+   Compiling hmac v0.12.1
+   Compiling crossbeam-channel v0.5.15
+   Compiling zvariant_utils v3.3.1
+   Compiling dlopen2_derive v0.4.3
+   Compiling semver v1.0.28
+   Compiling try-lock v0.2.5
+   Compiling tower-service v0.3.3
+   Compiling dlopen2 v0.8.2
+   Compiling want v0.3.1
+   Compiling wry v0.55.1
+   Compiling zvariant_derive v5.11.0
+   Compiling ico v0.5.0
+   Compiling dbus v0.9.11
+   Compiling httparse v1.10.1
+   Compiling h2 v0.4.14
+   Compiling gdkx11 v0.18.2
+   Compiling event-listener-strategy v0.5.4
+   Compiling phf_codegen v0.8.0
+   Compiling futures-lite v2.6.1
+   Compiling lazy_static v1.5.0
+   Compiling ff v0.13.1
+   Compiling signature v2.2.0
+   Compiling phf_macros v0.11.3
+   Compiling gdkwayland-sys v0.18.2
+   Compiling rustls-pki-types v1.14.1
+   Compiling serde_repr v0.1.20
+   Compiling unicode-segmentation v1.13.2
+   Compiling mac v0.1.1
+   Compiling base16ct v0.2.0
+   Compiling httpdate v1.0.3
+   Compiling endi v1.1.1
+   Compiling crc-catalog v2.5.0
+   Compiling crc v3.4.0
+   Compiling keyboard-types v0.7.0
+   Compiling hyper v1.9.0
+   Compiling sec1 v0.7.3
+   Compiling futf v0.1.5
+   Compiling phf v0.11.3
+   Compiling group v0.13.0
+   Compiling tauri-codegen v2.6.2
+   Compiling wayland-sys v0.31.11
+   Compiling hkdf v0.12.4
+   Compiling hashlink v0.10.0
+   Compiling crypto-bigint v0.5.5
+   Compiling webkit2gtk v2.0.2
+   Compiling tao v0.35.2
+   Compiling string_cache v0.8.9
+   Compiling num-integer v0.1.46
+   Compiling either v1.15.0
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling downcast-rs v1.2.1
+   Compiling untrusted v0.9.0
+   Compiling ipnet v2.12.0
+   Compiling hyper-util v0.1.20
+   Compiling ring v0.17.14
+   Compiling tauri-runtime v2.11.2
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling wayland-backend v0.3.15
+   Compiling serialize-to-javascript v0.1.2
+   Compiling tauri-macros v2.6.2
+   Compiling elliptic-curve v0.13.8
+   Compiling muda v0.19.1
+   Compiling phf_macros v0.8.0
+   Compiling tendril v0.4.3
+   Compiling enumflags2 v0.7.12
+   Compiling rand_core v0.9.5
+   Compiling phf_codegen v0.11.3
+   Compiling polling v3.11.0
+   Compiling wayland-scanner v0.31.10
+   Compiling utf8parse v0.2.2
+   Compiling mime v0.3.17
+   Compiling http-range v0.1.5
+   Compiling async-task v4.7.1
+   Compiling hex v0.4.3
+   Compiling wayland-client v0.31.14
+   Compiling tokio-stream v0.1.18
+   Compiling anstyle-parse v1.0.0
+   Compiling async-io v2.6.0
+   Compiling web_atoms v0.1.3
+   Compiling zvariant v5.11.0
+   Compiling phf v0.8.0
+   Compiling rustls-webpki v0.103.13
+   Compiling async-channel v2.5.0
+   Compiling crossbeam-queue v0.3.12
+   Compiling rfc6979 v0.4.0
+   Compiling serde_urlencoded v0.7.1
+   Compiling http-body-util v0.1.3
+   Compiling rand_chacha v0.3.1
+   Compiling futures-intrusive v0.5.0
+   Compiling colorchoice v1.0.5
+   Compiling compression-core v0.4.32
+   Compiling fixedbitset v0.5.7
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling petgraph v0.8.3
+   Compiling anstream v1.0.0
+   Compiling compression-codecs v0.4.38
+   Compiling sqlx-core v0.8.6
+   Compiling zbus_names v4.3.2
+   Compiling rand v0.8.6
+   Compiling rustls v0.23.40
+   Compiling ecdsa v0.16.9
+   Compiling atoi v2.0.0
+   Compiling async-signal v0.2.14
+   Compiling wayland-protocols v0.32.12
+   Compiling rand_chacha v0.9.0
+   Compiling primeorder v0.13.6
+   Compiling num-iter v0.1.45
+   Compiling markup5ever v0.10.1
+   Compiling async-lock v3.4.2
+   Compiling flume v0.11.1
+   Compiling piper v0.2.5
+   Compiling terminal_size v0.4.4
+   Compiling gethostname v1.1.0
+   Compiling cssparser v0.27.2
+   Compiling tree-sitter v0.25.10
+   Compiling async-trait v0.1.89
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling sync_wrapper v1.0.2
+   Compiling nom v8.0.0
+   Compiling tinyvec_macros v0.1.1
+   Compiling tower-layer v0.3.3
+   Compiling clap_lex v1.1.0
+   Compiling pxfm v0.1.29
+   Compiling openssl-probe v0.2.1
+   Compiling rustls-native-certs v0.8.3
+   Compiling clap_builder v4.6.0
+   Compiling tower v0.5.3
+   Compiling tree_magic_mini v3.2.2
+   Compiling tinyvec v1.11.0
+   Compiling moxcms v0.8.1
+   Compiling cargo_metadata v0.23.1
+   Compiling curve25519-dalek v4.1.3
+   Compiling wayland-protocols-wlr v0.3.12
+   Compiling blocking v1.6.2
+   Compiling sqlx-sqlite v0.8.6
+   Compiling async-process v2.5.0
+   Compiling tokio-rustls v0.26.4
+   Compiling num-bigint-dig v0.8.6
+   Compiling rand v0.9.4
+   Compiling libsqlite3-sys v0.30.1
+   Compiling zbus_macros v5.15.0
+   Compiling onig_sys v69.9.3
+   Compiling ahash v0.8.12
+   Compiling prettyplease v0.2.37
+   Compiling async-compression v0.4.42
+   Compiling async-executor v1.14.0
+   Compiling num-bigint v0.4.6
+   Compiling webpki-roots v1.0.7
+   Compiling ed25519 v2.2.3
+   Compiling selectors v0.22.0
+   Compiling async-broadcast v0.7.2
+   Compiling pkcs1 v0.7.5
+   Compiling tauri-plugin-os v2.3.2
+   Compiling tauri-plugin-clipboard-manager v2.3.2
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-notification v2.3.3
+   Compiling png v0.18.1
+   Compiling html5ever v0.25.2
+   Compiling clap_derive v4.6.1
+   Compiling async-recursion v1.1.1
+   Compiling ordered-stream v0.2.0
+   Compiling os_pipe v1.2.3
+   Compiling iana-time-zone v0.1.65
+   Compiling x11rb-protocol v0.13.2
+   Compiling byteorder-lite v0.1.0
+   Compiling nodrop v0.1.14
+   Compiling matches v0.1.10
+   Compiling itoa v0.4.8
+   Compiling bytemuck v1.25.0
+   Compiling image v0.25.10
+   Compiling clap v4.6.1
+   Compiling servo_arc v0.1.1
+   Compiling sqlx-macros-core v0.8.6
+   Compiling derive_more v0.99.20
+   Compiling zbus v5.15.0
+   Compiling x11rb v0.13.2
+   Compiling chrono v0.4.44
+   Compiling wl-clipboard-rs v0.9.3
+   Compiling tempfile v3.27.0
+   Compiling rsa v0.9.10
+   Compiling simple_asn1 v0.6.4
+   Compiling ed25519-dalek v2.2.0
+   Compiling hyper-rustls v0.27.9
+   Compiling bon-macros v3.9.1
+   Compiling nix v0.30.1
+   Compiling tower-http v0.6.10
+   Compiling hashbrown v0.14.5
+   Compiling onig v6.5.3
+   Compiling markup5ever v0.35.0
+   Compiling octocrab v0.50.0
+   Compiling unicode-normalization v0.1.25
+   Compiling p384 v0.13.1
+   Compiling p256 v0.13.2
+   Compiling openssl-sys v0.9.116
+   Compiling libz-sys v1.1.28
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling tree-sitter-language v0.1.7
+   Compiling futures v0.3.32
+   Compiling fxhash v0.2.1
+   Compiling bincode v1.3.3
+   Compiling match_token v0.35.0
+   Compiling snafu-derive v0.8.9
+   Compiling pin-project-internal v1.1.13
+   Compiling pem v3.0.6
+   Compiling phf_shared v0.12.1
+   Compiling inotify-sys v0.1.5
+   Compiling streaming-iterator v0.1.9
+   Compiling thin-slice v0.1.1
+   Compiling pin-project v1.1.13
+   Compiling inotify v0.11.1
+   Compiling phf v0.12.1
+   Compiling snafu v0.8.9
+   Compiling jsonwebtoken v10.4.0
+   Compiling html5ever v0.35.0
+   Compiling bon v3.9.1
+   Compiling syntect v5.3.0
+   Compiling libgit2-sys v0.18.4+1.9.3
+   Compiling zstd-safe v7.2.4
+   Compiling caseless v0.2.2
+   Compiling hashlink v0.9.1
+   Compiling os_info v3.14.0
+   Compiling notify-rust v4.17.0
+   Compiling arboard v3.6.1
+   Compiling jetscii v0.5.3
+   Compiling sqlx-macros v0.8.6
+   Compiling arc-swap v1.9.1
+   Compiling hyper-timeout v0.5.2
+   Compiling emojis v0.6.4
+   Compiling cssparser v0.35.0
+   Compiling sharded-slab v0.1.7
+   Compiling specta-util v0.0.12
+   Compiling specta-serde v0.0.12
+   Compiling specta-typescript v0.0.12
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+   Compiling matchers v0.2.0
+   Compiling tracing-log v0.2.0
+   Compiling secrecy v0.10.3
+   Compiling notify-types v2.1.0
+   Compiling serde_path_to_error v0.1.20
+   Compiling thread_local v1.1.9
+   Compiling maplit v1.0.2
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling web-time v1.1.0
+   Compiling openssl-probe v0.1.6
+   Compiling typed-arena v2.0.2
+   Compiling sys-locale v0.3.2
+   Compiling shell-words v1.1.1
+   Compiling unicode_categories v0.1.1
+   Compiling xdg v2.5.2
+   Compiling nu-ansi-term v0.50.3
+   Compiling fallible-iterator v0.3.0
+   Compiling fmt2io v1.0.0
+   Compiling comrak v0.48.0
+   Compiling rusqlite v0.32.1
+   Compiling tracing-subscriber v0.3.23
+   Compiling git2 v0.20.4
+   Compiling ammonia v4.1.2
+   Compiling notify v8.2.0
+   Compiling tauri-specta v2.0.0-rc.25
+   Compiling sqlx v0.8.6
+   Compiling kuchiki v0.8.1
+   Compiling zstd v0.13.3
+   Compiling tree-sitter-highlight v0.25.10
+   Compiling chrono-tz v0.10.4
+   Compiling reqwest v0.12.28
+   Compiling keyring v3.6.3
+   Compiling crossbeam-epoch v0.9.18
+   Compiling half v2.7.1
+   Compiling crossbeam-deque v0.8.6
+   Compiling plotters-backend v0.3.7
+   Compiling ciborium-io v0.2.2
+   Compiling ciborium-ll v0.2.2
+   Compiling plotters-svg v0.3.7
+   Compiling rayon-core v1.13.0
+   Compiling itertools v0.13.0
+   Compiling assert-json-diff v2.0.2
+   Compiling num_cpus v1.17.0
+   Compiling wait-timeout v0.2.1
+   Compiling cast v0.3.0
+   Compiling bit-vec v0.8.0
+   Compiling deadpool-runtime v0.1.4
+   Compiling quick-error v1.2.3
+   Compiling deadpool v0.12.3
+   Compiling rusty-fork v0.3.1
+   Compiling criterion-plot v0.8.2
+   Compiling rayon v1.12.0
+   Compiling plotters v0.3.7
+   Compiling alloca v0.4.0
+   Compiling ciborium v0.2.2
+   Compiling rand_xorshift v0.4.0
+   Compiling tinytemplate v1.2.1
+   Compiling page_size v0.6.0
+   Compiling similar v2.7.0
+   Compiling anes v0.1.6
+   Compiling unarray v0.1.4
+   Compiling colored v3.1.1
+   Compiling oorandom v11.1.5
+   Compiling criterion v0.8.2
+   Compiling mockito v1.7.2
+   Compiling proptest v1.11.0
+   Compiling wiremock v0.6.5
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5m 16s
+     Running unittests src/lib.rs (target/debug/deps/desktop_lib-2c0d734b3668e405)
+
+running 11 tests
+test ipc::worktree::discovery::tests::parses_porcelain_entries ... ok
+test auth::gh::tests::parses_status_sections_by_token_match ... ok
+test mutations::net::tests::probe_transitions_offline_to_online ... ok
+test mutations::net::tests::api_error_marks_offline_immediately ... ok
+test mutations::projector::tests::optimistic_prediction_stamps_pending_overlay ... ok
+test mutations::projector::tests::apply_forward_then_inverse_is_noop_for_single_row ... ok
+test render::tests::sanitizes_scripts ... ok
+test tests::package_name_is_stable ... ok
+test render::tests::normalizes_same_repo_pr_autolinks ... ok
+test render::tests::normalizes_github_issue_and_comment_autolinks ... ok
+test render::tests::normalizes_same_repo_label_links ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/main.rs (target/debug/deps/desktop-4fc23b0f4e5c1f6c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests fixtures/build.rs (target/debug/deps/fixture_build-23525b2af13b35b5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generate_ipc_bindings.rs (target/debug/deps/generate_ipc_bindings-6958a0626586154b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_batch.rs (target/debug/deps/render_batch-d7917e0d85e7c53e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/airplane_drill.rs (target/debug/deps/airplane_drill-c11a60b58aac36f0)
+
+running 1 test
+test airplane_offline_queue_replay_drill ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/canonical_queries.rs (target/debug/deps/canonical_queries-624968c836d32792)
+
+running 1 test
+test graphql_queries_are_canonicalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/db_integration.rs (target/debug/deps/db_integration-15773e8cfb73c618)
+
+running 6 tests
+test fts_search_returns_expected_hits ... ok
+test open_fixture_loads_inbox_under_timing_budget_best_effort ... ok
+test read_models_match_hand_rolled_selects_on_fixture ... ok
+test migrations_apply_cleanly_to_empty_file ... ok
+test blob_store_round_trip_and_ref_counts_work ... ok
+test pr_file_rename_round_trip_surfaces_previous_path_and_similarity ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running tests/diff_polish_viewed_files_head_sha.rs (target/debug/deps/diff_polish_viewed_files_head_sha-b5873fe05bb55cc9)
+
+running 1 test
+test viewed_state_is_scoped_to_current_head_sha ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/ipc_bindings.rs (target/debug/deps/ipc_bindings-156e3e3a187df45c)
+
+running 1 test
+test ipc_bindings_are_up_to_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/ipc_token_safety.rs (target/debug/deps/ipc_token_safety-1600b21b6d3bfd47)
+
+running 1 test
+test ipc_flow_tracing_does_not_leak_stubbed_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/mutation_engine_proptest.rs (target/debug/deps/mutation_engine_proptest-2e7340d2700220d0)
+
+running 4 tests
+test dispatch_table_covers_full_kind_set ... ok
+test prop_projector_is_involution ... ok
+test prop_submit_then_rollback_restores_domain_state_for_all_kinds ... ok
+test prop_interleaved_submit_discard_is_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.74s
+
+     Running tests/mutations_collaboration.rs (target/debug/deps/mutations_collaboration-3d26490af90c5e07)
+
+running 2 tests
+test collaboration_happy_paths_round_trip ... ok
+test collaboration_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.17s
+
+     Running tests/mutations_comments.rs (target/debug/deps/mutations_comments-6f712993c22b3d46)
+
+running 2 tests
+test comments_happy_paths_round_trip ... ok
+test comments_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/mutations_e2e.rs (target/debug/deps/mutations_e2e-343eaa3d0e4cbcd6)
+
+running 1 test
+test cross_family_e2e_reflects_optimistic_then_reconciled_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/mutations_harness.rs (target/debug/deps/mutations_harness-91a39047c6135ac2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutations_pr_meta.rs (target/debug/deps/mutations_pr_meta-53127bede5854621)
+
+running 2 tests
+test pr_meta_happy_paths_round_trip ... ok
+test pr_meta_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.20s
+
+     Running tests/mutations_review_comments.rs (target/debug/deps/mutations_review_comments-c17ca83d0901638b)
+
+running 2 tests
+test review_comment_422_rolls_back_and_marks_failed_mutation ... ok
+test review_comment_happy_path_line_multiline_and_reply_match_snapshot ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/mutations_reviews_threads.rs (target/debug/deps/mutations_reviews_threads-a73e3f432df2f528)
+
+running 2 tests
+test review_and_thread_failure_paths_roll_back ... ok
+test review_and_thread_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+
+     Running tests/notifications_dedup.rs (target/debug/deps/notifications_dedup-4454e9d7aed475db)
+
+running 1 test
+test duplicate_events_dispatch_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running tests/notifications_focus_mode.rs (target/debug/deps/notifications_focus_mode-4e12b38aa39e7fde)
+
+running 1 test
+test focus_mode_suppresses_all_os_notifications ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/notifications_per_repo_filters.rs (target/debug/deps/notifications_per_repo_filters-f7e9f0555795db3f)
+
+running 1 test
+test allow_list_limits_dispatch_and_deny_takes_precedence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/notifications_quiet_hours.rs (target/debug/deps/notifications_quiet_hours-b3fd3177fcf9e0db)
+
+running 1 test
+test quiet_hours_suppress_os_dispatch_but_record_events ... FAILED
+
+failures:
+
+---- quiet_hours_suppress_os_dispatch_but_record_events stdout ----
+
+thread 'quiet_hours_suppress_os_dispatch_but_record_events' (78708) panicked at apps/desktop/src-tauri/tests/notifications_quiet_hours.rs:47:5:
+assertion `left == right` failed
+  left: 3
+ right: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    quiet_hours_suppress_os_dispatch_but_record_events
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `--test notifications_quiet_hours`
