@@ -40,7 +40,11 @@ pnpm corpus
 - `cargo_test.log` — full `cargo test --workspace` run (73 passed / 0 failed).
 - `bench.log` — `pnpm bench` output incl. all PLAN.md §10 + M3 budgets green.
 - `playwright.log` — required Playwright suite headless under xvfb (7 passed).
-- M3 live smoke screenshots remain at `artifacts/m3-smoke/01-...png` … `05-...png`.
+- `smoke/01-...png` … `smoke/05-...png` — M3 live smoke screenshots reproduced
+  by the verifier's `playwright/m3-smoke.spec.ts` run (mirror of the worker's
+  capture at `artifacts/m3-smoke/`).
+- `worktree/01-inbox-worktree-roots.png`, `worktree/02-pr-worktree-mapping.png`
+  — verifier reproduction of the `playwright/worktree.spec.ts` capture.
 
 ## Key invariants confirmed by source
 
