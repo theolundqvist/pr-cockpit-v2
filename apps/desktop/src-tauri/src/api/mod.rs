@@ -211,6 +211,13 @@ impl GithubClient {
         self.probe_url.clone()
     }
 
+    pub async fn resolve_account_endpoints(
+        &self,
+        account_id: &str,
+    ) -> Result<ResolvedAccountEndpoints> {
+        self.resolve_account(account_id).await
+    }
+
     pub async fn graphql<T: DeserializeOwned>(
         &self,
         account_id: &str,

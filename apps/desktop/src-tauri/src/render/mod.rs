@@ -26,6 +26,9 @@ static SUGGESTION_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r#"(?s)<pre><code class="language-suggestion">(.+?)</code></pre>"#)
         .expect("valid suggestion regex")
 });
+static SUGGESTION_FENCE_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"(?ms)^```suggestion[^\n]*\n(.*?)\n```").expect("valid suggestion fence regex")
+});
 static GH_ISSUE_OR_PR_LINK_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
         r"^https://github\.com/([^/]+)/([^/]+)/(issues|pull)/(\d+)(#(?:issuecomment-\d+|discussion_r\d+))?/?$",
@@ -56,6 +59,18 @@ static EMOJI_MAP: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
 pub struct RenderCtx<'a> {
     pub repo: Option<&'a str>,
     pub cache: Option<&'a RenderCacheStore>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SuggestionBlock {
+    pub id: String,
+    pub comment_id: String,
+    pub body: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub side: String,
+    pub original_commit_sha: String,
+    pub suggestion_author_login: String,
 }
 
 #[derive(Clone, Debug)]
@@ -127,6 +142,40 @@ fn postprocess_suggestion_blocks(input: &str) -> String {
             )
         })
         .to_string()
+}
+
+pub fn extract_suggestion_blocks(
+    comment_id: &str,
+    comment_body: &str,
+    start_line: Option<i64>,
+    line: Option<i64>,
+    side: Option<&str>,
+    original_commit_sha: Option<&str>,
+    suggestion_author_login: Option<&str>,
+) -> Vec<SuggestionBlock> {
+    let start = start_line.or(line).unwrap_or(0);
+    let end = line.or(start_line).unwrap_or(start);
+    let resolved_side = side.unwrap_or("RIGHT").to_string();
+    let resolved_author = suggestion_author_login.unwrap_or("ghost").to_string();
+    let resolved_original_commit_sha = original_commit_sha.unwrap_or_default().to_string();
+
+    SUGGESTION_FENCE_RE
+        .captures_iter(comment_body)
+        .enumerate()
+        .map(|(index, captures)| SuggestionBlock {
+            id: format!("{comment_id}:{index}"),
+            comment_id: comment_id.to_string(),
+            body: captures
+                .get(1)
+                .map(|capture| capture.as_str().to_string())
+                .unwrap_or_default(),
+            start_line: start,
+            end_line: end,
+            side: resolved_side.clone(),
+            original_commit_sha: resolved_original_commit_sha.clone(),
+            suggestion_author_login: resolved_author.clone(),
+        })
+        .collect()
 }
 
 fn postprocess_alerts(input: &str) -> String {
@@ -508,5 +557,29 @@ mod tests {
             },
         );
         assert!(rendered.html.contains(">help wanted<"));
+    }
+
+    #[test]
+    fn extracts_suggestion_blocks_from_markdown_fences() {
+        let body = "before\n```suggestion\nlet x = 1;\n```\n\n```suggestion\nlet y = 2;\n```\n";
+        let blocks = extract_suggestion_blocks(
+            "comment-1",
+            body,
+            Some(10),
+            Some(11),
+            Some("RIGHT"),
+            Some("abc123"),
+            Some("octocat"),
+        );
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(blocks[0].id, "comment-1:0");
+        assert_eq!(blocks[0].body, "let x = 1;");
+        assert_eq!(blocks[1].id, "comment-1:1");
+        assert_eq!(blocks[1].body, "let y = 2;");
+        assert_eq!(blocks[0].start_line, 10);
+        assert_eq!(blocks[0].end_line, 11);
+        assert_eq!(blocks[0].side, "RIGHT");
+        assert_eq!(blocks[0].original_commit_sha, "abc123");
+        assert_eq!(blocks[0].suggestion_author_login, "octocat");
     }
 }

@@ -158,6 +158,35 @@ pub struct TimelineRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct SuggestionBlockSourceRow {
+    pub comment_id: String,
+    pub pr_id: String,
+    pub path: String,
+    pub body: String,
+    pub line: Option<i64>,
+    pub start_line: Option<i64>,
+    pub side: Option<String>,
+    pub original_commit_sha: Option<String>,
+    pub suggestion_author_login: Option<String>,
+    pub is_outdated: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SuggestionBlockViewRow {
+    pub id: String,
+    pub pr_id: String,
+    pub comment_id: String,
+    pub path: String,
+    pub body: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub side: String,
+    pub original_commit_sha: String,
+    pub suggestion_author_login: String,
+    pub is_outdated: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct ReviewThreadRow {
     pub id: String,
     pub path: String,
@@ -768,6 +797,21 @@ pub struct PendingMutationRecord {
     pub updated_at: i64,
     pub last_error: Option<String>,
     pub requires_connection_confirmation: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SuggestionApplyRecord {
+    pub account_id: String,
+    pub pr_id: String,
+    pub mutation_id: String,
+    pub mode: String,
+    pub commit_sha: Option<String>,
+    pub head_sha_before: Option<String>,
+    pub head_sha_after: Option<String>,
+    pub suggestion_comment_ids: String,
+    pub applied_at: i64,
+    pub outcome: String,
+    pub error_kind: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -52,6 +52,70 @@ Decision:
 
 Reason: M4 needs deterministic merge controls with explicit server-truth gating and reproducible queue/backoff semantics that match GitHub behavior while preserving PLAN §3.2 non-optimistic UX guarantees.
 
+### 2026-05-18: M5 suggestion-apply endpoint, worktree-write safety contract, and event schema
+
+Decision:
+
+- **Single-suggestion endpoint** uses REST with a two-step strategy:
+  1. Primary attempt:
+     - `PUT /repos/{owner}/{repo}/pulls/comments/{review_comment_id}`
+     - request body:
+       ```json
+       {
+         "operation": "apply_suggestion",
+         "expected_head_sha": "<sha>"
+       }
+       ```
+     - expected success response shape:
+       ```json
+       {
+         "commit_sha": "<sha>"
+       }
+       ```
+  2. Fallback when primary returns `404` or `not implemented`:
+     - `POST /repos/{owner}/{repo}/pulls/{number}/reviews`
+     - request body:
+       ```json
+       {
+         "event": "COMMENT",
+         "commit_id": "<sha>",
+         "comments": [
+           {
+             "in_reply_to": "<review_comment_id>",
+             "body": "Applied suggested change from PR Cockpit"
+           }
+         ]
+       }
+       ```
+     - expected success response shape:
+       ```json
+       {
+         "commit_id": "<sha>"
+       }
+       ```
+- **Worktree-write safety contract** is fail-closed:
+  - clean worktree required by default,
+  - dirty worktree fails with `WorktreeDirty` unless `force_with_stash = true`,
+  - force-with-stash is explicit opt-in and records `dirty_snapshot`,
+  - branch/head assertions run before mutation (`BranchMismatch`, `HeadMismatch`),
+  - push uses force-with-lease semantics by reading remote branch head before push and rejecting on mismatch (`PushRejected`),
+  - push rejection rolls local head back to `head_sha_before`.
+- **Suggestion-block detection algorithm** derives rows from `review_comments` content via read-model view `suggestion_blocks` and parses fenced code blocks matching:
+  - start fence: ```` ```suggestion ```` (with optional fence suffix),
+  - end fence: closing ```` ``` ````.
+  Each block produces one `SuggestionBlock` row with
+  `{ id, comment_id, body, start_line, end_line, side, original_commit_sha, suggestion_author_login }`.
+- **Co-authored-by trailer format** for batched apply commits is:
+  - `Co-authored-by: <login> <login@users.noreply.github.com>`
+  - one trailer per distinct suggestion author login.
+- **Worktree progress events** use dynamic event names:
+  - `worktree_write:<pr_id>:opened`
+  - `worktree_write:<pr_id>:assertions_ok`
+  - `worktree_write:<pr_id>:patched`
+  - `worktree_write:<pr_id>:committed`
+  - `worktree_write:<pr_id>:pushed`
+  with payload `{ "pr_id": "<pr_id>", "step": "<step>" }`.
+
 ### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
 
 Decision:

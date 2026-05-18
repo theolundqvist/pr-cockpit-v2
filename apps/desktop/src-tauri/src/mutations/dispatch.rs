@@ -52,5 +52,9 @@ pub fn handler_for(kind: MutationKind) -> Option<Arc<dyn Mutation>> {
         MutationKind::ReorderMergeQueue => Some(Arc::new(handlers::merge_queue::ReorderMergeQueue)),
         MutationKind::ClosePr => Some(Arc::new(handlers::merge_controls::ClosePr)),
         MutationKind::ReopenPr => Some(Arc::new(handlers::merge_controls::ReopenPr)),
+        MutationKind::ApplySuggestion => Some(Arc::new(handlers::suggestions::ApplySuggestion)),
+        MutationKind::ApplySuggestionBatch => {
+            Some(Arc::new(handlers::suggestions::ApplySuggestionBatch))
+        }
     }
 }
