@@ -9,15 +9,16 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Emitter;
 
+use crate::api::check_logs::{stream_check_run_log, CheckLogStreamRequest, LogChunk};
 use crate::api::GithubClient;
 use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
 };
 use crate::db::{
-    CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrAssigneeRow,
-    PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrPushRow,
-    PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow,
-    SuggestionBlockViewRow, TimelineRow,
+    CheckAnnotationViewRow, CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow,
+    NotificationListRow, PrAssigneeRow, PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow,
+    PrProjectRow, PrPushRow, PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow,
+    ReviewThreadRow, SuggestionBlockViewRow, TimelineRow,
 };
 use crate::mutations::{
     ErrorKind, HardConflictDiff, HardConflictPayload, MutationEngine, MutationEvent, MutationKind,
@@ -281,6 +282,8 @@ pub struct CheckSummaryInput {
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct CheckRunSummary {
     pub id: String,
+    pub check_suite_id: String,
+    pub rest_id: Option<i64>,
     pub name: String,
     pub status: String,
     pub conclusion: Option<String>,
@@ -288,6 +291,9 @@ pub struct CheckRunSummary {
     pub started_at: Option<i64>,
     pub completed_at: Option<i64>,
     pub app_name: Option<String>,
+    pub check_suite_status: Option<String>,
+    pub check_suite_conclusion: Option<String>,
+    pub check_run_head_sha: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -297,6 +303,51 @@ pub struct PrCheckSummary {
     pub failed_runs: i64,
     pub pending_runs: i64,
     pub runs: Vec<CheckRunSummary>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckAnnotationView {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub check_suite_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_run_name: String,
+    pub check_run_status: String,
+    pub check_run_conclusion: Option<String>,
+    pub check_run_details_url: Option<String>,
+    pub check_run_head_sha: Option<String>,
+    pub is_outdated: bool,
+    pub path: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub start_column: Option<i64>,
+    pub end_column: Option<i64>,
+    pub annotation_level: String,
+    pub title: Option<String>,
+    pub message: String,
+    pub raw_details: Option<String>,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckAnnotationsFileInput {
+    pub account_id: String,
+    pub pr_id: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckLogStreamInput {
+    pub check_run_id: String,
+    pub tail_lines: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StreamHandle {
+    pub event_name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -875,6 +926,8 @@ fn map_suggestion_block_row(row: SuggestionBlockViewRow) -> SuggestionBlock {
 fn map_check_run_row(row: CheckRunSummaryRow) -> CheckRunSummary {
     CheckRunSummary {
         id: row.id,
+        check_suite_id: row.check_suite_id,
+        rest_id: row.rest_id,
         name: row.name,
         status: row.status,
         conclusion: row.conclusion,
@@ -882,6 +935,37 @@ fn map_check_run_row(row: CheckRunSummaryRow) -> CheckRunSummary {
         started_at: row.started_at,
         completed_at: row.completed_at,
         app_name: row.app_name,
+        check_suite_status: row.check_suite_status,
+        check_suite_conclusion: row.check_suite_conclusion,
+        check_run_head_sha: row.check_run_head_sha,
+    }
+}
+
+fn map_check_annotation_row(row: CheckAnnotationViewRow) -> CheckAnnotationView {
+    CheckAnnotationView {
+        annotation_id: row.annotation_id,
+        check_run_id: row.check_run_id,
+        check_suite_id: row.check_suite_id,
+        check_run_rest_id: row.check_run_rest_id,
+        check_run_name: row.check_run_name,
+        check_run_status: row.check_run_status,
+        check_run_conclusion: row.check_run_conclusion,
+        check_run_details_url: row.check_run_details_url,
+        check_run_head_sha: row.check_run_head_sha,
+        is_outdated: row.is_outdated == 1,
+        path: row.path,
+        start_line: row.start_line,
+        end_line: row.end_line,
+        start_column: row.start_column,
+        end_column: row.end_column,
+        annotation_level: row.annotation_level,
+        title: row.title,
+        message: row.message,
+        raw_details: row.raw_details,
+        anchor_line: row.anchor_line,
+        anchor_side: row.anchor_side,
+        anchor_path: row.anchor_path,
+        anchor_signature_hash: row.anchor_signature_hash,
     }
 }
 
@@ -1793,6 +1877,68 @@ pub async fn ipc_pr_check_summary_impl(
     })
 }
 
+pub async fn list_check_annotations_impl(
+    db: &Db,
+    input: PrHandleInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    let rows = db
+        .list_check_annotations(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_check_annotation_row).collect())
+}
+
+pub async fn list_check_annotations_for_file_impl(
+    db: &Db,
+    input: CheckAnnotationsFileInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    let rows = db
+        .list_check_annotations_for_file(&input.account_id, &input.pr_id, &input.path)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_check_annotation_row).collect())
+}
+
+pub async fn start_check_log_stream_impl<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    db: Arc<Db>,
+    github: Arc<GithubClient>,
+    input: CheckLogStreamInput,
+) -> Result<StreamHandle, IpcError> {
+    let context = db
+        .check_run_context(&input.check_run_id)
+        .await
+        .map_err(IpcError::db)?
+        .ok_or_else(|| IpcError::invalid_input("CheckRunNotFound", "unknown check run id"))?;
+    let event_name = format!("check_log:{}:chunk", input.check_run_id);
+    let event_name_for_stream = event_name.clone();
+    let app = app.clone();
+    let tail_lines = input.tail_lines.unwrap_or(500).max(0) as usize;
+    tauri::async_runtime::spawn(async move {
+        let emit_result = stream_check_run_log(
+            github.as_ref(),
+            CheckLogStreamRequest {
+                account_id: &context.account_id,
+                owner: &context.owner,
+                repo: &context.repo,
+                check_run_id: &context.check_run_id,
+                details_url: context.details_url.as_deref(),
+                tail_lines,
+            },
+            |chunk| {
+                let _ = app.emit(&event_name_for_stream, chunk);
+                Ok(())
+            },
+        )
+        .await;
+        if let Err(error) = emit_result {
+            let _ = app.emit(&event_name_for_stream, LogChunk::error(error.to_string()));
+            let _ = app.emit(&event_name_for_stream, LogChunk::done());
+        }
+    });
+    Ok(StreamHandle { event_name })
+}
+
 pub async fn ipc_pr_files_impl(db: &Db, input: PrFilesInput) -> Result<PrFilesResponse, IpcError> {
     let files = db
         .pr_files(&input.account_id, &input.pr_id, &input.head_sha)
@@ -2530,6 +2676,41 @@ pub async fn ipc_pr_check_summary(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_check_annotations(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrHandleInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    list_check_annotations_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_check_annotations_for_file(
+    db: tauri::State<'_, Arc<Db>>,
+    input: CheckAnnotationsFileInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    list_check_annotations_for_file_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn start_check_log_stream(
+    app: tauri::AppHandle,
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    input: CheckLogStreamInput,
+) -> Result<StreamHandle, IpcError> {
+    start_check_log_stream_impl(
+        &app,
+        Arc::clone(db.inner()),
+        Arc::clone(github.inner()),
+        input,
+    )
+    .await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn ipc_pr_files(
     db: tauri::State<'_, Arc<Db>>,
     input: PrFilesInput,
@@ -2826,8 +3007,8 @@ pub async fn __notif_debug__simulate_event(
     notif_debug_simulate_event_impl(notifications.inner(), account_id, payload_json).await
 }
 
-pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
-    tauri_specta::Builder::<R>::new()
+pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
         .dangerously_cast_bigints_to_number()
         .commands(tauri_specta::collect_commands![
             ipc_accounts_list,
@@ -2842,6 +3023,9 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             ipc_pr_review_threads,
             list_suggestion_blocks,
             ipc_pr_check_summary,
+            list_check_annotations,
+            list_check_annotations_for_file,
+            start_check_log_stream,
             ipc_pr_files,
             ipc_pr_patch,
             get_pr_file_blob,
@@ -2904,7 +3088,7 @@ pub fn bindings_output_path() -> PathBuf {
 }
 
 pub fn export_bindings(path: impl AsRef<Path>) -> AnyResult<()> {
-    let builder = specta_builder::<tauri::Wry>();
+    let builder = specta_builder();
     builder
         .export(specta_typescript::Typescript::default(), path.as_ref())
         .context("exporting tauri-specta bindings")?;
@@ -2929,6 +3113,9 @@ pub fn command_names() -> &'static [&'static str] {
         "ipc_pr_review_threads",
         "list_suggestion_blocks",
         "ipc_pr_check_summary",
+        "list_check_annotations",
+        "list_check_annotations_for_file",
+        "start_check_log_stream",
         "ipc_pr_files",
         "ipc_pr_patch",
         "get_pr_file_blob",

@@ -116,6 +116,39 @@ Decision:
   - `worktree_write:<pr_id>:pushed`
   with payload `{ "pr_id": "<pr_id>", "step": "<step>" }`.
 
+### 2026-05-18: M5 check annotations, log-tail streaming, rerun checks, and panel placement
+
+Decision:
+
+- **Check-annotation anchoring is GitHub-authoritative and right-side only.**
+  We persist annotation `path`, `start_line`, and `end_line` as provided by the
+  REST API and derive `anchor_side = RIGHT` for `check_annotation_aux`. We do
+  not locally re-anchor across force-pushes; annotations are marked stale when
+  `check_suites.head_sha` differs from current `pull_requests.head_sha`, and the
+  next sync refreshes anchors from GitHub.
+- **Annotation sync uses per-run REST pagination and O(1) file-line lookup.**
+  `GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations` is fetched
+  with `per_page=100` pages, then upserted into `check_annotations` plus
+  `check_annotation_aux` keyed by `annotation_id`. Indexed lookup on
+  `(pr_id, anchor_path, anchor_line)` is used by the diff renderer.
+- **Failed-job log tail follows GitHub Actions redirect flow with bounded memory.**
+  For Actions-backed checks we call
+  `GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs`, follow the redirect to
+  the signed blob URL, stream 8 KB chunks, and keep a ring buffer of the last
+  `N` lines for tail emission. This avoids loading full logs (which can be very
+  large) while preserving live stream behavior.
+- **Non-Actions checks do not attempt third-party scraping.**
+  If the check `details_url` is not an Actions job URL, the stream emits a
+  fallback payload and UI shows a single "View full log on GitHub" affordance.
+- **Rerun-suite path is GraphQL-first with REST fallback.**
+  We prefer GraphQL `rerunCheckSuite` for suite-level reruns to stay aligned
+  with existing mutation flow, and only use REST
+  `/check-suites/{id}/rerequest` when a REST suite id is available and GraphQL
+  rerun fails.
+- **Log-tail panel is docked in the main content flow (bottom rail).**
+  We chose bottom-docked rendering under the primary PR pane to minimize layout
+  churn and avoid right-rail crowding with metadata controls.
+
 ### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
 
 Decision:

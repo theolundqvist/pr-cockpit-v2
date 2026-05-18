@@ -1,3 +1,4 @@
+pub mod check_annotations;
 pub mod reconcile;
 
 use std::collections::{HashMap, HashSet};
@@ -723,9 +724,42 @@ impl RealActions {
             }
         }
 
+        let annotation_sync_requests = collect_annotation_sync_requests(
+            Arc::clone(&self.inner.db),
+            &self.inner.account_id,
+            &payload,
+        )
+        .await?;
+
         let reconcile_target =
             reconcile_pr_detail(Arc::clone(&self.inner.db), &self.inner.account_id, payload)
                 .await?;
+        for request in annotation_sync_requests {
+            let allow = self
+                .inner
+                .budgeter
+                .allow(&self.inner.account_id, Priority::Background)
+                .await
+                .unwrap_or(true);
+            if !allow {
+                continue;
+            }
+            if let Err(error) = check_annotations::sync_check_annotations(
+                Arc::clone(&self.inner.db),
+                &self.inner.github,
+                &self.inner.budgeter,
+                &request,
+            )
+            .await
+            {
+                tracing::warn!(
+                    target: "sync",
+                    check_run_id = %request.check_run_id,
+                    error = %error,
+                    "check annotation sync failed"
+                );
+            }
+        }
         publish_sync_reconciled_event(&self.inner.account_id, "pr_detail");
         self.inner
             .emitter
@@ -1012,6 +1046,68 @@ fn map_notification_payload(notification: GithubNotification) -> NotificationPay
         repository_archived: notification.repository.archived.unwrap_or(false),
         url: notification.url,
     }
+}
+
+async fn collect_annotation_sync_requests(
+    db: Arc<Db>,
+    account_id: &str,
+    payload: &PrDetailData,
+) -> Result<Vec<check_annotations::SyncCheckAnnotationsRequest>> {
+    let mut seen = HashSet::new();
+    let mut requests = Vec::new();
+    let Some(repository) = payload.repository.as_ref() else {
+        return Ok(requests);
+    };
+    let Some(pr) = repository.pull_request.as_ref() else {
+        return Ok(requests);
+    };
+
+    for commit in pr.commits.nodes.as_ref().into_iter().flatten().flatten() {
+        let Some(check_suites) = commit.commit.check_suites.as_ref() else {
+            continue;
+        };
+        for suite in check_suites.nodes.as_ref().into_iter().flatten().flatten() {
+            let Some(check_runs) = suite.check_runs.as_ref() else {
+                continue;
+            };
+            for run in check_runs.nodes.as_ref().into_iter().flatten().flatten() {
+                let Some(rest_id) = run.database_id else {
+                    continue;
+                };
+                if !seen.insert(run.id.clone()) {
+                    continue;
+                }
+                let run_updated_at = run
+                    .updated_at
+                    .as_deref()
+                    .and_then(parse_timestamp_opt)
+                    .unwrap_or_else(|| parse_timestamp_opt(&pr.updated_at).unwrap_or_default());
+                let previous = db.check_run_sync_state(&run.id).await?;
+                if check_annotations::should_sync_annotations(
+                    previous.as_ref(),
+                    run.status.as_deref().unwrap_or("unknown"),
+                    run.conclusion.as_deref(),
+                    run_updated_at,
+                ) {
+                    requests.push(check_annotations::SyncCheckAnnotationsRequest {
+                        account_id: account_id.to_string(),
+                        owner: repository.owner.login.clone(),
+                        repo: repository.name.clone(),
+                        pr_id: pr.id.clone(),
+                        check_run_id: run.id.clone(),
+                        check_run_rest_id: rest_id,
+                    });
+                }
+            }
+        }
+    }
+    Ok(requests)
+}
+
+fn parse_timestamp_opt(value: &str) -> Option<i64> {
+    chrono::DateTime::parse_from_rfc3339(value)
+        .ok()
+        .map(|parsed| parsed.timestamp())
 }
 
 fn now_epoch_seconds() -> Result<i64> {
