@@ -39,13 +39,13 @@
       "handoffPath": "handoffs/m6-relay-and-ghe.md",
       "startedAt": "2026-05-18T18:24:56.290Z",
       "finishedAt": "2026-05-18T19:56:02.144Z",
-      "lastUpdate": "2026-05-18T19:56:02.145Z",
+      "lastUpdate": "2026-05-18T19:56:03.112Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m6-polish",
@@ -58,17 +58,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T19:56:12.137Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T19:56:12.137Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m6-finalize",
@@ -152,6 +153,10 @@
     {
       "at": "2026-05-18T19:24:13.666Z",
       "message": "m6-relay-and-ghe: tool_call idle 341257ms; last=2026-05-18T19:18:32.409Z"
+    },
+    {
+      "at": "2026-05-18T19:56:03.112Z",
+      "message": "m6-relay-and-ghe: verification self-reported (unit-test-verified)"
     }
   ]
 }
