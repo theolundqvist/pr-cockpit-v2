@@ -21,11 +21,13 @@ import {
   type PrCheckSummary,
   type PrDetailSummary,
   type PrPushView,
+  type SavedReply,
   type StreamHandle,
   type RangeDiff,
   type SuggestionBlock,
   type SubmittedMutation,
   type SystemStatusResponse,
+  type ImageUploadResult,
   type CleanupError,
   type WorktreeView,
   type CleanupOutcome,
@@ -79,6 +81,14 @@ const mockMutationCalls: Array<{
   payload: Record<string, unknown>;
 }> = [];
 const mockDrafts = new Map<string, Draft>();
+let mockSavedReplySeq = 0;
+const mockSavedReplies = new Map<string, SavedReply[]>();
+type MockImageUploadStep =
+  | { kind: 'success'; result: ImageUploadResult }
+  | { kind: 'error'; message: string };
+const mockImageUploadQueue: MockImageUploadStep[] = [];
+const mockImageUploadInvocations: Array<{ account_id: string; mime: string; size_bytes: number }> =
+  [];
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
@@ -285,6 +295,52 @@ function ensureMockNotificationSettings(accountId: string): {
   };
   mockNotificationSettings.set(accountId, generated);
   return generated;
+}
+
+function ensureMockSavedReplies(accountId: string): SavedReply[] {
+  const existing = mockSavedReplies.get(accountId);
+  if (existing) {
+    return existing;
+  }
+  const seeded =
+    accountId === toAccountId(MOCK_ACCOUNTS.accounts[0]!)
+      ? ([
+          {
+            id: ++mockSavedReplySeq,
+            account_id: accountId,
+            name: 'Friendly follow-up',
+            body: 'Thanks for the update! Could you add one regression test for this path?',
+            sort_order: 0,
+            created_at: nowEpoch(),
+            updated_at: nowEpoch()
+          },
+          {
+            id: ++mockSavedReplySeq,
+            account_id: accountId,
+            name: 'Needs clarification',
+            body: 'Can you clarify the behavior change in the PR description?',
+            sort_order: 1,
+            created_at: nowEpoch(),
+            updated_at: nowEpoch()
+          }
+        ] satisfies SavedReply[])
+      : [];
+  mockSavedReplies.set(accountId, seeded);
+  return seeded;
+}
+
+function sortSavedReplies(rows: SavedReply[]): SavedReply[] {
+  return [...rows].sort(
+    (left, right) => left.sort_order - right.sort_order || left.name.localeCompare(right.name)
+  );
+}
+
+function mockImageHash(bytes: number[]): string {
+  let hash = 0;
+  for (const value of bytes) {
+    hash = (hash * 31 + value) >>> 0;
+  }
+  return `mock-${hash.toString(16).padStart(8, '0')}`;
 }
 
 function pushMockNotificationInvocation(command: string, payload: unknown): void {
@@ -1390,6 +1446,159 @@ export async function deleteDraft(draftId: string): Promise<void> {
   mockDrafts.delete(draftId);
 }
 
+export async function listSavedReplies(accountId: string): Promise<SavedReply[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listSavedReplies(accountId));
+  }
+  return sortSavedReplies(ensureMockSavedReplies(accountId));
+}
+
+export async function createSavedReply(
+  accountId: string,
+  name: string,
+  body: string
+): Promise<SavedReply> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.createSavedReply(accountId, name, body));
+  }
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error('SavedReplyNameRequired: saved reply name is required');
+  }
+  const rows = ensureMockSavedReplies(accountId);
+  if (rows.some((row) => row.name.toLowerCase() === trimmed.toLowerCase())) {
+    throw new Error(`SavedReplyNameTaken: saved reply "${trimmed}" already exists`);
+  }
+  const sort_order = rows.length;
+  const timestamp = nowEpoch();
+  const created: SavedReply = {
+    id: ++mockSavedReplySeq,
+    account_id: accountId,
+    name: trimmed,
+    body,
+    sort_order,
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+  mockSavedReplies.set(accountId, [...rows, created]);
+  return created;
+}
+
+export async function updateSavedReply(
+  id: number,
+  name: string,
+  body: string
+): Promise<SavedReply> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.updateSavedReply(id, name, body));
+  }
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error('SavedReplyNameRequired: saved reply name is required');
+  }
+  for (const [accountId, rows] of mockSavedReplies.entries()) {
+    const target = rows.find((row) => row.id === id);
+    if (!target) {
+      continue;
+    }
+    if (rows.some((row) => row.id !== id && row.name.toLowerCase() === trimmed.toLowerCase())) {
+      throw new Error(`SavedReplyNameTaken: saved reply "${trimmed}" already exists`);
+    }
+    const updated: SavedReply = {
+      ...target,
+      name: trimmed,
+      body,
+      updated_at: nowEpoch()
+    };
+    mockSavedReplies.set(
+      accountId,
+      rows.map((row) => (row.id === id ? updated : row))
+    );
+    return updated;
+  }
+  throw new Error('SavedReplyNotFound: saved reply not found');
+}
+
+export async function deleteSavedReply(id: number): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.deleteSavedReply(id));
+    return;
+  }
+  for (const [accountId, rows] of mockSavedReplies.entries()) {
+    if (!rows.some((row) => row.id === id)) {
+      continue;
+    }
+    const filtered = rows
+      .filter((row) => row.id !== id)
+      .map((row, index) => ({ ...row, sort_order: index, updated_at: nowEpoch() }));
+    mockSavedReplies.set(accountId, filtered);
+    return;
+  }
+}
+
+export async function reorderSavedReplies(accountId: string, orderedIds: number[]): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.reorderSavedReplies({ account_id: accountId, ordered_ids: orderedIds }));
+    return;
+  }
+  const rows = ensureMockSavedReplies(accountId);
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const reordered = orderedIds
+    .map((id) => byId.get(id))
+    .filter((row): row is SavedReply => Boolean(row))
+    .map((row, index) => ({ ...row, sort_order: index, updated_at: nowEpoch() }));
+  const missing = rows
+    .filter((row) => !orderedIds.includes(row.id))
+    .map((row, index) => ({
+      ...row,
+      sort_order: reordered.length + index,
+      updated_at: nowEpoch()
+    }));
+  mockSavedReplies.set(accountId, [...reordered, ...missing]);
+}
+
+export async function importSavedRepliesFromGithub(accountId: string): Promise<SavedReply[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.importSavedRepliesFromGithub(accountId));
+  }
+  void accountId;
+  throw new Error(
+    'SavedRepliesImportUnavailable: GitHub does not expose saved replies via API; create them here.'
+  );
+}
+
+export async function uploadImageToGithubUserContent(
+  accountId: string,
+  imageBytes: number[],
+  mime: string
+): Promise<ImageUploadResult> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.uploadImageToGithubUserContent(accountId, imageBytes, mime));
+  }
+  mockImageUploadInvocations.push({
+    account_id: accountId,
+    mime,
+    size_bytes: imageBytes.length
+  });
+  const next = mockImageUploadQueue.shift();
+  if (next?.kind === 'error') {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    throw new Error(`ImageUploadFailed: ${next.message}`);
+  }
+  if (next?.kind === 'success') {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    return next.result;
+  }
+  const hash = mockImageHash(imageBytes);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  return {
+    url: `https://user-images.githubusercontent.com/mock/${hash}.png`,
+    alt: 'pasted-image',
+    content_hash: hash,
+    size_bytes: imageBytes.length
+  };
+}
+
 export async function setMockNetworkState(accountId: string, state: NetState): Promise<void> {
   mockNetState = state;
   await emitMockEvent(`network:${accountId} changed`, { account_id: accountId, state });
@@ -1519,6 +1728,14 @@ declare global {
       setWorktreeDirty: (dirty: boolean) => Promise<void>;
       resetSuggestions: () => void;
     };
+    __M5_SAVED_REPLIES_DEBUG__?: {
+      setSavedReplies: (accountId: string, replies: Array<{ name: string; body: string }>) => void;
+      clearSavedReplies: (accountId: string) => void;
+      queueImageUploadFailure: (message: string) => void;
+      queueImageUploadSuccess: (url: string, alt?: string) => void;
+      resetImageUploadQueue: () => void;
+      imageUploadInvocations: () => Array<{ account_id: string; mime: string; size_bytes: number }>;
+    };
   }
 }
 
@@ -1646,5 +1863,45 @@ if (typeof window !== 'undefined' && !window.__M5_SUGGESTION_DEBUG__) {
     resetSuggestions: () => {
       mockAppliedSuggestionCommentIds.clear();
     }
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M5_SAVED_REPLIES_DEBUG__) {
+  window.__M5_SAVED_REPLIES_DEBUG__ = {
+    setSavedReplies: (accountId, replies) => {
+      const now = nowEpoch();
+      const mapped: SavedReply[] = replies.map((reply, index) => ({
+        id: ++mockSavedReplySeq,
+        account_id: accountId,
+        name: reply.name,
+        body: reply.body,
+        sort_order: index,
+        created_at: now,
+        updated_at: now
+      }));
+      mockSavedReplies.set(accountId, mapped);
+    },
+    clearSavedReplies: (accountId) => {
+      mockSavedReplies.set(accountId, []);
+    },
+    queueImageUploadFailure: (message) => {
+      mockImageUploadQueue.push({ kind: 'error', message });
+    },
+    queueImageUploadSuccess: (url, alt = 'pasted-image') => {
+      mockImageUploadQueue.push({
+        kind: 'success',
+        result: {
+          url,
+          alt,
+          content_hash: `mock-${Date.now()}`,
+          size_bytes: 1
+        }
+      });
+    },
+    resetImageUploadQueue: () => {
+      mockImageUploadQueue.splice(0, mockImageUploadQueue.length);
+      mockImageUploadInvocations.splice(0, mockImageUploadInvocations.length);
+    },
+    imageUploadInvocations: () => [...mockImageUploadInvocations]
   };
 }

@@ -7,6 +7,7 @@
   import { listenEvent, listenEventPayload, listNotificationEvents, toAccountId } from '$lib/ipc/client';
   import type { NotificationEventPayload, RateLimitChangedEventPayload } from '$lib/ipc/bindings';
   import AccountSwitcher from '$lib/components/account/AccountSwitcher.svelte';
+  import SavedRepliesPalette from '$lib/components/saved-replies/SavedRepliesPalette.svelte';
   import RateLimitMeter from '$lib/components/status/RateLimitMeter.svelte';
   import WorktreeRoots from '$lib/components/worktree/WorktreeRoots.svelte';
   import {
@@ -194,3 +195,4 @@
     </footer>
   </section>
 </div>
+<SavedRepliesPalette />

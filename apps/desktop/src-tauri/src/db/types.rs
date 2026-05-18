@@ -830,6 +830,27 @@ pub struct DraftRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct SavedReplyRow {
+    pub id: i64,
+    pub account_id: String,
+    pub name: String,
+    pub body: String,
+    pub sort_order: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ImageUploadRecord {
+    pub sha256: String,
+    pub account_id: String,
+    pub url: String,
+    pub mime: String,
+    pub size_bytes: i64,
+    pub uploaded_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct PendingMutationRow {
     pub id: String,
     pub account_id: String,
@@ -940,6 +961,16 @@ pub struct BlobRefRow {
     pub last_accessed_at: i64,
     pub created_at: i64,
     pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct ImageUploadRow {
+    pub sha256: String,
+    pub account_id: String,
+    pub url: String,
+    pub mime: String,
+    pub size_bytes: i64,
+    pub uploaded_at: i64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

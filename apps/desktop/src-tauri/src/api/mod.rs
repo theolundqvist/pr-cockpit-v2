@@ -479,6 +479,47 @@ impl GithubClient {
         Ok((response, rate_limit))
     }
 
+    pub async fn request_with_url(
+        &self,
+        account_id: &str,
+        method: reqwest::Method,
+        url: &str,
+        headers: HeaderMap,
+        body: Option<Vec<u8>>,
+    ) -> Result<(reqwest::Response, Option<RateLimitSnapshot>)> {
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
+        let response = self
+            .token_client
+            .request_with(&resolved.locator, method, url, headers, body)
+            .await?;
+        let rate_limit = parse_rate_limit_headers(response.headers());
+        Ok((response, rate_limit))
+    }
+
+    pub async fn get_json_with_url<T: DeserializeOwned>(
+        &self,
+        account_id: &str,
+        url: &str,
+        headers: HeaderMap,
+    ) -> Result<(T, Option<RateLimitSnapshot>)> {
+        let (response, rate_limit) = self
+            .request_with_url(account_id, reqwest::Method::GET, url, headers, None)
+            .await?;
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<body unavailable>".to_string());
+            return Err(anyhow!("rest get failed ({status}): {body}"));
+        }
+        let payload = response.json::<T>().await?;
+        Ok((payload, rate_limit))
+    }
+
     pub async fn get_json_conditional<T: DeserializeOwned>(
         &self,
         account_id: &str,

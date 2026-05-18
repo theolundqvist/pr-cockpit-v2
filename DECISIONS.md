@@ -149,6 +149,34 @@ Decision:
   We chose bottom-docked rendering under the primary PR pane to minimize layout
   churn and avoid right-rail crowding with metadata controls.
 
+### 2026-05-18: M5 saved replies and paste-image upload contracts
+
+Decision:
+
+- **Saved replies are local-first and account-scoped by design.**
+  We persist `saved_replies` with `(account_id, name)` uniqueness and sort order,
+  and all read/write IPC paths require `account_id`. This enforces PLAN §9
+  account scoping so viewer-dependent presets do not leak across accounts.
+- **GitHub saved-replies import remains opportunistic and fail-closed.**
+  We probe `/user/saved_replies` and import only on successful payloads. When
+  GitHub returns unavailable/not-found shapes, UI surfaces a disabled-state
+  notice (`SavedRepliesImportUnavailable`) instead of pretending parity with a
+  non-public API.
+- **Paste-image upload uses GitHub web upload endpoints with strict URL validation.**
+  The upload flow tries `.../upload/assets/users/{login}` then
+  `.../upload/assets/{login}` and accepts only URLs matching:
+  `^https://(?:user-images\.githubusercontent\.com|github\.com/.+/assets)/.+$`.
+  Non-matching URLs return `InvalidUploadUrl` and are never inserted into
+  markdown.
+- **Image dedup contract is sha256 + account scoped.**
+  Before upload we hash bytes and check `image_uploads(account_id, sha256)` plus
+  blob-store presence; cache hits return the existing GitHub URL without another
+  HTTP upload call.
+- **Placeholder strategy is literal markdown replacement.**
+  Composer inserts `![Uploading image…](pending-<token>)` at cursor immediately,
+  then replaces that literal text on success or removes it on failure while
+  showing inline retry/dismiss chips.
+
 ### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
 
 Decision:
