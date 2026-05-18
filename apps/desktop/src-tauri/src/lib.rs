@@ -8,10 +8,12 @@ use crate::api::{AccountResolver, GithubClient, ResolvedAccountEndpoints};
 use crate::auth::token_client::TokenClient;
 use crate::auth::AuthService;
 use crate::db::Db;
-use crate::ipc::worktree::{watcher::WatchBackend, WorktreeService};
 use crate::mutations::{MutationEngine, NetworkMonitor};
 use crate::notify::{
     dispatcher::TauriNotificationSender, NotificationEngine, NotificationEventEmitter,
+};
+use crate::worktree::{
+    watcher::WatchBackend, write::install_worktree_write_event_emitter, WorktreeService,
 };
 
 #[derive(Debug, Clone)]
@@ -84,6 +86,9 @@ pub fn run() {
                 app.handle().clone(),
             ));
             let worktree_emitter = Arc::new(ipc::TauriWorktreeEventEmitter::new(app.handle().clone()));
+            let worktree_write_emitter =
+                Arc::new(ipc::TauriWorktreeWriteEventEmitter::new(app.handle().clone()));
+            install_worktree_write_event_emitter(worktree_write_emitter);
             let network_monitor = NetworkMonitor::start(github.probe_url());
             let mutation_engine = Arc::new(
                 MutationEngine::new(Arc::clone(&db), github.as_ref().clone())
@@ -215,6 +220,7 @@ pub mod range_diff;
 pub mod render;
 pub mod storage;
 pub mod sync;
+pub mod worktree;
 pub use sync::{shutdown as sync_shutdown, start as sync_start};
 pub static RENDERER_VERSION: &str = "m1-renderer-v1";
 

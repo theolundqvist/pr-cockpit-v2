@@ -418,6 +418,19 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
                 .mount(server)
                 .await;
         }
+        MutationKind::ApplySuggestion => {
+            Mock::given(method("PUT"))
+                .and(path(
+                    "/repos/octo/hello-world/pulls/comments/review-comment-1",
+                ))
+                .respond_with(
+                    ResponseTemplate::new(200)
+                        .set_body_json(serde_json::json!({ "commit_sha": "applied-commit-sha" })),
+                )
+                .mount(server)
+                .await;
+        }
+        MutationKind::ApplySuggestionBatch => {}
     }
 }
 
@@ -465,6 +478,8 @@ pub async fn mount_failure(server: &MockServer, kind: MutationKind) {
         MutationKind::UpdateBranch => "/repos/octo/hello-world/pulls/1/update-branch",
         MutationKind::Merge => "/repos/octo/hello-world/pulls/1/merge",
         MutationKind::DeleteHeadRef => "/repos/octo/hello-world/git/refs/heads/feature",
+        MutationKind::ApplySuggestion => "/repos/octo/hello-world/pulls/comments/review-comment-1",
+        MutationKind::ApplySuggestionBatch => "/repos/octo/hello-world/pulls/1",
     };
     Mock::given(path(endpoint))
         .respond_with(conflict)
@@ -633,6 +648,17 @@ pub fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
         }),
         MutationKind::ClosePr | MutationKind::ReopenPr => serde_json::json!({
             "previous_state": "open",
+        }),
+        MutationKind::ApplySuggestion => serde_json::json!({
+            "review_comment_id": "review-comment-1",
+            "expected_head_sha": "head",
+        }),
+        MutationKind::ApplySuggestionBatch => serde_json::json!({
+            "pr_id": PR_ID,
+            "suggestion_ids": ["comment-1:0"],
+            "expected_head_sha": "head",
+            "worktree_path": "/tmp/worktree",
+            "force_with_stash": false,
         }),
     };
     if let serde_json::Value::Object(extra_map) = extra {
