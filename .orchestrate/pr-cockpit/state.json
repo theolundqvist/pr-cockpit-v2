@@ -159,36 +159,37 @@
       "handoffPath": "handoffs/m4-merge-multiaccount.md",
       "startedAt": "2026-05-18T02:13:28.249Z",
       "finishedAt": "2026-05-18T06:43:10.089Z",
-      "lastUpdate": "2026-05-18T06:43:10.090Z",
+      "lastUpdate": "2026-05-18T06:43:11.023Z",
       "note": "respawned by self-planner (was cancelled; attempts=1)",
       "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "verify-m4-merge-multiaccount",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m4-merge-multiaccount",
-      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
+      "startingRef": "`orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-finalize`; the verifier's `verify/m4-finalize/` logs + REPORT are the final commit)",
       "dependsOn": [
         "m4-merge-multiaccount"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "error",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": null,
-      "note": null,
+      "lastUpdate": "2026-05-18T06:43:26.040Z",
+      "note": "spawn failed after 3 transient sub-attempts: Error: m4-merge-multiaccount: branch must be orch/pr-cockpit/m4-merge-multiaccount, got `orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-…",
       "slackTs": null,
       "prNumber": null,
-      "failureMode": null,
-      "verification": null
+      "failureMode": "unknown",
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m5-editor-power-worktree-write",
@@ -979,6 +980,14 @@
     {
       "at": "2026-05-18T06:19:30.129Z",
       "message": "m4-merge-multiaccount: tool_call idle 354585ms; last=2026-05-18T06:13:35.544Z"
+    },
+    {
+      "at": "2026-05-18T06:43:11.022Z",
+      "message": "verify-m4-merge-multiaccount: startingRef reconciled orch/pr-cockpit/m4-merge-multiaccount -> `orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-finalize`; the verifier's `verify/m4-finalize/` logs + REPORT are the final commit) (target m4-merge-multiaccount handed off on actual branch)"
+    },
+    {
+      "at": "2026-05-18T06:43:11.023Z",
+      "message": "m4-merge-multiaccount: verification self-reported (live-ui-verified)"
     }
   ]
 }
