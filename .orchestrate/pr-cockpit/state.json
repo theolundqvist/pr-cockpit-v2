@@ -147,20 +147,20 @@
       "name": "m4-merge-multiaccount",
       "type": "subplanner",
       "branch": "orch/pr-cockpit/m4-merge-multiaccount",
-      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "verify-m3-diff-worktree-notifs"
       ],
-      "agentId": "bc-dd32973e-47c8-43fa-9b39-815194042d0d",
-      "runId": "run-fde86c6d-3dfd-4b80-a973-bcddea0aa151",
+      "agentId": null,
+      "runId": null,
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "cancelled",
+      "status": "pending",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": "2026-05-18T00:54:23.867Z",
+      "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T02:13:11.242Z",
-      "note": "cancelled by operator via cli",
+      "lastUpdate": "2026-05-18T02:13:20.289Z",
+      "note": "respawned by self-planner (was cancelled; attempts=1)",
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
@@ -827,6 +827,10 @@
     {
       "at": "2026-05-18T00:54:20.950Z",
       "message": "verify-m3-diff-worktree-notifs: finished-no-handoff written to /workspace/.orchestrate/pr-cockpit/handoffs/verify-m3-diff-worktree-notifs-finished-no-handoff.md (run status=finished but no `## Status` section produced)"
+    },
+    {
+      "at": "2026-05-18T02:13:12.136Z",
+      "message": "m4-merge-multiaccount: cancelled by operator"
     }
   ]
 }
