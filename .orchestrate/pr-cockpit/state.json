@@ -218,7 +218,7 @@
     {
       "name": "verify-m5-editor-power-worktree-write",
       "type": "verifier",
-      "branch": "orch/pr-cockpit/verify-m5-editor-power-worktree-write",
+      "branch": "`orch/pr-cockpit/m5-editor-power-worktree-write` (verifier artifacts committed as `de007fb chore(verify): record parent-level m5 verifier rerun report and logs`)",
       "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
       "dependsOn": [
         "m5-editor-power-worktree-write"
@@ -226,12 +226,12 @@
       "agentId": "bc-056095e4-3dd5-4e98-9322-b00434e84b26",
       "runId": "run-e5c24fbd-fe5b-4605-999e-f07f096ec240",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-m5-editor-power-worktree-write.md",
       "startedAt": "2026-05-18T16:04:29.880Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T16:04:33.815Z",
+      "finishedAt": "2026-05-18T16:54:55.823Z",
+      "lastUpdate": "2026-05-18T16:54:55.823Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
