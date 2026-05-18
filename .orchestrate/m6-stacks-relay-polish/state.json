@@ -87,13 +87,13 @@
       "handoffPath": "handoffs/m6-finalize.md",
       "startedAt": "2026-05-18T20:48:23.783Z",
       "finishedAt": "2026-05-18T21:36:11.572Z",
-      "lastUpdate": "2026-05-18T21:36:11.572Z",
+      "lastUpdate": "2026-05-18T21:36:12.555Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "m6-verify",
@@ -106,17 +106,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T21:36:12.825Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T21:36:12.825Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m6-tag-v1",
@@ -186,6 +187,10 @@
     {
       "at": "2026-05-18T21:01:29.238Z",
       "message": "m6-finalize: tool_call idle 337101ms; last=2026-05-18T20:55:52.137Z"
+    },
+    {
+      "at": "2026-05-18T21:36:12.555Z",
+      "message": "m6-finalize: verification self-reported (live-ui-verified)"
     }
   ]
 }
