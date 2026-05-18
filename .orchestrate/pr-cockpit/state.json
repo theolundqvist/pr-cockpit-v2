@@ -146,7 +146,7 @@
     {
       "name": "m4-merge-multiaccount",
       "type": "subplanner",
-      "branch": "`orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-finalize`; the verifier's `verify/m4-finalize/` logs + REPORT are the final commit)",
+      "branch": "orch/pr-cockpit/m4-merge-multiaccount",
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "dependsOn": [
         "verify-m3-diff-worktree-notifs"
@@ -171,25 +171,25 @@
       "name": "verify-m4-merge-multiaccount",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m4-merge-multiaccount",
-      "startingRef": "`orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-finalize`; the verifier's `verify/m4-finalize/` logs + REPORT are the final commit)",
+      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "m4-merge-multiaccount"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "error",
+      "status": "pending",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T06:43:26.040Z",
-      "note": "spawn failed after 3 transient sub-attempts: Error: m4-merge-multiaccount: branch must be orch/pr-cockpit/m4-merge-multiaccount, got `orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-…",
+      "lastUpdate": "2026-05-18T06:44:31.629Z",
+      "note": "respawned by self-planner (was error; attempts=1)",
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
-      "verification": null,
-      "attempts": 1
+      "failureMode": null,
+      "verification": null
     },
     {
       "name": "m5-editor-power-worktree-write",
