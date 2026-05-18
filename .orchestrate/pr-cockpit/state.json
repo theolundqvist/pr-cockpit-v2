@@ -1508,6 +1508,14 @@
     {
       "at": "2026-05-18T22:38:52.105Z",
       "message": "verify-m6-stacks-relay-polish: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-18T23:03:34.746Z",
+      "message": "verify-m6-stacks-relay-polish: SSE idle 358851ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T23:03:34.747Z",
+      "message": "verify-m6-stacks-relay-polish: tool_call idle 358853ms; last=2026-05-18T22:57:35.894Z"
     }
   ]
 }
