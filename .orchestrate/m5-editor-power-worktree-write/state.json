@@ -39,13 +39,13 @@
       "handoffPath": "handoffs/m5-check-annotations.md",
       "startedAt": "2026-05-18T09:48:50.280Z",
       "finishedAt": "2026-05-18T11:18:33.855Z",
-      "lastUpdate": "2026-05-18T11:18:33.855Z",
+      "lastUpdate": "2026-05-18T11:18:34.823Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "m5-saved-replies-paste-image",
@@ -58,17 +58,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T11:18:40.554Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T11:18:40.554Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m5-command-palette",
@@ -144,6 +145,10 @@
     {
       "at": "2026-05-18T09:48:43.594Z",
       "message": "m5-suggestion-apply: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T11:18:34.824Z",
+      "message": "m5-check-annotations: verification self-reported (live-ui-verified)"
     }
   ]
 }
