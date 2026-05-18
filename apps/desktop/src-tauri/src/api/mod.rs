@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::{anyhow, Context, Result};
+use async_trait::async_trait;
 use reqwest::header::{
     HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, ETAG, IF_MODIFIED_SINCE, IF_NONE_MATCH,
     LAST_MODIFIED,
@@ -10,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::auth::token_client::TokenClient;
-use crate::auth::AccountLocator;
+use crate::auth::{derive_endpoint_config, AccountLocator};
 use crate::db::{Db, PrPatchRecord, SyncCursorUpdate};
 
 pub const PR_DETAIL_QUERY: &str = include_str!("queries/PrDetail.graphql");
@@ -103,12 +104,60 @@ impl Default for GithubApiConfig {
 pub struct GithubClient {
     token_client: TokenClient,
     db: Arc<Db>,
+    resolver: Arc<dyn AccountResolver>,
+    probe_url: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ResolvedAccountEndpoints {
+    pub locator: AccountLocator,
+    pub token: String,
+    pub api_base_url: String,
+    pub graphql_url: String,
+}
+
+#[async_trait]
+pub trait AccountResolver: Send + Sync {
+    async fn resolve(&self, account_id: &str) -> Result<ResolvedAccountEndpoints>;
+}
+
+#[derive(Clone)]
+struct DbAccountResolver {
+    db: Arc<Db>,
     config: GithubApiConfig,
+}
+
+#[async_trait]
+impl AccountResolver for DbAccountResolver {
+    async fn resolve(&self, account_id: &str) -> Result<ResolvedAccountEndpoints> {
+        let account = self
+            .db
+            .auth_account_by_id(account_id)
+            .await?
+            .ok_or_else(|| anyhow!("account not found for id `{account_id}`"))?;
+        let endpoint = if account.host.eq_ignore_ascii_case("github.com") {
+            (
+                self.config.api_origin.clone(),
+                self.config.graphql_origin.clone(),
+            )
+        } else {
+            let derived = derive_endpoint_config(&account.host);
+            (derived.api_base_url, derived.graphql_url)
+        };
+        Ok(ResolvedAccountEndpoints {
+            locator: AccountLocator {
+                host: account.host,
+                login: account.login,
+            },
+            token: String::new(),
+            api_base_url: endpoint.0,
+            graphql_url: endpoint.1,
+        })
+    }
 }
 
 pub struct PullDiffRequest<'a> {
     pub account_id: &'a str,
-    pub locator: &'a AccountLocator,
     pub owner: &'a str,
     pub repo: &'a str,
     pub number: i64,
@@ -118,31 +167,60 @@ pub struct PullDiffRequest<'a> {
 
 impl GithubClient {
     pub fn new(token_client: TokenClient, db: Arc<Db>) -> Self {
+        let config = GithubApiConfig::default();
+        let probe_url = config.api_origin.clone();
         Self {
             token_client,
-            db,
-            config: GithubApiConfig::default(),
+            db: Arc::clone(&db),
+            resolver: Arc::new(DbAccountResolver {
+                db: Arc::clone(&db),
+                config,
+            }),
+            probe_url,
         }
     }
 
     pub fn with_config(token_client: TokenClient, db: Arc<Db>, config: GithubApiConfig) -> Self {
+        let probe_url = config.api_origin.clone();
+        Self {
+            token_client,
+            db: Arc::clone(&db),
+            resolver: Arc::new(DbAccountResolver {
+                db: Arc::clone(&db),
+                config,
+            }),
+            probe_url,
+        }
+    }
+
+    pub fn with_account_resolver(
+        token_client: TokenClient,
+        db: Arc<Db>,
+        resolver: Arc<dyn AccountResolver>,
+        probe_url: String,
+    ) -> Self {
         Self {
             token_client,
             db,
-            config,
+            resolver,
+            probe_url,
         }
     }
 
     pub fn probe_url(&self) -> String {
-        self.config.api_origin.clone()
+        self.probe_url.clone()
     }
 
     pub async fn graphql<T: DeserializeOwned>(
         &self,
-        locator: &AccountLocator,
+        account_id: &str,
         query: &str,
         variables: serde_json::Value,
     ) -> Result<(T, Option<RateLimitSnapshot>)> {
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
         let mut headers = HeaderMap::new();
         headers.insert(
             ACCEPT,
@@ -156,9 +234,9 @@ impl GithubClient {
         let response = self
             .token_client
             .request_with(
-                locator,
+                &resolved.locator,
                 reqwest::Method::POST,
-                &self.config.graphql_origin,
+                &resolved.graphql_url,
                 headers,
                 Some(body),
             )
@@ -193,7 +271,10 @@ impl GithubClient {
         variables: serde_json::Value,
         idempotency_key: Option<&str>,
     ) -> Result<(T, Option<RateLimitSnapshot>)> {
-        let locator = self.account_locator(account_id).await?;
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
         let mut headers = HeaderMap::new();
         headers.insert(
             ACCEPT,
@@ -214,9 +295,9 @@ impl GithubClient {
         let response = self
             .token_client
             .request_with(
-                &locator,
+                &resolved.locator,
                 reqwest::Method::POST,
-                &self.config.graphql_origin,
+                &resolved.graphql_url,
                 headers,
                 Some(body),
             )
@@ -252,7 +333,10 @@ impl GithubClient {
         body: Option<serde_json::Value>,
         idempotency_key: Option<&str>,
     ) -> Result<(Option<T>, Option<RateLimitSnapshot>)> {
-        let locator = self.account_locator(account_id).await?;
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
         let mut headers = HeaderMap::new();
         headers.insert(
             ACCEPT,
@@ -268,7 +352,7 @@ impl GithubClient {
             );
         }
 
-        let url = format!("{}{}", self.config.api_origin, path);
+        let url = format!("{}{}", resolved.api_base_url, path);
         let payload = body
             .as_ref()
             .map(serde_json::to_vec)
@@ -276,7 +360,7 @@ impl GithubClient {
             .context("serializing mutation payload")?;
         let response = self
             .token_client
-            .request_with(&locator, method, &url, headers, payload)
+            .request_with(&resolved.locator, method, &url, headers, payload)
             .await?;
         let rate_limit = parse_rate_limit_headers(response.headers());
 
@@ -326,16 +410,19 @@ impl GithubClient {
         account_id: &str,
         path: &str,
     ) -> Result<(T, Option<RateLimitSnapshot>)> {
-        let locator = self.account_locator(account_id).await?;
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
         let mut headers = HeaderMap::new();
         headers.insert(
             ACCEPT,
             HeaderValue::from_static("application/vnd.github+json"),
         );
-        let url = format!("{}{}", self.config.api_origin, path);
+        let url = format!("{}{}", resolved.api_base_url, path);
         let response = self
             .token_client
-            .request_with(&locator, reqwest::Method::GET, &url, headers, None)
+            .request_with(&resolved.locator, reqwest::Method::GET, &url, headers, None)
             .await?;
         let rate_limit = parse_rate_limit_headers(response.headers());
         if !response.status().is_success() {
@@ -353,12 +440,15 @@ impl GithubClient {
     pub async fn get_json_conditional<T: DeserializeOwned>(
         &self,
         account_id: &str,
-        locator: &AccountLocator,
         resource: &str,
         path: &str,
         query_pairs: &[(&str, String)],
     ) -> Result<ConditionalResponse<T>> {
-        let mut url = reqwest::Url::parse(&format!("{}{}", self.config.api_origin, path))
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
+        let mut url = reqwest::Url::parse(&format!("{}{}", resolved.api_base_url, path))
             .with_context(|| format!("building github url for {path}"))?;
         for (key, value) in query_pairs {
             url.query_pairs_mut().append_pair(key, value);
@@ -378,7 +468,13 @@ impl GithubClient {
 
         let response = self
             .token_client
-            .request_with(locator, reqwest::Method::GET, url.as_str(), headers, None)
+            .request_with(
+                &resolved.locator,
+                reqwest::Method::GET,
+                url.as_str(),
+                headers,
+                None,
+            )
             .await?;
 
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
@@ -417,6 +513,10 @@ impl GithubClient {
         &self,
         request: PullDiffRequest<'_>,
     ) -> Result<ConditionalResponse<DiffFetchResult>> {
+        let resolved = self
+            .resolve_account(request.account_id)
+            .await
+            .with_context(|| format!("resolving account `{}`", request.account_id))?;
         let resource = format!(
             "pull-diff:{}/{}/{}",
             request.owner, request.repo, request.number
@@ -440,11 +540,17 @@ impl GithubClient {
 
         let path = format!(
             "{}/repos/{}/{}/pulls/{}",
-            self.config.api_origin, request.owner, request.repo, request.number
+            resolved.api_base_url, request.owner, request.repo, request.number
         );
         let response = self
             .token_client
-            .request_with(request.locator, reqwest::Method::GET, &path, headers, None)
+            .request_with(
+                &resolved.locator,
+                reqwest::Method::GET,
+                &path,
+                headers,
+                None,
+            )
             .await?;
 
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
@@ -496,7 +602,6 @@ impl GithubClient {
     pub async fn poll_notifications(
         &self,
         account_id: &str,
-        locator: &AccountLocator,
         participating: bool,
     ) -> Result<ConditionalResponse<Vec<GithubNotification>>> {
         let resource = "notifications";
@@ -515,7 +620,7 @@ impl GithubClient {
         let since = last_modified.clone().unwrap_or_default();
         let response = self
             .get_json_with_headers::<Vec<GithubNotification>>(
-                locator,
+                account_id,
                 "/notifications",
                 &[
                     ("since", since),
@@ -550,12 +655,16 @@ impl GithubClient {
 
     async fn get_json_with_headers<T: DeserializeOwned>(
         &self,
-        locator: &AccountLocator,
+        account_id: &str,
         path: &str,
         query_pairs: &[(&str, String)],
         headers: HeaderMap,
     ) -> Result<RawResponse<T>> {
-        let mut url = reqwest::Url::parse(&format!("{}{}", self.config.api_origin, path))
+        let resolved = self
+            .resolve_account(account_id)
+            .await
+            .with_context(|| format!("resolving account `{account_id}`"))?;
+        let mut url = reqwest::Url::parse(&format!("{}{}", resolved.api_base_url, path))
             .with_context(|| format!("building github url for {path}"))?;
         for (key, value) in query_pairs {
             if !value.is_empty() {
@@ -565,7 +674,13 @@ impl GithubClient {
 
         let response = self
             .token_client
-            .request_with(locator, reqwest::Method::GET, url.as_str(), headers, None)
+            .request_with(
+                &resolved.locator,
+                reqwest::Method::GET,
+                url.as_str(),
+                headers,
+                None,
+            )
             .await?;
         if response.status() == reqwest::StatusCode::NOT_MODIFIED {
             return Ok(RawResponse::NotModified {
@@ -585,16 +700,8 @@ impl GithubClient {
         Ok(RawResponse::Modified { payload, metadata })
     }
 
-    async fn account_locator(&self, account_id: &str) -> Result<AccountLocator> {
-        let account = self
-            .db
-            .auth_account_by_id(account_id)
-            .await?
-            .ok_or_else(|| anyhow!("account not found for id `{account_id}`"))?;
-        Ok(AccountLocator {
-            host: account.host,
-            login: account.login,
-        })
+    async fn resolve_account(&self, account_id: &str) -> Result<ResolvedAccountEndpoints> {
+        self.resolver.resolve(account_id).await
     }
 }
 

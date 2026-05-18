@@ -25,6 +25,31 @@ Decision:
 
 Reason: M4 needs deterministic merge controls with explicit server-truth gating and reproducible queue/backoff semantics that match GitHub behavior while preserving PLAN §3.2 non-optimistic UX guarantees.
 
+### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
+
+Decision:
+
+- Host-specific API endpoints are now derived from account `host` for all auth/API paths:
+  - `github.com` → REST `https://api.github.com`, GraphQL `https://api.github.com/graphql`
+  - non-dotcom host (for example `ghe.example.com`) → REST `https://<host>/api/v3`, GraphQL `https://<host>/api/graphql`
+- Optional endpoint overrides are loaded from host-keyed TOML config at platform config location:
+  - Linux: `$XDG_CONFIG_HOME/pr-cockpit/hosts.toml` (fallback `~/.config/pr-cockpit/hosts.toml`)
+  - macOS: `~/Library/Application Support/pr-cockpit/hosts.toml`
+  - Windows: `%APPDATA%/pr-cockpit/hosts.toml`
+  - test/operator override: `PR_COCKPIT_HOSTS_TOML=<path>`
+  Schema is `[hosts."<host>"]` with `api_base_url` and `graphql_url`.
+- Auth flow boundary for v1 GHE readiness is explicit:
+  - PAT import supports both dotcom and GHE hosts.
+  - Device flow and `gh` import are intentionally restricted to `github.com` in this milestone.
+  - UI copy must direct GHE users to PAT flow until dedicated enterprise OAuth/CLI host flow ships.
+- New IPC contract `auth_test_endpoints(host)` returns:
+  `{ api_ok, graphql_ok, api_latency_ms, graphql_latency_ms }`
+  using host-derived/overridden endpoints (`/zen` REST probe and GraphQL `__typename` probe) after PAT save, with no token bytes emitted in payloads.
+- Full GHE feature parity is deferred to M6 per PLAN §12:
+  this milestone guarantees schema/auth plumbing does not break (add account, one inbox refresh, one PR detail round trip), but does not claim enterprise-specific flow parity across all mutation/sync edges.
+
+Reason: M4 requires host-aware endpoint correctness and safe multi-host auth wiring now, while deliberately deferring enterprise-complete OAuth/device/feature-surface parity until M6.
+
 ## M3 contract decisions (promoted for M4+)
 
 These M3 contracts are promoted because downstream milestones depend on them:

@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use anyhow::Context;
+use anyhow::{Context, Result};
+use async_trait::async_trait;
 use tauri::Manager;
 
-use crate::api::GithubClient;
+use crate::api::{AccountResolver, GithubClient, ResolvedAccountEndpoints};
 use crate::auth::token_client::TokenClient;
 use crate::auth::AuthService;
 use crate::db::Db;
@@ -16,6 +17,28 @@ use crate::notify::{
 #[derive(Debug, Clone)]
 struct InboxSeedState {
     json: String,
+}
+
+#[derive(Clone)]
+struct AuthAccountResolver {
+    auth: Arc<AuthService>,
+}
+
+#[async_trait]
+impl AccountResolver for AuthAccountResolver {
+    async fn resolve(&self, account_id: &str) -> Result<ResolvedAccountEndpoints> {
+        let (account, secret) = self.auth.account_secret_by_id(account_id).await?;
+        let endpoints = self.auth.endpoint_config_for_host(&account.host);
+        Ok(ResolvedAccountEndpoints {
+            locator: auth::AccountLocator {
+                host: account.host,
+                login: account.login,
+            },
+            token: secret.access_token,
+            api_base_url: endpoints.api_base_url,
+            graphql_url: endpoints.graphql_url,
+        })
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -48,9 +71,14 @@ pub fn run() {
             let auth_service =
                 Arc::new(AuthService::new(Arc::clone(&db)).context("building auth service")?);
             let sync_state = Arc::new(sync::SyncTierStateStore::default());
-            let github = Arc::new(GithubClient::new(
+            let account_resolver = Arc::new(AuthAccountResolver {
+                auth: Arc::clone(&auth_service),
+            });
+            let github = Arc::new(GithubClient::with_account_resolver(
                 TokenClient::from_auth_service(Arc::clone(&auth_service)),
                 Arc::clone(&db),
+                account_resolver,
+                "https://api.github.com/zen".to_string(),
             ));
             let cache_emitter = Arc::new(ipc::TauriCacheInvalidationEmitter::new(
                 app.handle().clone(),

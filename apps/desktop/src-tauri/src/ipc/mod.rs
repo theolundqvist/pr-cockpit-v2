@@ -97,6 +97,20 @@ pub struct AccountSwitchInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SavePatTokenInput {
+    pub host: String,
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct EndpointTestResult {
+    pub api_ok: bool,
+    pub graphql_ok: bool,
+    pub api_latency_ms: i64,
+    pub graphql_latency_ms: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct InboxListInput {
     pub account_id_filter: Option<String>,
 }
@@ -1430,6 +1444,97 @@ pub async fn ipc_account_switch_impl(
     .map_err(Into::into)
 }
 
+pub async fn auth_save_pat_token_impl(
+    auth: &AuthService,
+    input: SavePatTokenInput,
+) -> Result<AuthAccount, IpcError> {
+    auth::auth_pat_save_impl(
+        auth,
+        auth::PatSaveInput {
+            host: Some(input.host),
+            token: input.token,
+        },
+    )
+    .await
+    .map_err(Into::into)
+}
+
+pub async fn auth_test_endpoints_impl(
+    auth: &AuthService,
+    host: String,
+) -> Result<EndpointTestResult, IpcError> {
+    let normalized_host = if host.trim().is_empty() {
+        "github.com".to_string()
+    } else {
+        host.trim().to_ascii_lowercase()
+    };
+    let locator = auth
+        .latest_locator_for_host(&normalized_host)
+        .await
+        .map_err(|error| IpcError::from(AuthCommandError::from(error)))?;
+    let (_account, secret) = auth
+        .token_for_account(&locator)
+        .await
+        .map_err(|error| IpcError::from(AuthCommandError::from(error)))?;
+    let endpoints = auth.endpoint_config_for_host(&normalized_host);
+    let client = reqwest::Client::builder()
+        .user_agent("pr-cockpit/0.1")
+        .build()
+        .map_err(|error| IpcError::invalid_input("HttpClientBuildFailure", error.to_string()))?;
+    let mut auth_value =
+        reqwest::header::HeaderValue::from_str(&format!("Bearer {}", secret.access_token))
+            .map_err(|error| IpcError::invalid_input("InvalidTokenHeader", error.to_string()))?;
+    auth_value.set_sensitive(true);
+    let mut base_headers = reqwest::header::HeaderMap::new();
+    base_headers.insert(reqwest::header::AUTHORIZATION, auth_value);
+    base_headers.insert(
+        reqwest::header::ACCEPT,
+        reqwest::header::HeaderValue::from_static("application/vnd.github+json"),
+    );
+
+    let api_started = std::time::Instant::now();
+    let api_ok = client
+        .get(format!("{}/zen", endpoints.api_base_url))
+        .headers(base_headers.clone())
+        .send()
+        .await
+        .map(|response| response.status().is_success())
+        .unwrap_or(false);
+    let api_latency_ms = i64::try_from(api_started.elapsed().as_millis()).unwrap_or(i64::MAX);
+
+    let graphql_started = std::time::Instant::now();
+    let mut graphql_headers = base_headers;
+    graphql_headers.insert(
+        reqwest::header::CONTENT_TYPE,
+        reqwest::header::HeaderValue::from_static("application/json"),
+    );
+    let graphql_body = serde_json::json!({
+        "query": "query EndpointProbe { __typename }",
+        "variables": serde_json::json!({}),
+        "operationName": "EndpointProbe"
+    });
+    let graphql_ok =
+        client
+            .post(&endpoints.graphql_url)
+            .headers(graphql_headers)
+            .body(serde_json::to_vec(&graphql_body).map_err(|error| {
+                IpcError::invalid_input("InvalidGraphqlBody", error.to_string())
+            })?)
+            .send()
+            .await
+            .map(|response| response.status().is_success())
+            .unwrap_or(false);
+    let graphql_latency_ms =
+        i64::try_from(graphql_started.elapsed().as_millis()).unwrap_or(i64::MAX);
+
+    Ok(EndpointTestResult {
+        api_ok,
+        graphql_ok,
+        api_latency_ms,
+        graphql_latency_ms,
+    })
+}
+
 pub async fn ipc_inbox_list_impl(
     db: &Db,
     input: InboxListInput,
@@ -2259,6 +2364,24 @@ pub async fn ipc_account_switch(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn auth_save_pat_token(
+    auth: tauri::State<'_, Arc<AuthService>>,
+    input: SavePatTokenInput,
+) -> Result<AuthAccount, IpcError> {
+    auth_save_pat_token_impl(auth.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn auth_test_endpoints(
+    auth: tauri::State<'_, Arc<AuthService>>,
+    host: String,
+) -> Result<EndpointTestResult, IpcError> {
+    auth_test_endpoints_impl(auth.inner(), host).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn ipc_inbox_list(
     db: tauri::State<'_, Arc<Db>>,
     input: InboxListInput,
@@ -2636,6 +2759,8 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
         .commands(tauri_specta::collect_commands![
             ipc_accounts_list,
             ipc_account_switch,
+            auth_save_pat_token,
+            auth_test_endpoints,
             ipc_inbox_list,
             ipc_pr_detail_summary,
             list_pr_pushes,
@@ -2720,6 +2845,8 @@ pub fn command_names() -> &'static [&'static str] {
     &[
         "ipc_accounts_list",
         "ipc_account_switch",
+        "auth_save_pat_token",
+        "auth_test_endpoints",
         "ipc_inbox_list",
         "ipc_pr_detail_summary",
         "list_pr_pushes",

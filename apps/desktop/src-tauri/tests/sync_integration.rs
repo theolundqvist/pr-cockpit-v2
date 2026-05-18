@@ -321,7 +321,6 @@ async fn etag_304_round_trip_avoids_counter_decrement_and_db_writes() -> Result<
         .github
         .fetch_pull_diff(PullDiffRequest {
             account_id: &harness.account_id,
-            locator: &harness.locator,
             owner: "octo",
             repo: "repo",
             number: 1,
@@ -363,7 +362,6 @@ async fn etag_304_round_trip_avoids_counter_decrement_and_db_writes() -> Result<
         .github
         .fetch_pull_diff(PullDiffRequest {
             account_id: &harness.account_id,
-            locator: &harness.locator,
             owner: "octo",
             repo: "repo",
             number: 1,

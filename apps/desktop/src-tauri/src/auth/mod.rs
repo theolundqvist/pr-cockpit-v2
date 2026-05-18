@@ -1,11 +1,12 @@
 pub mod gh;
 pub mod token_client;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, USER_AGENT};
+use reqwest::header::ACCEPT;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use thiserror::Error;
@@ -19,11 +20,25 @@ const DEFAULT_HOST: &str = "github.com";
 pub struct AuthAccount {
     pub host: String,
     pub login: String,
+    pub api_base_url: String,
+    pub graphql_url: String,
     pub token_kind: String,
     pub scopes: Vec<String>,
     pub created_at: i64,
     pub updated_at: i64,
     pub is_active: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct EndpointConfig {
+    pub api_base_url: String,
+    pub graphql_url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct EndpointOverride {
+    pub api_base_url: String,
+    pub graphql_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -103,6 +118,7 @@ pub enum AuthErrorCode {
     OAuthDenied,
     OAuthExpired,
     OAuthFlowFailed,
+    UnsupportedHost,
     HttpFailure,
     DatabaseFailure,
     Internal,
@@ -132,6 +148,8 @@ pub enum AuthError {
     OAuthExpired,
     #[error("OAuth device flow failed")]
     OAuthFlowFailed,
+    #[error("host is not supported for this auth flow")]
+    UnsupportedHost,
     #[error("keyring unavailable")]
     KeyringUnavailable,
     #[error("HTTP call failed")]
@@ -186,6 +204,10 @@ impl From<AuthError> for AuthCommandError {
             AuthError::OAuthFlowFailed => Self {
                 code: AuthErrorCode::OAuthFlowFailed,
                 message: "OAuth flow did not complete.".to_string(),
+            },
+            AuthError::UnsupportedHost => Self {
+                code: AuthErrorCode::UnsupportedHost,
+                message: "This auth flow is only supported on github.com.".to_string(),
             },
             AuthError::Http(_) | AuthError::HttpStatus(_) => Self {
                 code: AuthErrorCode::HttpFailure,
@@ -310,6 +332,7 @@ pub struct AuthConfig {
     pub github_web_origin: String,
     pub github_api_origin: String,
     pub default_host: String,
+    pub endpoint_overrides_path: Option<PathBuf>,
 }
 
 impl Default for AuthConfig {
@@ -319,6 +342,7 @@ impl Default for AuthConfig {
             github_web_origin: "https://github.com".to_string(),
             github_api_origin: "https://api.github.com".to_string(),
             default_host: DEFAULT_HOST.to_string(),
+            endpoint_overrides_path: default_endpoint_overrides_path(),
         }
     }
 }
@@ -332,11 +356,18 @@ impl AuthConfig {
         }
     }
 
-    fn api_origin(&self, host: &str) -> String {
+    fn default_endpoint_config(&self, host: &str) -> EndpointConfig {
         if host.eq_ignore_ascii_case(DEFAULT_HOST) {
-            self.github_api_origin.clone()
+            EndpointConfig {
+                api_base_url: self.github_api_origin.clone(),
+                graphql_url: format!("{}/graphql", self.github_api_origin),
+            }
         } else {
-            format!("https://{host}/api/v3")
+            let trimmed_host = host.trim();
+            EndpointConfig {
+                api_base_url: format!("https://{trimmed_host}/api/v3"),
+                graphql_url: format!("https://{trimmed_host}/api/graphql"),
+            }
         }
     }
 }
@@ -348,6 +379,8 @@ pub struct AuthService {
     gh_cli: Arc<dyn GhCli>,
     http_client: reqwest::Client,
     config: AuthConfig,
+    endpoint_overrides: Arc<HashMap<String, EndpointOverride>>,
+    endpoint_cache: Arc<std::sync::RwLock<HashMap<String, EndpointConfig>>>,
 }
 
 impl AuthService {
@@ -355,12 +388,18 @@ impl AuthService {
         let http_client = reqwest::Client::builder()
             .user_agent("pr-cockpit/0.1")
             .build()?;
+        let config = AuthConfig::default();
+        let endpoint_overrides = Arc::new(load_endpoint_overrides(
+            config.endpoint_overrides_path.as_ref(),
+        ));
         Ok(Self {
             db,
             token_store: Arc::new(KeyringTokenStore::default()),
             gh_cli: Arc::new(SystemGhCli),
             http_client,
-            config: AuthConfig::default(),
+            config,
+            endpoint_overrides,
+            endpoint_cache: Arc::new(std::sync::RwLock::new(HashMap::new())),
         })
     }
 
@@ -371,12 +410,17 @@ impl AuthService {
         http_client: reqwest::Client,
         config: AuthConfig,
     ) -> Self {
+        let endpoint_overrides = Arc::new(load_endpoint_overrides(
+            config.endpoint_overrides_path.as_ref(),
+        ));
         Self {
             db,
             token_store,
             gh_cli,
             http_client,
             config,
+            endpoint_overrides,
+            endpoint_cache: Arc::new(std::sync::RwLock::new(HashMap::new())),
         }
     }
 
@@ -388,11 +432,36 @@ impl AuthService {
         Arc::clone(&self.token_store)
     }
 
+    pub fn endpoint_config_for_host(&self, host: &str) -> EndpointConfig {
+        let key = normalize_host(host);
+        if let Ok(cache) = self.endpoint_cache.read() {
+            if let Some(cached) = cache.get(&key) {
+                return cached.clone();
+            }
+        }
+
+        let mut resolved = self.config.default_endpoint_config(&key);
+        if let Some(endpoint_override) = self.endpoint_overrides.get(&key) {
+            resolved = EndpointConfig {
+                api_base_url: normalize_endpoint_url(&endpoint_override.api_base_url),
+                graphql_url: normalize_endpoint_url(&endpoint_override.graphql_url),
+            };
+        }
+
+        if let Ok(mut cache) = self.endpoint_cache.write() {
+            cache.insert(key, resolved.clone());
+        }
+        resolved
+    }
+
     pub async fn detect_gh_token(
         &self,
         accept_import: bool,
     ) -> Result<GhDetectionResult, AuthError> {
         let detected = gh::detect_gh_scopes(self.gh_cli.as_ref())?;
+        if !detected.host.eq_ignore_ascii_case(DEFAULT_HOST) {
+            return Err(AuthError::UnsupportedHost);
+        }
         if accept_import {
             let secret = StoredTokenSecret {
                 access_token: detected.token,
@@ -426,6 +495,9 @@ impl AuthService {
         let host = input
             .host
             .unwrap_or_else(|| self.config.default_host.clone());
+        if !host.eq_ignore_ascii_case(DEFAULT_HOST) {
+            return Err(AuthError::UnsupportedHost);
+        }
         let scope_str = normalize_scopes_joined(&input.scopes);
         let endpoint = format!("{}/login/device/code", self.config.web_origin(&host));
         let response = self
@@ -459,6 +531,9 @@ impl AuthService {
         let host = input
             .host
             .unwrap_or_else(|| self.config.default_host.clone());
+        if !host.eq_ignore_ascii_case(DEFAULT_HOST) {
+            return Err(AuthError::UnsupportedHost);
+        }
         let endpoint = format!("{}/login/oauth/access_token", self.config.web_origin(&host));
         let response = self
             .http_client
@@ -530,7 +605,13 @@ impl AuthService {
             .map(to_locator);
         let accounts = rows
             .into_iter()
-            .map(|row| to_auth_account(&row, active_id.as_deref() == Some(row.id.as_str())))
+            .map(|row| {
+                to_auth_account(
+                    &row,
+                    active_id.as_deref() == Some(row.id.as_str()),
+                    self.endpoint_config_for_host(&row.host),
+                )
+            })
             .collect();
         Ok(AccountsListResponse { active, accounts })
     }
@@ -544,7 +625,12 @@ impl AuthService {
         self.db
             .set_active_account_id(&account.id, now_epoch_seconds()?)
             .await?;
-        Ok(to_auth_account(&account, true))
+        let _ = self.endpoint_config_for_host(&account.host);
+        Ok(to_auth_account(
+            &account,
+            true,
+            self.endpoint_config_for_host(&account.host),
+        ))
     }
 
     pub async fn remove_account(&self, locator: AccountLocator) -> Result<(), AuthError> {
@@ -635,6 +721,36 @@ impl AuthService {
         Ok((account, secret))
     }
 
+    pub async fn account_secret_by_id(
+        &self,
+        account_id: &str,
+    ) -> Result<(AuthAccountRow, StoredTokenSecret), AuthError> {
+        let account = self
+            .db
+            .auth_account_by_id(account_id)
+            .await?
+            .ok_or(AuthError::AccountNotFound)?;
+        let secret = self
+            .token_store
+            .get(&account.host, &account.login)?
+            .ok_or(AuthError::InvalidToken)?;
+        Ok((account, secret))
+    }
+
+    pub async fn latest_locator_for_host(&self, host: &str) -> Result<AccountLocator, AuthError> {
+        let normalized = normalize_host(host);
+        let mut rows = self.db.list_auth_accounts().await?;
+        rows.sort_by_key(|row| std::cmp::Reverse(row.updated_at));
+        let account = rows
+            .into_iter()
+            .find(|row| normalize_host(&row.host) == normalized)
+            .ok_or(AuthError::AccountNotFound)?;
+        Ok(AccountLocator {
+            host: account.host,
+            login: account.login,
+        })
+    }
+
     async fn save_token_record(
         &self,
         host: &str,
@@ -661,44 +777,21 @@ impl AuthService {
         Ok(to_auth_account(
             &account,
             active_id.as_deref() == Some(account.id.as_str()),
+            self.endpoint_config_for_host(host),
         ))
     }
 
     async fn validate_token(&self, host: &str, token: &str) -> Result<ValidatedToken, AuthError> {
-        let endpoint = format!("{}/user", self.config.api_origin(host));
-        let mut auth_value = HeaderValue::from_str(&format!("Bearer {token}"))?;
-        auth_value.set_sensitive(true);
-        let mut headers = HeaderMap::new();
-        headers.insert(AUTHORIZATION, auth_value);
-        headers.insert(
-            ACCEPT,
-            HeaderValue::from_static("application/vnd.github+json"),
-        );
-        headers.insert(USER_AGENT, HeaderValue::from_static("pr-cockpit/0.1"));
-
-        let response = self
-            .http_client
-            .get(endpoint)
-            .headers(headers)
-            .send()
-            .await?;
-        if response.status() == reqwest::StatusCode::UNAUTHORIZED {
-            return Err(AuthError::InvalidToken);
-        }
-        if !response.status().is_success() {
-            return Err(AuthError::HttpStatus(response.status()));
-        }
-
-        let scopes = response
-            .headers()
-            .get("x-oauth-scopes")
-            .and_then(|value| value.to_str().ok())
-            .map(normalize_scopes)
-            .unwrap_or_default();
-        let payload: UserPayload = response.json().await?;
+        let endpoints = self.endpoint_config_for_host(host);
+        let payload = token_client::resolve_login_for_api_base_with_client(
+            &self.http_client,
+            &endpoints.api_base_url,
+            token,
+        )
+        .await?;
         Ok(ValidatedToken {
             login: payload.login,
-            scopes,
+            scopes: payload.scopes,
         })
     }
 }
@@ -721,21 +814,22 @@ struct OAuthAccessTokenPayload {
     error: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct UserPayload {
-    login: String,
-}
-
 #[derive(Debug)]
 struct ValidatedToken {
     login: String,
     scopes: Vec<String>,
 }
 
-fn to_auth_account(row: &AuthAccountRow, is_active: bool) -> AuthAccount {
+fn to_auth_account(
+    row: &AuthAccountRow,
+    is_active: bool,
+    endpoints: EndpointConfig,
+) -> AuthAccount {
     AuthAccount {
         host: row.host.clone(),
         login: row.login.clone(),
+        api_base_url: endpoints.api_base_url,
+        graphql_url: endpoints.graphql_url,
         token_kind: row.token_kind.clone(),
         scopes: normalize_scopes(&row.scopes),
         created_at: row.created_at,
@@ -771,6 +865,95 @@ pub fn normalize_scopes(raw: &str) -> Vec<String> {
 
 fn normalize_scopes_joined(scopes: &[String]) -> String {
     scopes.join(",")
+}
+
+pub fn derive_endpoint_config(host: &str) -> EndpointConfig {
+    let config = AuthConfig::default();
+    let normalized = normalize_host(host);
+    let overrides = load_endpoint_overrides(config.endpoint_overrides_path.as_ref());
+    if let Some(endpoint_override) = overrides.get(&normalized) {
+        return EndpointConfig {
+            api_base_url: normalize_endpoint_url(&endpoint_override.api_base_url),
+            graphql_url: normalize_endpoint_url(&endpoint_override.graphql_url),
+        };
+    }
+    config.default_endpoint_config(&normalized)
+}
+
+fn normalize_host(host: &str) -> String {
+    host.trim().to_ascii_lowercase()
+}
+
+fn normalize_endpoint_url(raw: &str) -> String {
+    raw.trim().trim_end_matches('/').to_string()
+}
+
+fn default_endpoint_overrides_path() -> Option<PathBuf> {
+    if let Ok(path) = std::env::var("PR_COCKPIT_HOSTS_TOML") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return Some(PathBuf::from(trimmed));
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::env::var_os("APPDATA")
+            .map(PathBuf::from)
+            .map(|base| base.join("pr-cockpit").join("hosts.toml"))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::env::var_os("HOME")
+            .map(PathBuf::from)
+            .map(|home| home.join("Library/Application Support/pr-cockpit/hosts.toml"))
+    }
+    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
+    {
+        if let Some(xdg) = std::env::var_os("XDG_CONFIG_HOME") {
+            return Some(PathBuf::from(xdg).join("pr-cockpit").join("hosts.toml"));
+        }
+        std::env::var_os("HOME")
+            .map(PathBuf::from)
+            .map(|home| home.join(".config").join("pr-cockpit").join("hosts.toml"))
+    }
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct HostOverridesFile {
+    #[serde(default)]
+    hosts: HashMap<String, EndpointOverride>,
+}
+
+fn load_endpoint_overrides(path: Option<&PathBuf>) -> HashMap<String, EndpointOverride> {
+    let Some(path) = path else {
+        return HashMap::new();
+    };
+    let Ok(contents) = std::fs::read_to_string(path) else {
+        return HashMap::new();
+    };
+    let Ok(parsed) = toml::from_str::<HostOverridesFile>(&contents) else {
+        tracing::warn!(
+            target: "auth",
+            path = %path.display(),
+            "failed to parse endpoint override config"
+        );
+        return HashMap::new();
+    };
+
+    parsed
+        .hosts
+        .into_iter()
+        .map(|(host, endpoint_override)| {
+            (
+                normalize_host(&host),
+                EndpointOverride {
+                    api_base_url: normalize_endpoint_url(&endpoint_override.api_base_url),
+                    graphql_url: normalize_endpoint_url(&endpoint_override.graphql_url),
+                },
+            )
+        })
+        .collect()
 }
 
 pub async fn auth_detect_gh_token_impl(

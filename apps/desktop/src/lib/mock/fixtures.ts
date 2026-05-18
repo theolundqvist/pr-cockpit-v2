@@ -23,6 +23,8 @@ const BASE_TS = 1_715_000_000;
 const primaryAccount = {
   host: 'github.com',
   login: 'fixture-user',
+  api_base_url: 'https://api.github.com',
+  graphql_url: 'https://api.github.com/graphql',
   token_kind: 'pat',
   scopes: ['notifications', 'read:org', 'repo'],
   created_at: BASE_TS,
@@ -33,6 +35,8 @@ const primaryAccount = {
 const secondaryAccount = {
   host: 'github.enterprise.test',
   login: 'octo-enterprise',
+  api_base_url: 'https://github.enterprise.test/api/v3',
+  graphql_url: 'https://github.enterprise.test/api/graphql',
   token_kind: 'oauth-device',
   scopes: ['notifications', 'repo'],
   created_at: BASE_TS,

@@ -623,7 +623,7 @@ impl RealActions {
                 .inner
                 .github
                 .graphql::<InboxRefreshData>(
-                    &self.inner.locator,
+                    &self.inner.account_id,
                     INBOX_REFRESH_QUERY,
                     serde_json::json!({ "ids": chunk }),
                 )
@@ -683,7 +683,7 @@ impl RealActions {
         let (payload, rate_limit) = self
             .inner
             .github
-            .graphql::<PrDetailData>(&self.inner.locator, PR_DETAIL_QUERY, variables)
+            .graphql::<PrDetailData>(&self.inner.account_id, PR_DETAIL_QUERY, variables)
             .await?;
         if let Some(rate_limit) = rate_limit {
             self.inner
@@ -705,7 +705,6 @@ impl RealActions {
                     .github
                     .fetch_pull_diff(PullDiffRequest {
                         account_id: &self.inner.account_id,
-                        locator: &self.inner.locator,
                         owner: &target.owner,
                         repo: &target.repo,
                         number: target.number,
@@ -764,7 +763,7 @@ impl RealActions {
         let response = self
             .inner
             .github
-            .poll_notifications(&self.inner.account_id, &self.inner.locator, false)
+            .poll_notifications(&self.inner.account_id, false)
             .await?;
         match response {
             ConditionalResponse::NotModified(metadata) => {
@@ -1140,5 +1139,5 @@ mod tests {
             .map(|duration| i64::try_from(duration.as_secs()).unwrap_or(i64::MAX))
             .collect();
         assert_eq!(observed_sleeps, vec![2, 5, 15, 45, 120, 300]);
-}
+    }
 }

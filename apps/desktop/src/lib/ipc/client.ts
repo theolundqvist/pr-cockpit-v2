@@ -52,6 +52,7 @@ type CommandResult<T> = { status: 'ok'; data: T } | { status: 'error'; error: Ip
 type EventCallback<T> = (payload: T) => Promise<void> | void;
 
 let mockActiveAccountId = MOCK_INIT_INBOX.active_account_id ?? 'github.com:fixture-user';
+let mockAccountsState: AuthAccount[] = MOCK_ACCOUNTS.accounts.map((account) => ({ ...account }));
 let mockMutationSeq = 0;
 let mockDraftSeq = 0;
 let mockNetState: NetState = { state: 'online' };
@@ -93,6 +94,11 @@ const mockRateLimitOverrides = new Map<
   string,
   Map<string, { remaining: number; limit_total: number; used?: number; reset_at: number }>
 >();
+const mockEndpointTestInvocations: Array<{
+  host: string;
+  api_url: string;
+  graphql_url: string;
+}> = [];
 let mockRangeDiffModeOverride: 'local' | 'rest' | null = null;
 const RANGE_DIFF_MODE_STORAGE_KEY = '__range_diff_mode_override__';
 
@@ -443,12 +449,12 @@ export async function listAccounts() {
   }
   const accounts = {
     ...MOCK_ACCOUNTS,
-    accounts: MOCK_ACCOUNTS.accounts.map((account) => ({
+    accounts: mockAccountsState.map((account) => ({
       ...account,
       is_active: toAccountId(account) === mockActiveAccountId
     })),
     active:
-      MOCK_ACCOUNTS.accounts.find((account) => toAccountId(account) === mockActiveAccountId) ?? null
+      mockAccountsState.find((account) => toAccountId(account) === mockActiveAccountId) ?? null
   };
   return accounts;
 }
@@ -457,7 +463,7 @@ export async function switchAccount(account: AccountLocator): Promise<AuthAccoun
   if (isTauriRuntime()) {
     return unwrap(commands.ipcAccountSwitch(account));
   }
-  const matched = MOCK_ACCOUNTS.accounts.find(
+  const matched = mockAccountsState.find(
     (candidate) => candidate.host === account.host && candidate.login === account.login
   );
   if (!matched) {
@@ -465,6 +471,65 @@ export async function switchAccount(account: AccountLocator): Promise<AuthAccoun
   }
   mockActiveAccountId = toAccountId(matched);
   return { ...matched, is_active: true };
+}
+
+export async function savePatToken(host: string, token: string): Promise<AuthAccount> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.authSavePatToken({ host, token }));
+  }
+  const normalizedHost = host.trim().toLowerCase();
+  if (!token.trim()) {
+    throw new Error('InvalidToken');
+  }
+  const fallbackLogin =
+    normalizedHost === 'github.enterprise.test' ? 'octo-enterprise' : 'fixture-user';
+  const existing =
+    mockAccountsState.find((account) => account.host === normalizedHost) ??
+    ({
+      host: normalizedHost,
+      login: fallbackLogin,
+      api_base_url:
+        normalizedHost === 'github.com'
+          ? 'https://api.github.com'
+          : `https://${normalizedHost}/api/v3`,
+      graphql_url:
+        normalizedHost === 'github.com'
+          ? 'https://api.github.com/graphql'
+          : `https://${normalizedHost}/api/graphql`,
+      token_kind: 'pat',
+      scopes: ['repo'],
+      created_at: nowEpoch(),
+      updated_at: nowEpoch(),
+      is_active: false
+    } satisfies AuthAccount);
+  if (!mockAccountsState.some((account) => toAccountId(account) === toAccountId(existing))) {
+    mockAccountsState = [...mockAccountsState, existing];
+  }
+  return existing;
+}
+
+export async function testEndpoints(host: string) {
+  const normalizedHost = host.trim().toLowerCase();
+  const apiUrl =
+    normalizedHost === 'github.com' ? 'https://api.github.com' : `https://${normalizedHost}/api/v3`;
+  const graphqlUrl =
+    normalizedHost === 'github.com'
+      ? 'https://api.github.com/graphql'
+      : `https://${normalizedHost}/api/graphql`;
+  mockEndpointTestInvocations.push({
+    host: normalizedHost,
+    api_url: apiUrl,
+    graphql_url: graphqlUrl
+  });
+  if (isTauriRuntime()) {
+    return unwrap(commands.authTestEndpoints(host));
+  }
+  return {
+    api_ok: true,
+    graphql_ok: true,
+    api_latency_ms: normalizedHost === 'github.com' ? 35 : 47,
+    graphql_latency_ms: normalizedHost === 'github.com' ? 52 : 63
+  };
 }
 
 export async function listInbox(accountId: string | null) {
@@ -1154,6 +1219,10 @@ declare global {
         }
       ) => Promise<NotificationEventPayload | null>;
     };
+    __AUTH_DEBUG__?: {
+      endpointInvocations: () => Array<{ host: string; api_url: string; graphql_url: string }>;
+      clearEndpointInvocations: () => void;
+    };
     __M4_MULTI_ACCOUNT_DEBUG__?: {
       mutationInvocations: () => Array<{
         account_id: string;
@@ -1217,6 +1286,15 @@ if (typeof window !== 'undefined' && !window.__NOTIF_DEBUG__) {
       mockNotificationInvocations.splice(0, mockNotificationInvocations.length);
     },
     simulateEvent: (accountId, payload) => notifDebugSimulateEvent(accountId, payload)
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__AUTH_DEBUG__) {
+  window.__AUTH_DEBUG__ = {
+    endpointInvocations: () => [...mockEndpointTestInvocations],
+    clearEndpointInvocations: () => {
+      mockEndpointTestInvocations.splice(0, mockEndpointTestInvocations.length);
+    }
   };
 }
 

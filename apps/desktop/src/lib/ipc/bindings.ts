@@ -7,6 +7,8 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 export const commands = {
 	ipcAccountsList: () => typedError<AccountsListResponse, IpcError>(__TAURI_INVOKE("ipc_accounts_list")),
 	ipcAccountSwitch: (input: AccountSwitchInput) => typedError<AuthAccount, IpcError>(__TAURI_INVOKE("ipc_account_switch", { input })),
+	authSavePatToken: (input: SavePatTokenInput) => typedError<AuthAccount, IpcError>(__TAURI_INVOKE("auth_save_pat_token", { input })),
+	authTestEndpoints: (host: string) => typedError<EndpointTestResult, IpcError>(__TAURI_INVOKE("auth_test_endpoints", { host })),
 	ipcInboxList: (input: InboxListInput) => typedError<InboxItem[], IpcError>(__TAURI_INVOKE("ipc_inbox_list", { input })),
 	ipcPrDetailSummary: (input: PrHandleInput) => typedError<{
 	account_id: string,
@@ -149,6 +151,8 @@ export type AccountsListResponse = {
 export type AuthAccount = {
 	host: string,
 	login: string,
+	api_base_url: string,
+	graphql_url: string,
 	token_kind: string,
 	scopes: string[],
 	created_at: number,
@@ -220,6 +224,13 @@ export type Draft = {
 	body: string,
 	created_at: number,
 	updated_at: number,
+};
+
+export type EndpointTestResult = {
+	api_ok: boolean,
+	graphql_ok: boolean,
+	api_latency_ms: number,
+	graphql_latency_ms: number,
 };
 
 export type ErrorKind = { kind: "network" } | { kind: "rate_limited" } | { kind: "auth" } | { kind: "not_found" } | { kind: "conflict" } | { kind: "server" } | { kind: "other"; detail: string };
@@ -751,6 +762,11 @@ export type SaveDraftInput = {
 	target_type: string,
 	target_id: string,
 	body: string,
+};
+
+export type SavePatTokenInput = {
+	host: string,
+	token: string,
 };
 
 export type SubmitReviewCommentInput = {

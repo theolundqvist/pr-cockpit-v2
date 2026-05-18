@@ -18,7 +18,7 @@ async fn optional_online_inbox_refresh_demo() -> Result<()> {
     let (detail, _) = harness
         .github
         .graphql::<PrDetailData>(
-            &harness.locator,
+            &harness.account_id,
             PR_DETAIL_QUERY,
             serde_json::json!({
               "owner": "theolundqvist",
@@ -44,7 +44,7 @@ async fn optional_online_inbox_refresh_demo() -> Result<()> {
     let (inbox, _) = harness
         .github
         .graphql::<InboxRefreshData>(
-            &harness.locator,
+            &harness.account_id,
             INBOX_REFRESH_QUERY,
             serde_json::json!({ "ids": [pr_id] }),
         )

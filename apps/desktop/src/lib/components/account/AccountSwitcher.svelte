@@ -16,6 +16,7 @@
   $: label = selectedAccount
     ? `${selectedAccount.login} · ${selectedAccount.host}`
     : 'All accounts';
+  $: isSelectedGhe = selectedAccount ? selectedAccount.host !== 'github.com' : false;
 
   async function choose(accountId: string | null): Promise<void> {
     open = false;
@@ -25,7 +26,12 @@
 
 <details class="details-reset details-overlay position-relative width-full" bind:open>
   <summary class="btn width-full d-flex flex-items-center flex-justify-between" data-testid="account-switcher-trigger">
-    <span class="text-truncate">{label}</span>
+    <span class="d-flex flex-items-center gap-2">
+      <span class="text-truncate">{label}</span>
+      {#if isSelectedGhe}
+        <span class="Label Label--accent-emphasis">GHE</span>
+      {/if}
+    </span>
     <span class="color-fg-muted" aria-hidden="true">▾</span>
   </summary>
   <div class="SelectMenu right-0 mt-1 width-full" data-testid="account-switcher-menu">
@@ -63,6 +69,9 @@
               />
               <span class="text-bold">@{account.login}</span>
               <span class="color-fg-muted">{account.host}</span>
+              {#if account.host !== 'github.com'}
+                <span class="Label Label--accent-emphasis">GHE</span>
+              {/if}
               {#if toAccountId(account) === activeAccountId}
                 <span class="Label Label--secondary">active</span>
               {/if}

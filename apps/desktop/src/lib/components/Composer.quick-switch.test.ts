@@ -66,6 +66,8 @@ describe('Composer posting identity quick-switch', () => {
       {
         host: 'github.com',
         login: 'fixture-user',
+        api_base_url: 'https://api.github.com',
+        graphql_url: 'https://api.github.com/graphql',
         token_kind: 'pat',
         scopes: ['repo'],
         created_at: 1,
@@ -75,6 +77,8 @@ describe('Composer posting identity quick-switch', () => {
       {
         host: 'github.enterprise.test',
         login: 'octo-enterprise',
+        api_base_url: 'https://github.enterprise.test/api/v3',
+        graphql_url: 'https://github.enterprise.test/api/graphql',
         token_kind: 'oauth-device',
         scopes: ['repo'],
         created_at: 1,
