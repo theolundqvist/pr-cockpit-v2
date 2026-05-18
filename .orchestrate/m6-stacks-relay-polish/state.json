@@ -55,15 +55,15 @@
       "dependsOn": [
         "m6-relay-and-ghe"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-3f8583aa-7cb8-4656-80fd-ffe5b2ae60d3",
+      "runId": "run-84b48150-f9c1-43cf-be9e-80be8572840c",
+      "parentAgentId": "bc-9a1a2582-4f85-429b-9282-f41b528a0536",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T19:56:12.137Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T19:56:12.137Z",
+      "lastUpdate": "2026-05-18T19:56:15.744Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
@@ -157,6 +157,14 @@
     {
       "at": "2026-05-18T19:56:03.112Z",
       "message": "m6-relay-and-ghe: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-18T20:04:16.628Z",
+      "message": "m6-polish: SSE idle 304351ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T20:04:16.629Z",
+      "message": "m6-polish: tool_call idle 304352ms; last=2026-05-18T19:59:12.277Z"
     }
   ]
 }
