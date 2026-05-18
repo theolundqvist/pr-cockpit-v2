@@ -315,6 +315,35 @@ impl GithubClient {
         Ok(rate_limit)
     }
 
+    pub async fn rest_get_json<T: DeserializeOwned>(
+        &self,
+        account_id: &str,
+        path: &str,
+    ) -> Result<(T, Option<RateLimitSnapshot>)> {
+        let locator = self.account_locator(account_id).await?;
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        let url = format!("{}{}", self.config.api_origin, path);
+        let response = self
+            .token_client
+            .request_with(&locator, reqwest::Method::GET, &url, headers, None)
+            .await?;
+        let rate_limit = parse_rate_limit_headers(response.headers());
+        if !response.status().is_success() {
+            let status = response.status();
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<body unavailable>".to_string());
+            return Err(anyhow!("rest get failed ({status}): {body}"));
+        }
+        let payload = response.json::<T>().await?;
+        Ok((payload, rate_limit))
+    }
+
     pub async fn get_json_conditional<T: DeserializeOwned>(
         &self,
         account_id: &str,

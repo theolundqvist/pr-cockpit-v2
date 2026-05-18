@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::{Context, Result as AnyResult};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::Emitter;
@@ -14,13 +16,14 @@ use self::worktree::{
     CleanupError, CleanupOutcome, RediscoverSummary, WorktreeEventEmitter, WorktreeService,
     WorktreeView,
 };
+use crate::api::GithubClient;
 use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
 };
 use crate::db::{
     CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrAssigneeRow,
-    PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrReviewerRow,
-    RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
+    PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrPushRow,
+    PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
 };
 use crate::mutations::{
     ErrorKind, HardConflictDiff, HardConflictPayload, MutationEngine, MutationEvent, MutationKind,
@@ -29,6 +32,10 @@ use crate::mutations::{
 };
 use crate::notify::{
     self, dedup, rules, DebugNotificationInput, NotificationEngine, NotificationEventPayload,
+};
+use crate::range_diff::{
+    self, RangeDiff, RangeDiffError, RangeDiffSourceProvider, RepoLocator, RestCompareRangeDiff,
+    WorktreeMapping,
 };
 use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
@@ -71,6 +78,16 @@ impl From<AuthCommandError> for IpcError {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct RangeDiffCacheKey {
+    pr_id: String,
+    old_head_sha: String,
+    new_head_sha: String,
+}
+
+static RANGE_DIFF_CACHE: Lazy<std::sync::Mutex<HashMap<RangeDiffCacheKey, RangeDiff>>> =
+    Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
+
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct AccountSwitchInput {
     pub host: String,
@@ -108,6 +125,18 @@ pub struct InboxItem {
 pub struct PrHandleInput {
     pub account_id: String,
     pub pr_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct PrPushView {
+    pub id: i64,
+    pub pr_id: String,
+    pub account_id: String,
+    pub head_sha: String,
+    pub base_sha: String,
+    pub observed_at: i64,
+    pub push_kind: String,
+    pub supersedes_head_sha: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -753,6 +782,19 @@ fn map_pr_file_row(row: PrFileRow) -> PrFile {
     }
 }
 
+fn map_pr_push_row(row: PrPushRow) -> PrPushView {
+    PrPushView {
+        id: row.id,
+        pr_id: row.pr_id,
+        account_id: row.account_id,
+        head_sha: row.head_sha,
+        base_sha: row.base_sha,
+        observed_at: row.observed_at,
+        push_kind: row.push_kind,
+        supersedes_head_sha: row.supersedes_head_sha,
+    }
+}
+
 fn map_file_tree_row(row: FileTreeSummaryRow) -> FileTreeSummary {
     FileTreeSummary {
         account_id: row.account_id,
@@ -1251,6 +1293,101 @@ pub async fn ipc_pr_detail_summary_impl(
         .await
         .map_err(IpcError::db)?;
     Ok(row.map(map_pr_detail_summary))
+}
+
+pub async fn list_pr_pushes_impl(db: &Db, pr_id: String) -> Result<Vec<PrPushView>, IpcError> {
+    let rows = db.list_pr_pushes(&pr_id).await.map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_pr_push_row).collect())
+}
+
+pub async fn compute_range_diff_impl(
+    db: &Db,
+    github: Arc<GithubClient>,
+    pr_id: String,
+    base_sha: String,
+    old_head_sha: String,
+    new_head_sha: String,
+) -> Result<RangeDiff, IpcError> {
+    let cache_key = RangeDiffCacheKey {
+        pr_id: pr_id.clone(),
+        old_head_sha: old_head_sha.clone(),
+        new_head_sha: new_head_sha.clone(),
+    };
+    if let Some(cached) = RANGE_DIFF_CACHE
+        .lock()
+        .map_err(|_| IpcError::invalid_input("RangeDiffCachePoisoned", "cache mutex poisoned"))?
+        .get(&cache_key)
+        .cloned()
+    {
+        return Ok(cached);
+    }
+
+    let context = db
+        .pr_range_diff_context(&pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .ok_or_else(|| IpcError::invalid_input("PrNotFound", format!("missing pr `{pr_id}`")))?;
+    let repo = RepoLocator {
+        owner: context.repo_owner,
+        name: context.repo_name,
+    };
+    let worktree_mapping = db
+        .best_worktree_for_pr(&pr_id)
+        .await
+        .map_err(IpcError::db)?
+        .map(|row| WorktreeMapping {
+            path: row.path,
+            confidence: row.mapping_confidence.unwrap_or_default(),
+            source: row.mapping_source,
+            manual_override_pr_id: row.manual_override_pr_id,
+        });
+
+    let provider = range_diff::pick_provider(worktree_mapping, Arc::clone(&github));
+    let computed = match provider
+        .compute(
+            &context.account_id,
+            &repo,
+            &base_sha,
+            &old_head_sha,
+            &new_head_sha,
+        )
+        .await
+    {
+        Ok(range_diff) => range_diff,
+        Err(error)
+            if error.downcast_ref::<RangeDiffError>().is_some_and(|typed| {
+                matches!(typed, RangeDiffError::WorktreeMissingCommits { .. })
+            }) =>
+        {
+            let fallback = RestCompareRangeDiff {
+                github: Arc::clone(&github),
+            };
+            fallback
+                .compute(
+                    &context.account_id,
+                    &repo,
+                    &base_sha,
+                    &old_head_sha,
+                    &new_head_sha,
+                )
+                .await
+                .map_err(|fallback_error| {
+                    IpcError::invalid_input("RangeDiffFallbackFailed", fallback_error.to_string())
+                })?
+        }
+        Err(error) => {
+            return Err(IpcError::invalid_input(
+                "RangeDiffComputationFailed",
+                error.to_string(),
+            ));
+        }
+    };
+
+    RANGE_DIFF_CACHE
+        .lock()
+        .map_err(|_| IpcError::invalid_input("RangeDiffCachePoisoned", "cache mutex poisoned"))?
+        .insert(cache_key, computed.clone());
+    Ok(computed)
 }
 
 pub async fn ipc_pr_timeline_impl(db: &Db, input: PagedPrInput) -> Result<TimelinePage, IpcError> {
@@ -1978,6 +2115,36 @@ pub async fn ipc_pr_detail_summary(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_pr_pushes(
+    db: tauri::State<'_, Arc<Db>>,
+    pr_id: String,
+) -> Result<Vec<PrPushView>, IpcError> {
+    list_pr_pushes_impl(db.inner(), pr_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn compute_range_diff(
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    pr_id: String,
+    base_sha: String,
+    old_head_sha: String,
+    new_head_sha: String,
+) -> Result<RangeDiff, IpcError> {
+    compute_range_diff_impl(
+        db.inner(),
+        Arc::clone(github.inner()),
+        pr_id,
+        base_sha,
+        old_head_sha,
+        new_head_sha,
+    )
+    .await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn ipc_pr_timeline(
     db: tauri::State<'_, Arc<Db>>,
     input: PagedPrInput,
@@ -2309,6 +2476,8 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             ipc_account_switch,
             ipc_inbox_list,
             ipc_pr_detail_summary,
+            list_pr_pushes,
+            compute_range_diff,
             ipc_pr_timeline,
             ipc_pr_review_threads,
             ipc_pr_check_summary,
@@ -2388,6 +2557,8 @@ pub fn command_names() -> &'static [&'static str] {
         "ipc_account_switch",
         "ipc_inbox_list",
         "ipc_pr_detail_summary",
+        "list_pr_pushes",
+        "compute_range_diff",
         "ipc_pr_timeline",
         "ipc_pr_review_threads",
         "ipc_pr_check_summary",

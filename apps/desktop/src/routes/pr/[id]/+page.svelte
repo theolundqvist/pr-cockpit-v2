@@ -18,6 +18,7 @@
   } from '$lib/data/pr-detail';
   import {
     discardMutation,
+    listPrPushes,
     listPendingMutations,
     listenEventPayload,
     retryMutation,
@@ -29,7 +30,8 @@
     MutationKind,
     NetState,
     PendingOverlay,
-    PendingMutationView
+    PendingMutationView,
+    PrPushView
   } from '$lib/ipc/bindings';
   import { reduceConversationTimeline } from '$lib/timeline/reducer';
   import { formatRelative } from '$lib/utils/time';
@@ -51,6 +53,7 @@
   let refreshing = false;
   let unlisten: Array<() => void> = [];
   let pendingMutations: PendingMutationView[] = [];
+  let pushHistory: PrPushView[] = [];
   let syncTrayOpen = false;
   let conflict: HardConflictPayload | null = null;
   let networkState: NetState = { state: 'online' };
@@ -96,6 +99,18 @@
   );
   $: queuedMutationCount = pendingMutations.filter((entry) => entry.status === 'pending').length;
   $: offline = networkState.state === 'offline';
+  $: latestPushPair = (() => {
+    if (pushHistory.length < 2) {
+      return null;
+    }
+    const oldPush = pushHistory[pushHistory.length - 2];
+    const newPush = pushHistory[pushHistory.length - 1];
+    if (!oldPush || !newPush) {
+      return null;
+    }
+    return { old: oldPush, new: newPush };
+  })();
+  $: forcePushCount = Math.max(pushHistory.length - 1, 0);
   $: currentWorktree =
     $worktreesStore.find((worktree) => worktree.mapped_pr_id === data.prId) ?? null;
   $: repoPrOptions = $inboxStore
@@ -103,7 +118,11 @@
     .map((row) => ({ id: row.pr_id, number: row.pr_number, title: row.title }));
 
   onMount(async () => {
-    await Promise.all([initSubscription(data.prId, data.activeAccountId), refreshPending()]);
+    await Promise.all([
+      initSubscription(data.prId, data.activeAccountId),
+      refreshPending(),
+      refreshPushHistory()
+    ]);
   });
 
   function overlayOptimism(overlay: PendingOverlay | null): PendingMutationView['optimism'] | null {
@@ -125,6 +144,10 @@
     pendingMutations = await listPendingMutations(data.activeAccountId, true);
   }
 
+  async function refreshPushHistory(): Promise<void> {
+    pushHistory = await listPrPushes(data.prId);
+  }
+
   async function refreshBundle(): Promise<void> {
     refreshing = true;
     invalidatePrDetail(data.activeAccountId, data.prId);
@@ -134,6 +157,7 @@
       titleDraft = nextBundle.summary.title;
       bodyDraft = nextBundle.summary.body;
     }
+    await refreshPushHistory();
     refreshing = false;
   }
 
@@ -306,6 +330,14 @@
         onRetry={onRetry}
         onDiscard={onDiscard}
       />
+      {#if latestPushPair}
+        <div class="flash flash-warn mt-2">
+          Force-pushed {forcePushCount} {forcePushCount === 1 ? 'time' : 'times'} — <a
+            href={`/pr/${data.prId}/range-diff?old=${latestPushPair.old.head_sha}&new=${latestPushPair.new.head_sha}`}
+            >view range-diff</a
+          >
+        </div>
+      {/if}
       {#if pendingMutations.some((entry) => entry.status === 'pending')}
         <div class="mt-2 d-flex flex-wrap gap-1">
           {#each pendingMutations.filter((entry) => entry.status === 'pending') as entry (entry.id)}

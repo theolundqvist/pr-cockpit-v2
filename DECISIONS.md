@@ -32,6 +32,26 @@ These M3 contracts are promoted because downstream milestones depend on them:
    maintain keyboard-reachable section progression, and expose visible focus
    affordances under `:focus-visible`.
 
+### 2026-05-18: M4 force-push range-diff source strategy and fallback contract
+
+Decision:
+
+- Local range-diff computation shells out to native git (`git range-diff --no-color --no-notes <base>...<old> <base>...<new>`) instead of reimplementing range-diff semantics in Rust. Git already owns pairing heuristics and notation compatibility (`=`, `!`, `+`, `-`), so this keeps behavior aligned with developer expectations and lowers algorithmic drift risk.
+- REST fallback pairs commits in two passes:
+  - exact pass: patch-id-equivalent via SHA-256 hash of each commit patch body,
+  - similarity pass: greedy matching by combined file-path Jaccard and touched-line similarity.
+  This is sufficient for force-push UX because users primarily need stable unchanged pairing plus a best-effort modified mapping when patch IDs diverge.
+- Intra-line highlights for modified pairs use `similar::TextDiff::from_chars` to emit per-segment ranges (`Unchanged`, `Added`, `Removed`) for both old/new lines. This keeps renderer logic typed and transport-neutral across local and REST modes.
+- PR push history is persisted in `pr_pushes` on every observed head SHA change:
+  - `initial` when first seen,
+  - `fast-forward` when prior head is present in the new commit range and base SHA is unchanged,
+  - `force-push` when prior head is absent from the new commit range,
+  - `merge-back` when prior head is present but base SHA changed.
+  The `pr_force_push_pairs` view exposes only force-push transitions for UI default selection.
+- Worktree-missing-commit policy is explicit: local provider attempts a single `git fetch origin <sha>` recovery per missing commit. If commit objects remain unavailable, it returns `WorktreeMissingCommits`, and IPC dispatch falls through to REST `/compare` computation.
+
+Reason: M4 requires deterministic force-push inspection that prefers local fidelity when available, but still renders reliably when worktrees are stale, partial, or absent.
+
 ### 2026-05-17: M3 notifications engine contracts (plugin ownership, trigger predicates, dedup, suppression)
 
 Decision:

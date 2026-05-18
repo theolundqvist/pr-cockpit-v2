@@ -6,6 +6,8 @@ import type {
   PrDetailSummary,
   PrFilesResponse,
   PrMetadataResponse,
+  PrPushView,
+  RangeDiff,
   PrPatchResponse,
   RepoSubscriptionItem,
   ReviewThreadsPage,
@@ -231,6 +233,123 @@ export const MOCK_PR_DETAIL: PrDetailSummary = {
   body_server_adjusted: false,
   pending_overlay: null
 };
+
+const RANGE_DIFF_BASE_SHA = 'base_sha_0000000000000000000000000000000000000001';
+const RANGE_DIFF_OLD_SHA = '1111111111111111111111111111111111111111';
+const RANGE_DIFF_NEW_SHA = '2222222222222222222222222222222222222222';
+
+export const MOCK_PR_PUSHES: Record<string, PrPushView[]> = {
+  pr_1: [
+    {
+      id: 1,
+      pr_id: 'pr_1',
+      account_id: accountId(primaryAccount.host, primaryAccount.login),
+      head_sha: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      base_sha: RANGE_DIFF_BASE_SHA,
+      observed_at: BASE_TS + 1000,
+      push_kind: 'initial',
+      supersedes_head_sha: null
+    },
+    {
+      id: 2,
+      pr_id: 'pr_1',
+      account_id: accountId(primaryAccount.host, primaryAccount.login),
+      head_sha: RANGE_DIFF_OLD_SHA,
+      base_sha: RANGE_DIFF_BASE_SHA,
+      observed_at: BASE_TS + 1100,
+      push_kind: 'force-push',
+      supersedes_head_sha: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    },
+    {
+      id: 3,
+      pr_id: 'pr_1',
+      account_id: accountId(primaryAccount.host, primaryAccount.login),
+      head_sha: RANGE_DIFF_NEW_SHA,
+      base_sha: RANGE_DIFF_BASE_SHA,
+      observed_at: BASE_TS + 1200,
+      push_kind: 'force-push',
+      supersedes_head_sha: RANGE_DIFF_OLD_SHA
+    }
+  ]
+};
+
+export function mockRangeDiff(
+  mode: 'LocalGit' | 'RestCompare',
+  baseSha = RANGE_DIFF_BASE_SHA,
+  oldHeadSha = RANGE_DIFF_OLD_SHA,
+  newHeadSha = RANGE_DIFF_NEW_SHA
+): RangeDiff {
+  const oldCommit = {
+    sha: oldHeadSha,
+    title: 'Adjust greeting wording',
+    body: '',
+    author_name: 'fixture-user',
+    committed_at: BASE_TS + 1110,
+    patch_hash: 'old-patch-hash',
+    file_paths: ['src/example.txt'],
+    additions: 1,
+    deletions: 1
+  };
+  const newCommit = {
+    sha: newHeadSha,
+    title: 'Adjust greeting wording',
+    body: '',
+    author_name: 'fixture-user',
+    committed_at: BASE_TS + 1210,
+    patch_hash: 'new-patch-hash',
+    file_paths: ['src/example.txt'],
+    additions: 1,
+    deletions: 1
+  };
+  return {
+    old_range: {
+      base_sha: baseSha,
+      head_sha: oldHeadSha,
+      commits: [oldCommit]
+    },
+    new_range: {
+      base_sha: baseSha,
+      head_sha: newHeadSha,
+      commits: [newCommit]
+    },
+    commit_pairs: [
+      {
+        status: 'Modified',
+        old: oldCommit,
+        new: newCommit,
+        intra_diff: {
+          hunks: [
+            {
+              old_lines: [
+                {
+                  text: 'hello old world',
+                  side: 'Old',
+                  segments: [
+                    { start: 0, end: 6, kind: 'Unchanged' },
+                    { start: 6, end: 9, kind: 'Removed' },
+                    { start: 9, end: 15, kind: 'Unchanged' }
+                  ]
+                }
+              ],
+              new_lines: [
+                {
+                  text: 'hello new world',
+                  side: 'New',
+                  segments: [
+                    { start: 0, end: 6, kind: 'Unchanged' },
+                    { start: 6, end: 9, kind: 'Added' },
+                    { start: 9, end: 15, kind: 'Unchanged' }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    mode
+  };
+}
 
 export const MOCK_PR_METADATA: PrMetadataResponse = {
   labels: [

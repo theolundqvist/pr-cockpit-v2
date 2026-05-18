@@ -48,17 +48,17 @@ pub fn run() {
             let auth_service =
                 Arc::new(AuthService::new(Arc::clone(&db)).context("building auth service")?);
             let sync_state = Arc::new(sync::SyncTierStateStore::default());
-            let github = GithubClient::new(
+            let github = Arc::new(GithubClient::new(
                 TokenClient::from_auth_service(Arc::clone(&auth_service)),
                 Arc::clone(&db),
-            );
+            ));
             let cache_emitter = Arc::new(ipc::TauriCacheInvalidationEmitter::new(
                 app.handle().clone(),
             ));
             let worktree_emitter = Arc::new(ipc::TauriWorktreeEventEmitter::new(app.handle().clone()));
             let network_monitor = NetworkMonitor::start(github.probe_url());
             let mutation_engine = Arc::new(
-                MutationEngine::new(Arc::clone(&db), github)
+                MutationEngine::new(Arc::clone(&db), github.as_ref().clone())
                     .with_cache_emitter(cache_emitter.clone())
                     .with_network_monitor(network_monitor.clone()),
             );
@@ -102,6 +102,7 @@ pub fn run() {
             app.manage(Arc::clone(&mutation_engine));
             app.manage(Arc::clone(&worktree_service));
             app.manage(Arc::clone(&notification_engine));
+            app.manage(Arc::clone(&github));
             app.manage(inbox_seed_state);
 
             {
@@ -182,6 +183,7 @@ pub mod db;
 pub mod ipc;
 pub mod mutations;
 pub mod notify;
+pub mod range_diff;
 pub mod render;
 pub mod storage;
 pub mod sync;

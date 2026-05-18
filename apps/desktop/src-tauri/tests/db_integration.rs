@@ -37,6 +37,7 @@ async fn migrations_apply_cleanly_to_empty_file() -> Result<()> {
         "pr_files",
         "pr_patches",
         "notifications",
+        "pr_pushes",
         "worktrees",
         "pending_mutations",
         "mutation_attempts",
@@ -62,6 +63,7 @@ async fn migrations_apply_cleanly_to_empty_file() -> Result<()> {
         "pr_detail_summary",
         "unread_counts",
         "file_tree_summary",
+        "pr_force_push_pairs",
     ];
     for view in required_views {
         let count: i64 = sqlx::query_scalar(

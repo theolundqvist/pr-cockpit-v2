@@ -742,6 +742,156 @@ impl Db {
         Ok(pr_id)
     }
 
+    pub async fn pr_range_diff_context(
+        &self,
+        pr_id: &str,
+    ) -> Result<Option<PrRangeDiffContextRow>> {
+        let row = sqlx::query_as::<_, PrRangeDiffContextRow>(
+            "SELECT
+               pr.id AS pr_id,
+               pr.account_id,
+               repo.owner AS repo_owner,
+               repo.name AS repo_name
+             FROM pull_requests pr
+             JOIN repos repo ON repo.id = pr.repo_id
+             WHERE pr.id = ?1
+             LIMIT 1",
+        )
+        .bind(pr_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn latest_pr_push(&self, pr_id: &str) -> Result<Option<PrPushRow>> {
+        let row = sqlx::query_as::<_, PrPushRow>(
+            "SELECT
+               id,
+               pr_id,
+               account_id,
+               head_sha,
+               base_sha,
+               observed_at,
+               push_kind,
+               supersedes_head_sha
+             FROM pr_pushes
+             WHERE pr_id = ?1
+             ORDER BY observed_at DESC, id DESC
+             LIMIT 1",
+        )
+        .bind(pr_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn upsert_pr_push(&self, push: &PrPushRecord) -> Result<()> {
+        sqlx::query(
+            "INSERT INTO pr_pushes(
+               pr_id,
+               account_id,
+               head_sha,
+               base_sha,
+               observed_at,
+               push_kind,
+               supersedes_head_sha
+             )
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(pr_id, head_sha) DO NOTHING",
+        )
+        .bind(&push.pr_id)
+        .bind(&push.account_id)
+        .bind(&push.head_sha)
+        .bind(&push.base_sha)
+        .bind(push.observed_at)
+        .bind(&push.push_kind)
+        .bind(&push.supersedes_head_sha)
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn list_pr_pushes(&self, pr_id: &str) -> Result<Vec<PrPushRow>> {
+        let rows = sqlx::query_as::<_, PrPushRow>(
+            "SELECT
+               id,
+               pr_id,
+               account_id,
+               head_sha,
+               base_sha,
+               observed_at,
+               push_kind,
+               supersedes_head_sha
+             FROM pr_pushes
+             WHERE pr_id = ?1
+             ORDER BY observed_at ASC, id ASC",
+        )
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn list_pr_force_push_pairs(&self, pr_id: &str) -> Result<Vec<PrForcePushPairRow>> {
+        let rows = sqlx::query_as::<_, PrForcePushPairRow>(
+            "SELECT pr_id, base_sha, old_head_sha, new_head_sha, occurred_at
+             FROM pr_force_push_pairs
+             WHERE pr_id = ?1
+             ORDER BY occurred_at ASC",
+        )
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn best_worktree_for_pr(&self, pr_id: &str) -> Result<Option<WorktreeViewRow>> {
+        let row = sqlx::query_as::<_, WorktreeViewRow>(
+            "SELECT
+               w.id,
+               w.account_id,
+               w.repo_id,
+               r.owner AS repo_owner,
+               r.name AS repo_name,
+               w.path,
+               w.head_sha,
+               w.branch,
+               w.dirty,
+               w.ahead,
+               w.behind,
+               w.untracked_count,
+               w.staged_count,
+               w.modified_count,
+               w.mapped_pr_id,
+               pr.number AS mapped_pr_number,
+               w.mapping_confidence,
+               w.mapping_source,
+               w.is_app_managed,
+               w.manual_override_pr_id,
+               w.manual_override_at,
+               w.last_cleanup_snapshot_id,
+               w.created_at,
+               w.updated_at
+             FROM worktrees w
+             JOIN repos r ON r.id = w.repo_id
+             LEFT JOIN pull_requests pr ON pr.id = w.mapped_pr_id
+             WHERE w.mapped_pr_id = ?1
+             ORDER BY
+               CASE
+                 WHEN w.manual_override_pr_id = ?1 THEN 1
+                 ELSE 0
+               END DESC,
+               COALESCE(w.mapping_confidence, 0.0) DESC,
+               w.updated_at DESC
+             LIMIT 1",
+        )
+        .bind(pr_id)
+        .bind(pr_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
     pub async fn search(
         &self,
         account_id: &str,
