@@ -1,4 +1,5 @@
 import type {
+  CheckAnnotationView,
   CheckRunSummary,
   PrCheckSummary,
   PrDetailSummary,
@@ -10,6 +11,7 @@ import type {
 } from '$lib/ipc/bindings';
 import {
   getCheckSummary,
+  getCheckAnnotations,
   getPrFiles,
   getPrMetadata,
   getPrPatch,
@@ -32,6 +34,7 @@ export type PrDetailBundle = {
   review_threads: ReviewThread[];
   suggestion_blocks: SuggestionBlock[];
   checks: PrCheckSummary;
+  check_annotations: CheckAnnotationView[];
   files: PrFile[];
   patch: string;
   patch_blob_sha: string | null;
@@ -72,6 +75,7 @@ async function loadBundle(accountId: string, prId: string): Promise<PrDetailBund
     threadsPage,
     suggestionBlocks,
     checks,
+    checkAnnotations,
     filesResponse,
     patchResponse
   ] = await Promise.all([
@@ -80,6 +84,7 @@ async function loadBundle(accountId: string, prId: string): Promise<PrDetailBund
     getReviewThreads(accountId, prId),
     getSuggestionBlocks(accountId, prId),
     getCheckSummary(accountId, prId),
+    getCheckAnnotations(accountId, prId),
     getPrFiles(accountId, prId, summary.head_sha),
     getPrPatch(accountId, prId, summary.head_sha)
   ]);
@@ -91,6 +96,7 @@ async function loadBundle(accountId: string, prId: string): Promise<PrDetailBund
     review_threads: threadsPage.threads,
     suggestion_blocks: suggestionBlocks,
     checks: normalizeChecks(checks),
+    check_annotations: checkAnnotations,
     files: filesResponse.files,
     patch: patchResponse.patch ?? '',
     patch_blob_sha: patchResponse.patch_blob_sha

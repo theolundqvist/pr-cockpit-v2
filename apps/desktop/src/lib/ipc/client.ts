@@ -4,6 +4,7 @@ import {
   commands,
   type AccountLocator,
   type AuthAccount,
+  type CheckAnnotationView,
   type Draft,
   type InitInboxResponse,
   type IpcError,
@@ -17,8 +18,10 @@ import {
   type NetState,
   type RateLimitBucket,
   type PendingMutationView,
+  type PrCheckSummary,
   type PrDetailSummary,
   type PrPushView,
+  type StreamHandle,
   type RangeDiff,
   type SuggestionBlock,
   type SubmittedMutation,
@@ -30,6 +33,7 @@ import {
 } from '$lib/ipc/bindings';
 import {
   MOCK_ACCOUNTS,
+  MOCK_CHECK_ANNOTATIONS,
   MOCK_CLEANUP_OUTCOME,
   MOCK_CHECKS,
   MOCK_FILES,
@@ -58,6 +62,10 @@ let mockMutationSeq = 0;
 let mockDraftSeq = 0;
 let mockNetState: NetState = { state: 'online' };
 let mockPrDetail: PrDetailSummary = { ...MOCK_PR_DETAIL };
+let mockChecksState: PrCheckSummary = {
+  ...MOCK_CHECKS,
+  runs: MOCK_CHECKS.runs.map((run) => ({ ...run }))
+};
 let mockAutoSettleMutations = true;
 const mockPendingMutations = new Map<string, PendingMutationView>();
 const mockMutationInputs = new Map<
@@ -116,6 +124,9 @@ const mockSuggestionBlocks: SuggestionBlock[] = [
     is_outdated: false
   }
 ];
+const mockCheckAnnotations: CheckAnnotationView[] = MOCK_CHECK_ANNOTATIONS.map((annotation) => ({
+  ...annotation
+}));
 const mockNotificationRules = new Map<string, NotificationRule[]>();
 const mockNotificationEvents = new Map<string, NotificationEventRow[]>();
 const mockNotificationSettings = new Map<
@@ -180,7 +191,9 @@ const cautiousKinds = new Set<MutationKind>([
   'set_project',
   'convert_to_draft',
   'mark_ready_for_review',
-  'update_branch'
+  'update_branch',
+  'rerun_check_run',
+  'rerun_check_suite'
 ]);
 const noneKinds = new Set<MutationKind>([
   'merge',
@@ -496,6 +509,48 @@ function applyMockMutationSideEffects(kind: MutationKind, payload: Record<string
       };
       break;
     }
+    case 'rerun_check_run': {
+      const runId = optionalString(payload.check_run_id) ?? optionalString(payload.target_id);
+      if (!runId) {
+        break;
+      }
+      mockChecksState = {
+        ...mockChecksState,
+        runs: mockChecksState.runs.map((run) =>
+          run.id === runId
+            ? {
+                ...run,
+                status: 'queued',
+                conclusion: null,
+                completed_at: null
+              }
+            : run
+        ),
+        pending_runs: Math.max(mockChecksState.pending_runs + 1, 1)
+      };
+      break;
+    }
+    case 'rerun_check_suite': {
+      const suiteId = optionalString(payload.check_suite_id) ?? optionalString(payload.target_id);
+      if (!suiteId) {
+        break;
+      }
+      mockChecksState = {
+        ...mockChecksState,
+        runs: mockChecksState.runs.map((run) =>
+          run.check_suite_id === suiteId
+            ? {
+                ...run,
+                status: 'queued',
+                conclusion: null,
+                completed_at: null
+              }
+            : run
+        ),
+        pending_runs: Math.max(mockChecksState.pending_runs + 1, 1)
+      };
+      break;
+    }
     default:
       break;
   }
@@ -753,8 +808,97 @@ export async function getCheckSummary(accountId: string, prId: string) {
     return unwrap(commands.ipcPrCheckSummary({ account_id: accountId, pr_id: prId }));
   }
   return prId === 'pr_1'
-    ? MOCK_CHECKS
+    ? mockChecksState
     : { total_runs: 0, successful_runs: 0, failed_runs: 0, pending_runs: 0, runs: [] };
+}
+
+export async function getCheckAnnotations(
+  accountId: string,
+  prId: string
+): Promise<CheckAnnotationView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listCheckAnnotations({ account_id: accountId, pr_id: prId }));
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockCheckAnnotations.map((annotation) => ({
+    ...annotation,
+    is_outdated:
+      annotation.is_outdated ||
+      Boolean(
+        annotation.check_run_head_sha && annotation.check_run_head_sha !== mockPrDetail.head_sha
+      )
+  }));
+}
+
+export async function getCheckAnnotationsForFile(
+  accountId: string,
+  prId: string,
+  path: string
+): Promise<CheckAnnotationView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.listCheckAnnotationsForFile({
+        account_id: accountId,
+        pr_id: prId,
+        path
+      })
+    );
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockCheckAnnotations
+    .filter((annotation) => annotation.anchor_path === path)
+    .map((annotation) => ({
+      ...annotation,
+      is_outdated:
+        annotation.is_outdated ||
+        Boolean(
+          annotation.check_run_head_sha && annotation.check_run_head_sha !== mockPrDetail.head_sha
+        )
+    }));
+}
+
+export async function startCheckLogStream(
+  checkRunId: string,
+  tailLines = 500
+): Promise<StreamHandle> {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.startCheckLogStream({
+        check_run_id: checkRunId,
+        tail_lines: tailLines
+      })
+    );
+  }
+  const eventName = `check_log:${checkRunId}:chunk`;
+  queueMicrotask(async () => {
+    const run = mockChecksState.runs.find((entry) => entry.id === checkRunId);
+    const detailsUrl = run?.details_url ?? null;
+    const isActions = detailsUrl?.includes('/actions/runs/') ?? false;
+    if (!isActions) {
+      await emitMockEvent(eventName, {
+        kind: 'fallback',
+        text: null,
+        details_url: detailsUrl
+      });
+      await emitMockEvent(eventName, { kind: 'done', text: null, details_url: null });
+      return;
+    }
+    const lines = Array.from(
+      { length: 40 },
+      (_value, index) => `log line ${index + 1} for ${checkRunId}\n`
+    );
+    for (const line of lines) {
+      await emitMockEvent(eventName, { kind: 'chunk', text: line, details_url: null });
+    }
+    const tail = lines.slice(-Math.min(lines.length, tailLines)).join('');
+    await emitMockEvent(eventName, { kind: 'tail', text: tail, details_url: null });
+    await emitMockEvent(eventName, { kind: 'done', text: null, details_url: null });
+  });
+  return { event_name: eventName };
 }
 
 export async function getPrFiles(accountId: string, prId: string, headSha: string) {
@@ -1430,6 +1574,10 @@ if (typeof window !== 'undefined' && !window.__M4_DEBUG__) {
     },
     resetPrDetail: () => {
       mockPrDetail = { ...MOCK_PR_DETAIL };
+      mockChecksState = {
+        ...MOCK_CHECKS,
+        runs: MOCK_CHECKS.runs.map((run) => ({ ...run }))
+      };
       mockAppliedSuggestionCommentIds.clear();
     },
     setAutoSettleMutations: (enabled) => {

@@ -56,5 +56,7 @@ pub fn handler_for(kind: MutationKind) -> Option<Arc<dyn Mutation>> {
         MutationKind::ApplySuggestionBatch => {
             Some(Arc::new(handlers::suggestions::ApplySuggestionBatch))
         }
+        MutationKind::RerunCheckRun => Some(Arc::new(handlers::checks::RerunCheckRun)),
+        MutationKind::RerunCheckSuite => Some(Arc::new(handlers::checks::RerunCheckSuite)),
     }
 }

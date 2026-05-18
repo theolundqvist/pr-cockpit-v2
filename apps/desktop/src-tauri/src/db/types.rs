@@ -205,6 +205,8 @@ pub struct ReviewThreadRow {
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct CheckRunSummaryRow {
     pub id: String,
+    pub check_suite_id: String,
+    pub rest_id: Option<i64>,
     pub name: String,
     pub status: String,
     pub conclusion: Option<String>,
@@ -212,6 +214,57 @@ pub struct CheckRunSummaryRow {
     pub started_at: Option<i64>,
     pub completed_at: Option<i64>,
     pub app_name: Option<String>,
+    pub check_suite_status: Option<String>,
+    pub check_suite_conclusion: Option<String>,
+    pub check_run_head_sha: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckAnnotationViewRow {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub check_suite_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_run_name: String,
+    pub check_run_status: String,
+    pub check_run_conclusion: Option<String>,
+    pub check_run_details_url: Option<String>,
+    pub check_run_head_sha: Option<String>,
+    pub is_outdated: i64,
+    pub path: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub start_column: Option<i64>,
+    pub end_column: Option<i64>,
+    pub annotation_level: String,
+    pub title: Option<String>,
+    pub message: String,
+    pub raw_details: Option<String>,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckRunContextRow {
+    pub check_run_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_suite_id: String,
+    pub account_id: String,
+    pub pr_id: String,
+    pub owner: String,
+    pub repo: String,
+    pub details_url: Option<String>,
+    pub head_sha: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckRunSyncStateRow {
+    pub id: String,
+    pub status: String,
+    pub conclusion: Option<String>,
+    pub updated_at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -581,6 +634,7 @@ pub struct CheckSuiteRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckRunRecord {
     pub id: String,
+    pub rest_id: Option<i64>,
     pub account_id: String,
     pub check_suite_id: String,
     pub pr_id: String,
@@ -611,6 +665,18 @@ pub struct CheckAnnotationRecord {
     pub title: Option<String>,
     pub message: String,
     pub raw_details: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckAnnotationAuxRecord {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub account_id: String,
+    pub pr_id: String,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

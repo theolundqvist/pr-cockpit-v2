@@ -3,6 +3,7 @@ use std::sync::Arc;
 use super::{Mutation, MutationKind};
 
 pub mod assignees;
+pub mod checks;
 pub mod comments;
 mod common;
 pub mod labels;
@@ -53,6 +54,8 @@ pub fn all() -> Vec<Arc<dyn Mutation>> {
         Arc::new(merge_controls::ReopenPr),
         Arc::new(suggestions::ApplySuggestion),
         Arc::new(suggestions::ApplySuggestionBatch),
+        Arc::new(checks::RerunCheckRun),
+        Arc::new(checks::RerunCheckSuite),
     ]
 }
 
@@ -93,5 +96,7 @@ pub fn has_handler(kind: MutationKind) -> bool {
             | MutationKind::ReopenPr
             | MutationKind::ApplySuggestion
             | MutationKind::ApplySuggestionBatch
+            | MutationKind::RerunCheckRun
+            | MutationKind::RerunCheckSuite
     )
 }
