@@ -1,0 +1,8 @@
+mutation UpdatePullRequestBase($pullRequestId: ID!, $baseRefName: String!) {
+  updatePullRequest(input: { pullRequestId: $pullRequestId, baseRefName: $baseRefName }) {
+    pullRequest {
+      id
+      baseRefName
+    }
+  }
+}

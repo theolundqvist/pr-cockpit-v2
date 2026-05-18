@@ -1,7 +1,14 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { get } from 'svelte/store';
 
-  import { savePatToken, testEndpoints, toAccountId } from '$lib/ipc/client';
+  import {
+    getGraphiteStatus,
+    savePatToken,
+    setGraphiteEnabled,
+    testEndpoints,
+    toAccountId
+  } from '$lib/ipc/client';
   import type { EndpointTestResult } from '$lib/ipc/bindings';
   import NotificationsSettings from '$lib/components/settings/Notifications.svelte';
   import SavedRepliesSettings from '$lib/components/settings/SavedRepliesSettings.svelte';
@@ -21,6 +28,36 @@
   let addPending = false;
   let endpointResult: EndpointTestResult | null = null;
   let activeTab: 'accounts' | 'notifications' | 'saved-replies' = 'notifications';
+  let graphiteDetected = false;
+  let graphiteEnabled = false;
+  let graphiteBusy = false;
+
+  onMount(async () => {
+    await refreshGraphite();
+  });
+
+  async function refreshGraphite(): Promise<void> {
+    try {
+      const status = await getGraphiteStatus();
+      graphiteDetected = Boolean(status.detected_version);
+      graphiteEnabled = status.enabled;
+    } catch {
+      graphiteDetected = false;
+      graphiteEnabled = false;
+    }
+  }
+
+  async function toggleGraphite(event: Event): Promise<void> {
+    const next = (event.currentTarget as HTMLInputElement).checked;
+    graphiteBusy = true;
+    try {
+      await setGraphiteEnabled(next);
+      graphiteEnabled = next;
+      window.dispatchEvent(new CustomEvent('graphite:settings changed'));
+    } finally {
+      graphiteBusy = false;
+    }
+  }
 
   function openAddModal(): void {
     addModalOpen = true;
@@ -119,6 +156,27 @@
             </li>
           {/each}
         </ul>
+      </div>
+    </section>
+    <section class="Box mb-3">
+      <div class="Box-header">
+        <h2 class="f4 m-0">Graphite integration</h2>
+      </div>
+      <div class="Box-body">
+        <label class="d-flex flex-items-center gap-2">
+          <input
+            type="checkbox"
+            checked={graphiteEnabled}
+            disabled={!graphiteDetected || graphiteBusy}
+            title={!graphiteDetected ? 'gt not detected on PATH' : ''}
+            on:change={toggleGraphite}
+            data-testid="graphite-toggle"
+          />
+          <span>Enable Graphite integration</span>
+          {#if !graphiteDetected}
+            <span class="Label Label--secondary">gt not detected on PATH</span>
+          {/if}
+        </label>
       </div>
     </section>
   {:else if activeTab === 'notifications'}

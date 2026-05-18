@@ -32,7 +32,11 @@ import {
   type CleanupError,
   type WorktreeView,
   type CleanupOutcome,
-  type RediscoverSummary
+  type RediscoverSummary,
+  type GraphiteIntegrationStatus,
+  type MergeMethod,
+  type StackGraph,
+  type StackOperationView
 } from '$lib/ipc/bindings';
 import {
   MOCK_ACCOUNTS,
@@ -45,6 +49,7 @@ import {
   MOCK_PR_DETAIL,
   MOCK_PR_METADATA,
   MOCK_PR_PUSHES,
+  MOCK_STACKS_BY_SCOPE,
   MOCK_SUBSCRIPTIONS,
   MOCK_THREADS,
   MOCK_TIMELINE,
@@ -94,6 +99,24 @@ const mockExternalOpenInvocations: string[] = [];
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
+const mockStacksByScope = new Map<string, StackGraph[]>(
+  Object.entries(MOCK_STACKS_BY_SCOPE).map(([scope, stacks]) => [
+    scope,
+    stacks.map((stack) => ({
+      ...stack,
+      nodes: stack.nodes.map((node) => ({ ...node, blocked_by: [...node.blocked_by] })),
+      edges: stack.edges.map((edge) => ({ ...edge })),
+      warning: stack.warning
+        ? { reason: stack.warning.reason, diamond_pr_ids: [...stack.warning.diamond_pr_ids] }
+        : null
+    }))
+  ])
+);
+const mockStackOps = new Map<string, StackOperationView>();
+let mockStackOpSeq = 0;
+const mockStackInvocations: Array<{ command: string; payload: Record<string, unknown> }> = [];
+const GRAPHITE_STATUS_STORAGE_KEY = '__mock_graphite_status__';
+let mockGraphiteStatus: GraphiteIntegrationStatus = readStoredGraphiteStatus();
 const mockAppliedSuggestionCommentIds = new Set<string>();
 const mockSuggestionBlocks: SuggestionBlock[] = [
   {
@@ -193,6 +216,51 @@ function writeStoredRangeDiffMode(mode: 'local' | 'rest' | null): void {
     } else {
       window.localStorage.removeItem(RANGE_DIFF_MODE_STORAGE_KEY);
     }
+  } catch {
+    // noop in constrained browser environments
+  }
+}
+
+function readStoredGraphiteStatus(): GraphiteIntegrationStatus {
+  if (typeof window === 'undefined') {
+    return {
+      detected_version: null,
+      enabled: false
+    };
+  }
+  try {
+    const raw = window.localStorage.getItem(GRAPHITE_STATUS_STORAGE_KEY);
+    if (!raw) {
+      return {
+        detected_version: null,
+        enabled: false
+      };
+    }
+    const parsed = JSON.parse(raw) as GraphiteIntegrationStatus;
+    return {
+      detected_version: parsed.detected_version ? { ...parsed.detected_version } : null,
+      enabled: Boolean(parsed.enabled)
+    };
+  } catch {
+    return {
+      detected_version: null,
+      enabled: false
+    };
+  }
+}
+
+function writeStoredGraphiteStatus(status: GraphiteIntegrationStatus): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      GRAPHITE_STATUS_STORAGE_KEY,
+      JSON.stringify({
+        detected_version: status.detected_version,
+        enabled: status.enabled
+      })
+    );
   } catch {
     // noop in constrained browser environments
   }
@@ -426,6 +494,63 @@ function registerMockListener<T>(eventName: string, callback: EventCallback<T>):
       mockEventListeners.delete(eventName);
     }
   };
+}
+
+function stackScopeKey(accountId: string, repoId: string): string {
+  return `${accountId}:${repoId}`;
+}
+
+function cloneStackGraphs(stacks: StackGraph[]): StackGraph[] {
+  return stacks.map((stack) => ({
+    ...stack,
+    nodes: stack.nodes.map((node) => ({ ...node, blocked_by: [...node.blocked_by] })),
+    edges: stack.edges.map((edge) => ({ ...edge })),
+    warning: stack.warning
+      ? { reason: stack.warning.reason, diamond_pr_ids: [...stack.warning.diamond_pr_ids] }
+      : null
+  }));
+}
+
+function cloneStackOperation(operation: StackOperationView): StackOperationView {
+  return {
+    ...operation,
+    conflict_files: [...operation.conflict_files]
+  };
+}
+
+function pushMockStackInvocation(command: string, payload: Record<string, unknown>): void {
+  mockStackInvocations.push({ command, payload });
+}
+
+function latestMockStackOpId(): string | null {
+  let latest: StackOperationView | null = null;
+  for (const operation of mockStackOps.values()) {
+    if (!latest || operation.updated_at >= latest.updated_at) {
+      latest = operation;
+    }
+  }
+  return latest?.id ?? null;
+}
+
+async function emitMockStacksChanged(
+  accountId: string,
+  repoId: string,
+  stacks: StackGraph[]
+): Promise<void> {
+  const payload = {
+    account_id: accountId,
+    repo_id: repoId,
+    stacks: cloneStackGraphs(stacks)
+  };
+  await emitMockEvent(`stacks:${accountId}:${repoId} changed`, payload);
+  await emitMockEvent('stacks:<account_id>:<repo_id> changed', payload);
+}
+
+async function emitMockStackOperation(operation: StackOperationView): Promise<void> {
+  mockStackOps.set(operation.id, cloneStackOperation(operation));
+  const payload = { operation: cloneStackOperation(operation) };
+  await emitMockEvent(`stack_op:${operation.id}`, payload);
+  await emitMockEvent('stack_op:<op_id>', payload);
 }
 
 async function settleMockMutation(mutation: PendingMutationView): Promise<void> {
@@ -1066,6 +1191,189 @@ export async function cleanupWorktree(worktreeId: string, force: boolean): Promi
   }
   return { ...MOCK_CLEANUP_OUTCOME, worktree_id: worktreeId };
 }
+
+function findMockStack(stackId: string): StackGraph | null {
+  for (const stacks of mockStacksByScope.values()) {
+    const match = stacks.find((stack) => stack.stack_id === stackId);
+    if (match) {
+      return match;
+    }
+  }
+  return null;
+}
+
+export async function listStacks(accountId: string, repoId: string): Promise<StackGraph[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listStacks({ account_id: accountId, repo_id: repoId }));
+  }
+  return cloneStackGraphs(mockStacksByScope.get(stackScopeKey(accountId, repoId)) ?? []);
+}
+
+export async function startRebaseStack(accountId: string, stackId: string): Promise<string> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.startRebaseStack({ account_id: accountId, stack_id: stackId }));
+  }
+  pushMockStackInvocation('start_rebase_stack', { account_id: accountId, stack_id: stackId });
+  const stack = findMockStack(stackId);
+  const totalSteps = stack?.nodes.length ?? 1;
+  const opId = `stack-op-${++mockStackOpSeq}`;
+  const operation: StackOperationView = {
+    id: opId,
+    stack_id: stackId,
+    account_id: accountId,
+    op_kind: 'rebase',
+    status: 'running',
+    current_pr_id: stack?.nodes[0]?.pr_id ?? null,
+    current_step: totalSteps > 0 ? 1 : null,
+    total_steps: totalSteps,
+    worktree_path: '/tmp/mock-worktree',
+    conflict_files: [],
+    last_error: null,
+    started_at: nowEpoch(),
+    updated_at: nowEpoch(),
+    finished_at: null
+  };
+  await emitMockStackOperation(operation);
+  return opId;
+}
+
+export async function startMergeStack(
+  accountId: string,
+  stackId: string,
+  method: MergeMethod
+): Promise<string> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.startMergeStack({ account_id: accountId, stack_id: stackId, method }));
+  }
+  pushMockStackInvocation('start_merge_stack', {
+    account_id: accountId,
+    stack_id: stackId,
+    method
+  });
+  const stack = findMockStack(stackId);
+  const orderedNodes = [...(stack?.nodes ?? [])].sort(
+    (left, right) => left.position - right.position
+  );
+  for (let index = 0; index < orderedNodes.length; index += 1) {
+    const current = orderedNodes[index];
+    if (!current) {
+      continue;
+    }
+    pushMockStackInvocation('merge_mutation', {
+      account_id: accountId,
+      stack_id: stackId,
+      pr_id: current.pr_id,
+      method
+    });
+    const next = orderedNodes[index + 1];
+    if (next) {
+      pushMockStackInvocation('update_pull_request_base', {
+        account_id: accountId,
+        stack_id: stackId,
+        pull_request_id: next.pr_id,
+        base_ref_name: current.base_ref
+      });
+    }
+  }
+  const totalSteps = stack?.nodes.length ?? 1;
+  const opId = `stack-op-${++mockStackOpSeq}`;
+  const operation: StackOperationView = {
+    id: opId,
+    stack_id: stackId,
+    account_id: accountId,
+    op_kind: 'merge',
+    status: 'running',
+    current_pr_id: stack?.nodes[0]?.pr_id ?? null,
+    current_step: totalSteps > 0 ? 1 : null,
+    total_steps: totalSteps,
+    worktree_path: '/tmp/mock-worktree',
+    conflict_files: [],
+    last_error: null,
+    started_at: nowEpoch(),
+    updated_at: nowEpoch(),
+    finished_at: null
+  };
+  await emitMockStackOperation(operation);
+  return opId;
+}
+
+export async function resumeStackOp(opId: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.resumeStackOp({ op_id: opId }));
+    return;
+  }
+  pushMockStackInvocation('resume_stack_op', { op_id: opId });
+  const existing = mockStackOps.get(opId);
+  if (!existing) {
+    return;
+  }
+  await emitMockStackOperation({
+    ...existing,
+    status: 'running',
+    updated_at: nowEpoch(),
+    finished_at: null
+  });
+}
+
+export async function abortStackOp(opId: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.abortStackOp({ op_id: opId }));
+    return;
+  }
+  pushMockStackInvocation('abort_stack_op', { op_id: opId });
+  const existing = mockStackOps.get(opId);
+  if (!existing) {
+    return;
+  }
+  await emitMockStackOperation({
+    ...existing,
+    status: 'aborted',
+    updated_at: nowEpoch(),
+    finished_at: nowEpoch()
+  });
+}
+
+export async function getStackOp(opId: string): Promise<StackOperationView | null> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.getStackOp({ op_id: opId }));
+  }
+  const existing = mockStackOps.get(opId);
+  return existing ? cloneStackOperation(existing) : null;
+}
+
+export async function getGraphiteStatus(): Promise<GraphiteIntegrationStatus> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.getGraphiteStatus());
+  }
+  return {
+    detected_version: mockGraphiteStatus.detected_version,
+    enabled: mockGraphiteStatus.enabled
+  };
+}
+
+export async function setGraphiteEnabled(enabled: boolean): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.setGraphiteEnabled(enabled));
+    return;
+  }
+  mockGraphiteStatus = { ...mockGraphiteStatus, enabled };
+  writeStoredGraphiteStatus(mockGraphiteStatus);
+}
+
+export async function emitMockStackChanged(
+  accountId: string,
+  repoId: string,
+  stacks: StackGraph[]
+): Promise<void> {
+  const cloned = cloneStackGraphs(stacks);
+  mockStacksByScope.set(stackScopeKey(accountId, repoId), cloned);
+  await emitMockStacksChanged(accountId, repoId, cloned);
+}
+
+export async function emitMockStackOperationEvent(operation: StackOperationView): Promise<void> {
+  await emitMockStackOperation(cloneStackOperation(operation));
+}
+
 export async function renderCommentHtml(body: string, repo: string | null) {
   if (isTauriRuntime()) {
     return unwrap(commands.renderPreview({ body, ctx: { repo } }));
@@ -1750,6 +2058,15 @@ declare global {
       externalOpenInvocations: () => string[];
       clearExternalOpenInvocations: () => void;
     };
+    __M6_STACKS_DEBUG__?: {
+      invocations: () => Array<{ command: string; payload: Record<string, unknown> }>;
+      clearInvocations: () => void;
+      latestOpId: () => string | null;
+      setStacks: (accountId: string, repoId: string, stacks: StackGraph[]) => Promise<void>;
+      emitStackOperation: (operation: StackOperationView) => Promise<void>;
+      setGraphiteStatus: (status: GraphiteIntegrationStatus) => void;
+      getGraphiteStatus: () => GraphiteIntegrationStatus;
+    };
   }
 }
 
@@ -1926,5 +2243,30 @@ if (typeof window !== 'undefined' && !window.__COMMANDS_DEBUG__) {
     clearExternalOpenInvocations: () => {
       mockExternalOpenInvocations.splice(0, mockExternalOpenInvocations.length);
     }
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M6_STACKS_DEBUG__) {
+  window.__M6_STACKS_DEBUG__ = {
+    invocations: () => [...mockStackInvocations],
+    clearInvocations: () => {
+      mockStackInvocations.splice(0, mockStackInvocations.length);
+    },
+    latestOpId: () => latestMockStackOpId(),
+    setStacks: (accountId, repoId, stacks) => emitMockStackChanged(accountId, repoId, stacks),
+    emitStackOperation: (operation) => emitMockStackOperationEvent(operation),
+    setGraphiteStatus: (status) => {
+      mockGraphiteStatus = {
+        detected_version: status.detected_version ? { ...status.detected_version } : null,
+        enabled: status.enabled
+      };
+      writeStoredGraphiteStatus(mockGraphiteStatus);
+    },
+    getGraphiteStatus: () => ({
+      detected_version: mockGraphiteStatus.detected_version
+        ? { ...mockGraphiteStatus.detected_version }
+        : null,
+      enabled: mockGraphiteStatus.enabled
+    })
   };
 }

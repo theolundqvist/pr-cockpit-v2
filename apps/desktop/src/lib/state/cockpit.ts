@@ -5,12 +5,14 @@ import type {
   InitInboxResponse,
   InboxItem,
   RepoSubscriptionItem,
+  StackGraph,
   SystemStatusResponse,
   WorktreeView
 } from '$lib/ipc/bindings';
 import {
   listAccounts,
   listInbox,
+  listStacks,
   listWorktreeRoots,
   listWorktrees,
   listRepoSubscriptions,
@@ -33,6 +35,7 @@ export const repoSubscriptionsStore = writable<RepoSubscriptionItem[]>([]);
 export const statusStore = writable<SystemStatusResponse | null>(null);
 export const worktreesStore = writable<WorktreeView[]>([]);
 export const worktreeRootsStore = writable<string[]>([]);
+export const stacksStore = writable<StackGraph[]>([]);
 export const shellBootedStore = writable(false);
 export const focusModeStore = writable<'focused' | 'background'>('focused');
 
@@ -98,6 +101,7 @@ export async function initializeCockpit(seed: InitInboxResponse): Promise<void> 
   statusStore.set(seed.status);
   worktreeRootsStore.set([]);
   worktreesStore.set([]);
+  stacksStore.set([]);
   shellBootedStore.set(true);
   void (async () => {
     try {
@@ -155,6 +159,7 @@ export async function refreshAccountData(accountIdFilter?: string | null): Promi
     repoSubscriptionsStore.set([]);
     statusStore.set(null);
     worktreesStore.set([]);
+    stacksStore.set([]);
     return;
   }
   const [inboxRows, subscriptions, status, worktrees] = await Promise.all([
@@ -167,6 +172,10 @@ export async function refreshAccountData(accountIdFilter?: string | null): Promi
   repoSubscriptionsStore.set(subscriptions);
   statusStore.set(status);
   worktreesStore.set(worktrees);
+  const stackGroups = await Promise.all(
+    subscriptions.map((subscription) => listStacks(selectedActive, subscription.repo_id))
+  );
+  stacksStore.set(stackGroups.flat());
 }
 
 export async function selectAccountById(accountId: string | null): Promise<void> {
@@ -218,4 +227,17 @@ export async function triggerWorktreeRediscovery(): Promise<void> {
   if (active) {
     worktreesStore.set(await listWorktrees(active));
   }
+}
+
+export async function refreshStacksForActiveAccount(): Promise<void> {
+  const selectedActive = get(activeAccountIdStore);
+  if (!selectedActive) {
+    stacksStore.set([]);
+    return;
+  }
+  const subscriptions = get(repoSubscriptionsStore);
+  const stackGroups = await Promise.all(
+    subscriptions.map((subscription) => listStacks(selectedActive, subscription.repo_id))
+  );
+  stacksStore.set(stackGroups.flat());
 }

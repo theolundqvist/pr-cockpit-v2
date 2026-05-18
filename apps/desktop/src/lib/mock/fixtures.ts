@@ -12,6 +12,7 @@ import type {
   PrPatchResponse,
   RepoSubscriptionItem,
   ReviewThreadsPage,
+  StackGraph,
   WorktreeView,
   RediscoverSummary,
   CleanupOutcome,
@@ -175,6 +176,170 @@ const INBOX_BY_ACCOUNT: Record<string, InboxItem[]> = {
     secondaryAccount.login,
     secondaryAccount.host
   )
+};
+
+const PRIMARY_ACCOUNT_ID = accountId(primaryAccount.host, primaryAccount.login);
+
+export const MOCK_STACKS_BY_SCOPE: Record<string, StackGraph[]> = {
+  [`${PRIMARY_ACCOUNT_ID}:repo_2`]: [
+    {
+      stack_id: 'stack-linear-repo2',
+      account_id: PRIMARY_ACCOUNT_ID,
+      repo_id: 'repo_2',
+      kind: 'linear',
+      nodes: [
+        {
+          pr_id: 'pr_7',
+          pr_number: 7,
+          title: 'Fixture Inbox PR #7',
+          state: 'open',
+          position: 0,
+          parent_pr_id: null,
+          blocked_by: [],
+          review_decision: 'APPROVED',
+          check_rollup_state: 'SUCCESS',
+          merge_state_status: 'CLEAN',
+          base_ref: 'main',
+          head_ref: 'stack/root',
+          base_sha: 'base_sha_0000000000000000000000000000000000000007',
+          head_sha: 'head_sha_0000000000000000000000000000000000000007'
+        },
+        {
+          pr_id: 'pr_4',
+          pr_number: 4,
+          title: 'Fixture Inbox PR #4',
+          state: 'open',
+          position: 1,
+          parent_pr_id: 'pr_7',
+          blocked_by: [{ kind: 'parent_unmerged', detail: 'parent PR #7 is still open' }],
+          review_decision: 'REVIEW_REQUIRED',
+          check_rollup_state: 'PENDING',
+          merge_state_status: 'BEHIND',
+          base_ref: 'stack/root',
+          head_ref: 'stack/mid',
+          base_sha: 'base_sha_0000000000000000000000000000000000000004',
+          head_sha: 'head_sha_0000000000000000000000000000000000000004'
+        },
+        {
+          pr_id: 'pr_1',
+          pr_number: 1,
+          title: 'Active Fixture PR Falcon Diff Stress',
+          state: 'open',
+          position: 2,
+          parent_pr_id: 'pr_4',
+          blocked_by: [
+            { kind: 'parent_unmerged', detail: 'parent PR #4 is still open' },
+            { kind: 'awaiting_review', detail: 'reviewDecision=REVIEW_REQUIRED' }
+          ],
+          review_decision: 'REVIEW_REQUIRED',
+          check_rollup_state: 'FAILURE',
+          merge_state_status: 'DIRTY',
+          base_ref: 'stack/mid',
+          head_ref: 'feature/pr-1',
+          base_sha: 'base_sha_0000000000000000000000000000000000000001',
+          head_sha: 'active_head_sha_000000000000000000000000000000000001'
+        }
+      ],
+      edges: [
+        { from_pr_id: 'pr_7', to_pr_id: 'pr_4' },
+        { from_pr_id: 'pr_4', to_pr_id: 'pr_1' }
+      ],
+      warning: null,
+      head_pr_id: 'pr_7',
+      base_branch: 'main',
+      detected_at: BASE_TS + 260,
+      updated_at: BASE_TS + 260
+    },
+    {
+      stack_id: 'stack-dag-repo2',
+      account_id: PRIMARY_ACCOUNT_ID,
+      repo_id: 'repo_2',
+      kind: 'dag',
+      nodes: [
+        {
+          pr_id: 'pr_10',
+          pr_number: 10,
+          title: 'Fixture Inbox PR #10',
+          state: 'open',
+          position: 0,
+          parent_pr_id: null,
+          blocked_by: [],
+          review_decision: 'APPROVED',
+          check_rollup_state: 'SUCCESS',
+          merge_state_status: 'CLEAN',
+          base_ref: 'main',
+          head_ref: 'dag/root',
+          base_sha: 'base_sha_0000000000000000000000000000000000000010',
+          head_sha: 'head_sha_0000000000000000000000000000000000000010'
+        },
+        {
+          pr_id: 'pr_13',
+          pr_number: 13,
+          title: 'Fixture Inbox PR #13',
+          state: 'open',
+          position: 1,
+          parent_pr_id: 'pr_10',
+          blocked_by: [{ kind: 'parent_unmerged', detail: 'parent PR #10 is still open' }],
+          review_decision: 'APPROVED',
+          check_rollup_state: 'SUCCESS',
+          merge_state_status: 'CLEAN',
+          base_ref: 'dag/root',
+          head_ref: 'dag/left',
+          base_sha: 'base_sha_0000000000000000000000000000000000000013',
+          head_sha: 'head_sha_0000000000000000000000000000000000000013'
+        },
+        {
+          pr_id: 'pr_16',
+          pr_number: 16,
+          title: 'Fixture Inbox PR #16',
+          state: 'open',
+          position: 1,
+          parent_pr_id: 'pr_10',
+          blocked_by: [{ kind: 'parent_unmerged', detail: 'parent PR #10 is still open' }],
+          review_decision: 'CHANGES_REQUESTED',
+          check_rollup_state: 'PENDING',
+          merge_state_status: 'BEHIND',
+          base_ref: 'dag/root',
+          head_ref: 'dag/right',
+          base_sha: 'base_sha_0000000000000000000000000000000000000016',
+          head_sha: 'head_sha_0000000000000000000000000000000000000016'
+        },
+        {
+          pr_id: 'pr_19',
+          pr_number: 19,
+          title: 'Fixture Inbox PR #19',
+          state: 'open',
+          position: 2,
+          parent_pr_id: 'pr_13',
+          blocked_by: [
+            { kind: 'parent_unmerged', detail: 'parent PR #13 is still open' },
+            { kind: 'ci_pending', detail: 'checkRunRollup.state=PENDING' }
+          ],
+          review_decision: 'REVIEW_REQUIRED',
+          check_rollup_state: 'PENDING',
+          merge_state_status: 'UNKNOWN',
+          base_ref: 'dag/left',
+          head_ref: 'dag/top',
+          base_sha: 'base_sha_0000000000000000000000000000000000000019',
+          head_sha: 'head_sha_0000000000000000000000000000000000000019'
+        }
+      ],
+      edges: [
+        { from_pr_id: 'pr_10', to_pr_id: 'pr_13' },
+        { from_pr_id: 'pr_10', to_pr_id: 'pr_16' },
+        { from_pr_id: 'pr_13', to_pr_id: 'pr_19' },
+        { from_pr_id: 'pr_16', to_pr_id: 'pr_19' }
+      ],
+      warning: {
+        reason: 'diamond detected',
+        diamond_pr_ids: ['pr_10', 'pr_19']
+      },
+      head_pr_id: 'pr_19',
+      base_branch: 'main',
+      detected_at: BASE_TS + 261,
+      updated_at: BASE_TS + 261
+    }
+  ]
 };
 
 export const MOCK_INIT_INBOX: InitInboxResponse = {

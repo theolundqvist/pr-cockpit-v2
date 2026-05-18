@@ -6,6 +6,7 @@
   import { get } from 'svelte/store';
 
   import {
+    getGraphiteStatus,
     listenEvent,
     listenEventPayload,
     listNotificationEvents,
@@ -34,6 +35,7 @@
     type CommandContext
   } from '$lib/commands/registry';
   import RateLimitMeter from '$lib/components/status/RateLimitMeter.svelte';
+  import StackTree from '$lib/components/stacks/StackTree.svelte';
   import WorktreeRoots from '$lib/components/worktree/WorktreeRoots.svelte';
   import {
     activeAccountIdStore,
@@ -43,9 +45,11 @@
     inboxAccountFilterStore,
     initializeCockpit,
     refreshAccountData,
+    refreshStacksForActiveAccount,
     repoSubscriptionsStore,
     selectAccountById,
     shellBootedStore,
+    stacksStore,
     statusStore
   } from '$lib/state/cockpit';
   import type { LayoutData } from './$types';
@@ -58,8 +62,12 @@
   let unlistenRateLimit: (() => void) | null = null;
   let unlistenWorktreeDiscovery: (() => void) | null = null;
   let unlistenNotification: (() => void) | null = null;
+  let unlistenStacks: (() => void) | null = null;
+  let unlistenGraphiteChanged: (() => void) | null = null;
   let notificationIndicatorCount = 0;
   let savedRepliesAccountLoaded: string | null = null;
+  let graphiteEnabled = false;
+  let graphiteDetected = false;
 
   $: selectedAccount = $accountsStore.find((account) => toAccountId(account) === $activeAccountIdStore) ?? null;
   $: if ($activeAccountIdStore && savedRepliesAccountLoaded !== $activeAccountIdStore) {
@@ -78,8 +86,15 @@
     }
     await initializeCockpit(data.boot);
     await subscribeRateLimit();
+    await subscribeStacks();
+    await refreshStacksForActiveAccount();
     await refreshNotificationIndicator();
     await subscribeNotificationEvents();
+    await refreshGraphiteSettings();
+    unlistenGraphiteChanged = () => {
+      window.removeEventListener('graphite:settings changed', refreshGraphiteSettings);
+    };
+    window.addEventListener('graphite:settings changed', refreshGraphiteSettings);
   });
 
   onDestroy(() => {
@@ -89,6 +104,10 @@
     unlistenWorktreeDiscovery = null;
     unlistenNotification?.();
     unlistenNotification = null;
+    unlistenStacks?.();
+    unlistenStacks = null;
+    unlistenGraphiteChanged?.();
+    unlistenGraphiteChanged = null;
     keymapResolver.resetSequence();
   });
 
@@ -104,6 +123,24 @@
     unlistenWorktreeDiscovery = await listenEvent('worktree:discovery completed', async () => {
       await refreshAccountData();
     });
+  }
+
+  async function subscribeStacks(): Promise<void> {
+    unlistenStacks?.();
+    unlistenStacks = await listenEventPayload('stacks:<account_id>:<repo_id> changed', async () => {
+      await refreshStacksForActiveAccount();
+    });
+  }
+
+  async function refreshGraphiteSettings(): Promise<void> {
+    try {
+      const status = await getGraphiteStatus();
+      graphiteEnabled = status.enabled;
+      graphiteDetected = Boolean(status.detected_version);
+    } catch {
+      graphiteEnabled = false;
+      graphiteDetected = false;
+    }
   }
 
   async function refreshNotificationIndicator(): Promise<void> {
@@ -458,6 +495,11 @@
           {/each}
         </ul>
       {/if}
+
+      <StackTree
+        stacks={$stacksStore}
+        graphiteEnabled={graphiteEnabled && graphiteDetected}
+      />
     </div>
 
     <WorktreeRoots />
