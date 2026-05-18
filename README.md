@@ -13,8 +13,9 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: **M5 editor power + worktree write + check annotations complete**.
-Milestone M6 continues per the brief and `PLAN.md`.
+Status: **v1.0 — milestones M1–M6 complete; ready for daily-driving**.
+
+![PR Cockpit demo](artifacts/m6-demo/demo.gif)
 
 ## Feature highlights
 
@@ -93,6 +94,20 @@ Milestone M6 continues per the brief and `PLAN.md`.
   explicit connection-required affordances for unsafe writes (proof drill:
   `apps/desktop/src-tauri/tests/airplane_drill.rs`).
 
+### Stacked PRs
+
+Stack detection now groups open PRs into linear-first stack trees by matching
+`base.ref == head.ref` chains within a repo/account. PR detail and sidebar
+surfaces show stack position, blocked-by reasons, CI/review/conflict state, and
+explicit base/head SHAs, with DAG warnings rendered when topology is ambiguous.
+
+### Webhook relay
+
+PR Cockpit ships an optional self-hosted webhook relay recipe using Cloudflare
+Workers for low-latency sync nudges without SaaS intermediaries. Deployment and
+revoke instructions (including signing and forwarding secrets) live in
+[`relay/README.md`](relay/README.md).
+
 ## Quick start (desktop cockpit)
 
 ```bash
@@ -130,3 +145,8 @@ pnpm test
 pnpm bench
 pnpm corpus
 ```
+
+## License and changelog
+
+- License: [MIT](LICENSE)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
