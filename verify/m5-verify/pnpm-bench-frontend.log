@@ -1,0 +1,8 @@
+inbox_first_paint_ms=96
+inbox_dom_content_loaded_ms=21
+pr_detail_open_preloaded_ms=24
+pr_detail_open_cold_ms=43
+file_open_in_diff_cached_ms=73
+diff_scroll_fps=62.2
+diff_scroll_frame_p95_ms=16.2
+diff_scroll_frame_avg_ms=16.08

@@ -1,0 +1,17 @@
+inbox_first_paint_ms: 29.83ms <= 100ms
+pr_detail_open_preloaded_ms: 0.63ms <= 50ms
+pr_detail_open_cold_ms: 29.38ms <= 250ms
+file_open_in_diff_cached_ms: 0.69ms <= 100ms
+mutation_submit_visible_ms: 0.31ms <= 16ms
+mutation_submit_visible_online_ms: 0.28ms <= 16ms
+mutation_submit_visible_offline_ms: 0.31ms <= 16ms
+comrak_render_throughput_ops_per_sec: 36301.18ops/s >= 850ops/s
+inbox_first_paint_ms_frontend: 96.00ms <= 100ms
+pr_detail_open_preloaded_ms_frontend: 24.00ms <= 50ms
+pr_detail_open_cold_ms_frontend: 43.00ms <= 250ms
+file_open_in_diff_cached_ms_frontend: 73.00ms <= 100ms
+diff_scroll_fps: 62.20fps >= 60fps
+diff_scroll_frame_p95_ms: 16.20ms <= 16.7ms
+command_palette_open_ms: 2.00ms <= 75ms
+command_palette_result_ms: 0.00ms <= 150ms
+inbox_first_paint_ms: 29.827477975ms regressed past 10% threshold (29.70ms)

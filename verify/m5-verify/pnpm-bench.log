@@ -1,0 +1,912 @@
+
+> pr-cockpit@0.1.0 bench /workspace
+> node ./tools/perf-bench/run-all.mjs
+
+
+> desktop@0.1.0 build /workspace/apps/desktop
+> vite build
+
+vite v8.0.13 building ssr environment for production...
+[2Ktransforming...✓ 209 modules transformed.
+[lightningcss minify] Unknown at rule: @custom-media
+2009 |  :root{--breakpoint-large: 63.25rem;--breakpoint-medium: 48rem;--breakpoint-small: 34rem;--breakpoint-xlarge: 80rem;--...
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+     |               ^
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+[lightningcss minify] Unknown at rule: @custom-media
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+     |               ^
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+[lightningcss minify] Unknown at rule: @custom-media
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+     |               ^
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+     |               ^
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+     |               ^
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+[lightningcss minify] Unknown at rule: @custom-media
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+     |               ^
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+2018 |  :root{--h00-size-mobile: 2.5rem;--h0-size-mobile: 2rem;--h1-size-mobile: 1.625rem;--h2-size-mobile: 1.375rem;--h3-siz...
+rendering chunks...
+vite v8.0.13 building client environment for production...
+[2Ktransforming...[plugin rolldown:vite-resolve] Module "module" has been externalized for browser compatibility, imported by "/workspace/node_modules/web-tree-sitter/web-tree-sitter.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "fs/promises" has been externalized for browser compatibility, imported by "/workspace/node_modules/web-tree-sitter/web-tree-sitter.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
+      [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../../node_modules/web-tree-sitter/web-tree-sitter.js:2343:31 [38;5;246m][0m
+      [38;5;246m│[0m
+ [38;5;246m2343 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mA[0m[38;5;249mS[0m[38;5;249mM[0m[38;5;249m_[0m[38;5;249mC[0m[38;5;249mO[0m[38;5;249mN[0m[38;5;249mS[0m[38;5;249mT[0m[38;5;249mS[0m[38;5;249m[[0m[38;5;249ms[0m[38;5;249mt[0m[38;5;249ma[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m][0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0meval[38;5;249m([0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249m)[0m[38;5;249m;[0m
+ [38;5;240m     │[0m                               ──┬─  
+ [38;5;240m     │[0m                                 ╰─── Use of direct `eval` here.
+ [38;5;240m     │[0m 
+ [38;5;240m     │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
+[38;5;246m──────╯[0m
+
+[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
+      [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../../node_modules/web-tree-sitter/web-tree-sitter.js:2366:33 [38;5;246m][0m
+      [38;5;246m│[0m
+ [38;5;246m2366 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mm[0m[38;5;249mo[0m[38;5;249md[0m[38;5;249mu[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249mE[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249ms[0m[38;5;249m[[0m[38;5;249mn[0m[38;5;249ma[0m[38;5;249mm[0m[38;5;249me[0m[38;5;249m][0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0meval[38;5;249m([0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249m)[0m[38;5;249m;[0m
+ [38;5;240m     │[0m                                 ──┬─  
+ [38;5;240m     │[0m                                   ╰─── Use of direct `eval` here.
+ [38;5;240m     │[0m 
+ [38;5;240m     │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
+[38;5;246m──────╯[0m
+
+✓ 233 modules transformed.
+[lightningcss minify] Unknown at rule: @custom-media
+2009 |  :root{--breakpoint-large: 63.25rem;--breakpoint-medium: 48rem;--breakpoint-small: 34rem;--breakpoint-xlarge: 80rem;--...
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+     |               ^
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+[lightningcss minify] Unknown at rule: @custom-media
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+     |               ^
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+[lightningcss minify] Unknown at rule: @custom-media
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+     |               ^
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+     |               ^
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+     |               ^
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+[lightningcss minify] Unknown at rule: @custom-media
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+     |               ^
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+2018 |  :root{--h00-size-mobile: 2.5rem;--h0-size-mobile: 2rem;--h1-size-mobile: 1.625rem;--h2-size-mobile: 1.375rem;--h3-siz...
+rendering chunks...
+computing gzip size...
+.svelte-kit/output/client/_app/version.json                                                0.02 kB │ gzip:   0.04 kB
+.svelte-kit/output/client/.vite/manifest.json                                              6.02 kB │ gzip:   0.94 kB
+.svelte-kit/output/client/_app/immutable/workers/highlight-C32va5db.js                    79.72 kB
+.svelte-kit/output/client/_app/immutable/workers/assets/web-tree-sitter-CfJ9hzQ2.wasm    196.76 kB │ gzip:  79.59 kB
+.svelte-kit/output/client/_app/immutable/assets/2.BG8OpOVH.css                             0.29 kB │ gzip:   0.16 kB
+.svelte-kit/output/client/_app/immutable/assets/5.DWqrcgMl.css                             0.53 kB │ gzip:   0.26 kB
+.svelte-kit/output/client/_app/immutable/assets/4.B0JonEm4.css                             0.59 kB │ gzip:   0.27 kB
+.svelte-kit/output/client/_app/immutable/assets/3.ivI_cRR_.css                             2.24 kB │ gzip:   0.72 kB
+.svelte-kit/output/client/_app/immutable/assets/0.BYbsjigZ.css                         1,032.78 kB │ gzip: 160.72 kB
+.svelte-kit/output/client/_app/immutable/chunks/BsF2RsjN.js                                0.02 kB │ gzip:   0.04 kB
+.svelte-kit/output/client/_app/immutable/chunks/Uv3aeos8.js                                0.02 kB │ gzip:   0.04 kB
+.svelte-kit/output/client/_app/immutable/chunks/CHJ94jMC.js                                0.03 kB │ gzip:   0.05 kB
+.svelte-kit/output/client/_app/immutable/chunks/CT0T0Gak.js                                0.06 kB │ gzip:   0.08 kB
+.svelte-kit/output/client/_app/immutable/entry/start.CMad1uh7.js                           0.08 kB │ gzip:   0.09 kB
+.svelte-kit/output/client/_app/immutable/chunks/CEPAtOyH.js                                0.24 kB │ gzip:   0.17 kB
+.svelte-kit/output/client/_app/immutable/chunks/B7xZHWKt.js                                0.64 kB │ gzip:   0.38 kB
+.svelte-kit/output/client/_app/immutable/nodes/1.1sffocy7.js                               1.06 kB │ gzip:   0.50 kB
+.svelte-kit/output/client/_app/immutable/chunks/DXb0ZbaM.js                                1.20 kB │ gzip:   0.68 kB
+.svelte-kit/output/client/_app/immutable/nodes/6.11hr1DFW.js                               1.74 kB │ gzip:   0.93 kB
+.svelte-kit/output/client/_app/immutable/chunks/ADugWvox.js                                2.22 kB │ gzip:   0.94 kB
+.svelte-kit/output/client/_app/immutable/chunks/CahhS1GH.js                                2.73 kB │ gzip:   1.31 kB
+.svelte-kit/output/client/_app/immutable/entry/app.DvZqszju.js                             3.69 kB │ gzip:   1.55 kB
+.svelte-kit/output/client/_app/immutable/nodes/4.BGh2X8g5.js                               5.90 kB │ gzip:   2.42 kB
+.svelte-kit/output/client/_app/immutable/nodes/2.Bgqcu4hS.js                               7.40 kB │ gzip:   3.30 kB
+.svelte-kit/output/client/_app/immutable/chunks/B3cJE6ps.js                               10.04 kB │ gzip:   2.49 kB
+.svelte-kit/output/client/_app/immutable/chunks/CTa-6qjQ.js                               16.26 kB │ gzip:   5.10 kB
+.svelte-kit/output/client/_app/immutable/nodes/5.Crt4lIM7.js                              17.69 kB │ gzip:   6.22 kB
+.svelte-kit/output/client/_app/immutable/chunks/CHb9stYP.js                               27.39 kB │ gzip:  10.67 kB
+.svelte-kit/output/client/_app/immutable/nodes/0.CHUjjAeR.js                              33.89 kB │ gzip:  11.24 kB
+.svelte-kit/output/client/_app/immutable/chunks/CICpo9GU.js                               43.85 kB │ gzip:  12.90 kB
+.svelte-kit/output/client/_app/immutable/chunks/Bx5oWESV.js                               52.61 kB │ gzip:  20.20 kB
+.svelte-kit/output/client/_app/immutable/nodes/3.DFUBTBwh.js                             100.99 kB │ gzip:  29.63 kB
+
+✓ built in 761ms
+computing gzip size...
+.svelte-kit/output/server/.vite/manifest.json                                   7.23 kB │ gzip:   0.97 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.BG8OpOVH.css              0.29 kB │ gzip:   0.16 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.DWqrcgMl.css              0.53 kB │ gzip:   0.26 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.B0JonEm4.css              0.59 kB │ gzip:   0.27 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.ivI_cRR_.css              2.24 kB │ gzip:   0.72 kB
+.svelte-kit/output/server/_app/immutable/assets/_layout.BrXWbRr8.css        1,032.21 kB │ gzip: 160.63 kB
+.svelte-kit/output/server/chunks/index-server2.js                               0.03 kB │ gzip:   0.05 kB
+.svelte-kit/output/server/chunks/navigation.js                                  0.03 kB │ gzip:   0.05 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/range-diff/_page.ts.js          0.10 kB │ gzip:   0.11 kB
+.svelte-kit/output/server/entries/pages/_layout.ts.js                           0.24 kB │ gzip:   0.19 kB
+.svelte-kit/output/server/internal.js                                           0.40 kB │ gzip:   0.20 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/_page.ts.js                     0.63 kB │ gzip:   0.34 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/range-diff/_page.svelte.js      1.18 kB │ gzip:   0.58 kB
+.svelte-kit/output/server/chunks/environment.js                                 1.32 kB │ gzip:   0.56 kB
+.svelte-kit/output/server/chunks/stores.js                                      1.47 kB │ gzip:   0.66 kB
+.svelte-kit/output/server/chunks/time.js                                        1.93 kB │ gzip:   0.77 kB
+.svelte-kit/output/server/chunks/palette-state.js                               2.20 kB │ gzip:   0.80 kB
+.svelte-kit/output/server/entries/pages/settings/keyboard/_page.svelte.js       2.58 kB │ gzip:   1.07 kB
+.svelte-kit/output/server/chunks/pr-detail.js                                   2.95 kB │ gzip:   1.01 kB
+.svelte-kit/output/server/entries/fallbacks/error.svelte.js                     3.50 kB │ gzip:   1.32 kB
+.svelte-kit/output/server/chunks/index-server.js                                4.65 kB │ gzip:   1.72 kB
+.svelte-kit/output/server/chunks/cockpit.js                                     5.13 kB │ gzip:   1.33 kB
+.svelte-kit/output/server/entries/pages/_page.svelte.js                         9.13 kB │ gzip:   2.94 kB
+.svelte-kit/output/server/chunks/shared.js                                     10.32 kB │ gzip:   3.34 kB
+.svelte-kit/output/server/chunks/exports.js                                    11.26 kB │ gzip:   3.50 kB
+.svelte-kit/output/server/entries/pages/settings/_page.svelte.js               14.00 kB │ gzip:   3.51 kB
+.svelte-kit/output/server/chunks/keymap.js                                     15.56 kB │ gzip:   3.13 kB
+.svelte-kit/output/server/chunks/internal.js                                   20.67 kB │ gzip:   6.43 kB
+.svelte-kit/output/server/chunks/utils.js                                      30.10 kB │ gzip:   8.68 kB
+.svelte-kit/output/server/chunks/dev.js                                        44.18 kB │ gzip:  12.10 kB
+.svelte-kit/output/server/remote-entry.js                                      46.10 kB │ gzip:   9.44 kB
+.svelte-kit/output/server/chunks/client.js                                     47.20 kB │ gzip:  13.86 kB
+.svelte-kit/output/server/entries/pages/_layout.svelte.js                      47.26 kB │ gzip:  10.52 kB
+.svelte-kit/output/server/chunks/client2.js                                    63.12 kB │ gzip:  14.40 kB
+.svelte-kit/output/server/chunks/utils2.js                                     87.87 kB │ gzip:  22.68 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/_page.svelte.js               114.18 kB │ gzip:  23.88 kB
+.svelte-kit/output/server/index.js                                            122.95 kB │ gzip:  31.10 kB
+
+✓ built in 2.20s
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-static
+Overwriting build/index.html with fallback page. Consider using a different name for the fallback.
+  Wrote site to "build"
+  ✔ done
+   Compiling quote v1.0.45
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling serde v1.0.228
+   Compiling serde_core v1.0.228
+   Compiling libc v0.2.186
+   Compiling syn v2.0.117
+   Compiling equivalent v1.0.2
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.0
+   Compiling pkg-config v0.3.33
+   Compiling smallvec v1.15.1
+   Compiling cfg-if v1.0.4
+   Compiling heck v0.5.0
+   Compiling jobserver v0.1.34
+   Compiling shlex v1.3.0
+   Compiling version_check v0.9.5
+   Compiling find-msvc-tools v0.1.9
+   Compiling cc v1.2.62
+   Compiling autocfg v1.5.0
+   Compiling parking_lot_core v0.9.12
+   Compiling winnow v0.5.40
+   Compiling target-lexicon v0.12.16
+   Compiling synstructure v0.13.2
+   Compiling memchr v2.8.0
+   Compiling cfg-expr v0.15.8
+   Compiling version-compare v0.2.1
+   Compiling siphasher v1.0.3
+   Compiling zmij v1.0.21
+   Compiling pin-project-lite v0.2.17
+   Compiling bitflags v2.11.1
+   Compiling once_cell v1.21.4
+   Compiling serde_derive v1.0.228
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling zerovec-derive v0.11.3
+   Compiling displaydoc v0.2.5
+   Compiling futures-core v0.3.32
+   Compiling icu_properties_data v2.2.0
+   Compiling icu_normalizer_data v2.2.0
+   Compiling semver v1.0.28
+   Compiling thiserror v2.0.18
+   Compiling thiserror-impl v2.0.18
+   Compiling log v0.4.29
+   Compiling itoa v1.0.18
+   Compiling thiserror v1.0.69
+   Compiling scopeguard v1.2.0
+   Compiling stable_deref_trait v1.2.1
+   Compiling lock_api v0.4.14
+   Compiling thiserror-impl v1.0.69
+   Compiling futures-io v0.3.32
+   Compiling slab v0.4.12
+   Compiling zerofrom v0.1.8
+   Compiling phf_shared v0.13.1
+   Compiling toml_datetime v0.6.3
+   Compiling serde_spanned v0.6.9
+   Compiling yoke v0.8.2
+   Compiling fastrand v2.4.1
+   Compiling toml_edit v0.20.2
+   Compiling futures-sink v0.3.32
+   Compiling phf_generator v0.13.1
+   Compiling zerovec v0.11.6
+   Compiling winnow v1.0.3
+   Compiling serde_json v1.0.149
+   Compiling rustc_version v0.4.1
+   Compiling toml_parser v1.1.2+spec-1.1.0
+   Compiling tinystr v0.8.3
+   Compiling futures-channel v0.3.32
+   Compiling zeroize_derive v1.4.3
+   Compiling writeable v0.6.3
+   Compiling toml v0.8.2
+   Compiling litemap v0.8.2
+   Compiling syn v1.0.109
+   Compiling icu_locale_core v2.2.0
+   Compiling system-deps v6.2.2
+   Compiling zeroize v1.8.2
+   Compiling parking_lot v0.12.5
+   Compiling potential_utf v0.1.5
+   Compiling glib-sys v0.18.1
+   Compiling zerotrie v0.2.4
+   Compiling futures-macro v0.3.32
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling futures-task v0.3.32
+   Compiling time-core v0.1.8
+   Compiling utf8_iter v1.0.4
+   Compiling num-conv v0.2.1
+   Compiling icu_provider v2.2.0
+   Compiling icu_collections v2.2.0
+   Compiling futures-util v0.3.32
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.23.0
+   Compiling gobject-sys v0.18.0
+   Compiling phf_macros v0.13.1
+   Compiling typeid v1.0.3
+   Compiling getrandom v0.4.2
+   Compiling darling_macro v0.23.0
+   Compiling icu_normalizer v2.2.0
+   Compiling icu_properties v2.2.0
+   Compiling percent-encoding v2.3.2
+   Compiling form_urlencoded v1.2.2
+   Compiling darling v0.23.0
+   Compiling phf_codegen v0.13.1
+   Compiling errno v0.3.14
+   Compiling erased-serde v0.4.10
+   Compiling crossbeam-utils v0.8.21
+   Compiling idna_adapter v1.2.2
+   Compiling signal-hook-registry v1.4.8
+   Compiling idna v1.1.0
+   Compiling cssparser-macros v0.6.1
+   Compiling bytes v1.11.1
+   Compiling url v2.5.8
+   Compiling gio-sys v0.18.1
+   Compiling quick-xml v0.39.4
+   Compiling anyhow v1.0.102
+   Compiling camino v1.2.2
+   Compiling new_debug_unreachable v1.0.6
+   Compiling phf v0.13.1
+   Compiling string_cache_codegen v0.6.1
+   Compiling base64 v0.22.1
+   Compiling precomputed-hash v0.1.1
+   Compiling web_atoms v0.2.4
+   Compiling serde_with_macros v3.20.0
+   Compiling serde_spanned v1.1.1
+   Compiling ctor-proc-macro v0.0.7
+   Compiling toml_writer v1.1.1+spec-1.1.0
+   Compiling string_cache v0.9.0
+   Compiling dtoa v1.0.11
+   Compiling utf-8 v0.7.6
+   Compiling tendril v0.5.0
+   Compiling dtoa-short v0.3.5
+   Compiling uuid v1.23.1
+   Compiling selectors v0.36.1
+   Compiling futures-executor v0.3.32
+   Compiling aho-corasick v1.1.4
+   Compiling derive_more-impl v2.1.1
+   Compiling indexmap v1.9.3
+   Compiling proc-macro-error-attr v1.0.4
+   Compiling alloc-no-stdlib v2.0.4
+   Compiling unic-char-range v0.9.0
+   Compiling unic-common v0.9.0
+   Compiling byteorder v1.5.0
+   Compiling powerfmt v0.2.0
+   Compiling regex-syntax v0.8.10
+   Compiling deranged v0.5.8
+   Compiling unic-ucd-version v0.9.0
+   Compiling derive_more v2.1.1
+   Compiling unic-char-property v0.9.0
+   Compiling alloc-stdlib v0.2.2
+   Compiling markup5ever v0.38.0
+   Compiling cssparser v0.36.0
+   Compiling toml v1.1.2+spec-1.1.0
+   Compiling servo_arc v0.4.3
+   Compiling mio v1.2.0
+   Compiling serde_derive_internals v0.29.1
+   Compiling regex-automata v0.4.14
+   Compiling proc-macro-error v1.0.4
+   Compiling schemars v0.8.22
+   Compiling bit-vec v0.8.0
+   Compiling hashbrown v0.12.3
+   Compiling rustc-hash v2.1.2
+   Compiling fnv v1.0.7
+   Compiling subtle v2.6.1
+   Compiling regex v1.12.3
+   Compiling cfb v0.7.3
+   Compiling bit-set v0.8.0
+   Compiling schemars_derive v0.8.22
+   Compiling time v0.3.47
+   Compiling html5ever v0.38.0
+   Compiling brotli-decompressor v5.0.0
+   Compiling unic-ucd-ident v0.9.0
+   Compiling gdk-sys v0.18.2
+   Compiling jsonptr v0.6.3
+   Compiling cargo-platform v0.1.9
+   Compiling tokio-macros v2.7.0
+   Compiling socket2 v0.6.3
+   Compiling dunce v1.0.5
+   Compiling same-file v1.0.6
+   Compiling foldhash v0.2.0
+   Compiling dyn-clone v1.0.20
+   Compiling crc32fast v1.5.0
+   Compiling rustix v1.1.4
+   Compiling tokio v1.52.3
+   Compiling dom_query v0.27.0
+   Compiling walkdir v2.5.0
+   Compiling json-patch v3.0.1
+   Compiling cargo_metadata v0.19.2
+   Compiling urlpattern v0.3.0
+   Compiling brotli v8.0.2
+   Compiling plist v1.9.0
+   Compiling serde-untagged v0.1.9
+   Compiling infer v0.19.0
+   Compiling serde_with v3.20.0
+   Compiling ctor v0.8.0
+   Compiling http v1.4.0
+   Compiling generic-array v0.14.9
+   Compiling glob v0.3.3
+   Compiling linux-raw-sys v0.12.1
+   Compiling tauri-utils v2.9.2
+   Compiling proc-macro-crate v2.0.2
+   Compiling typenum v1.20.0
+   Compiling heck v0.4.1
+   Compiling const-oid v0.9.6
+   Compiling glib-macros v0.18.5
+   Compiling pango-sys v0.18.0
+   Compiling cairo-sys-rs v0.18.2
+   Compiling gdk-pixbuf-sys v0.18.0
+   Compiling tracing-attributes v0.1.31
+   Compiling getrandom v0.2.17
+   Compiling glib v0.18.5
+   Compiling atk-sys v0.18.2
+   Compiling libm v0.2.16
+   Compiling num-traits v0.2.19
+   Compiling zerocopy v0.8.48
+   Compiling zerocopy-derive v0.8.48
+   Compiling gio v0.18.4
+   Compiling vcpkg v0.2.15
+   Compiling crypto-common v0.1.6
+   Compiling block-buffer v0.10.4
+   Compiling gtk-sys v0.18.2
+   Compiling tracing-core v0.1.36
+   Compiling rand_core v0.6.4
+   Compiling rand v0.8.6
+   Compiling digest v0.10.7
+   Compiling phf_shared v0.11.3
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling getrandom v0.1.16
+   Compiling option-ext v0.2.0
+   Compiling winnow v0.7.15
+   Compiling dirs-sys v0.5.0
+   Compiling phf_generator v0.11.3
+   Compiling tracing v0.1.44
+   Compiling toml v0.9.12+spec-1.1.0
+   Compiling embed-resource v3.0.9
+   Compiling cargo_toml v0.22.3
+   Compiling tauri-winres v0.3.6
+   Compiling dirs v6.0.0
+   Compiling time-macros v0.2.27
+   Compiling memoffset v0.9.1
+   Compiling parking v2.2.1
+   Compiling tauri-build v2.6.2
+   Compiling rand_core v0.5.1
+   Compiling gdk-pixbuf v0.18.5
+   Compiling pango v0.18.3
+   Compiling cairo-rs v0.18.5
+   Compiling tauri-plugin v2.6.2
+   Compiling concurrent-queue v2.5.0
+   Compiling field-offset v0.3.6
+   Compiling toml_edit v0.19.15
+   Compiling base64ct v1.8.3
+   Compiling pem-rfc7468 v0.7.0
+   Compiling ppv-lite86 v0.2.21
+   Compiling gdk v0.18.2
+   Compiling proc-macro-crate v1.3.1
+   Compiling soup3-sys v0.5.0
+   Compiling javascriptcore-rs-sys v1.1.1
+   Compiling gtk v0.18.2
+   Compiling cpufeatures v0.2.17
+   Compiling getrandom v0.3.4
+   Compiling bitflags v1.3.2
+   Compiling sha2 v0.10.9
+   Compiling gtk3-macros v0.18.2
+   Compiling rand_chacha v0.2.2
+   Compiling der v0.7.10
+   Compiling rand_pcg v0.2.1
+   Compiling tauri v2.11.2
+   Compiling atk v0.18.2
+   Compiling webkit2gtk-sys v2.0.2
+   Compiling x11 v2.21.0
+   Compiling simd-adler32 v0.3.9
+   Compiling atomic-waker v1.1.2
+   Compiling siphasher v0.3.11
+   Compiling phf_shared v0.8.0
+   Compiling spki v0.7.3
+   Compiling rand v0.7.3
+   Compiling gdkx11-sys v0.18.2
+   Compiling paste v1.0.15
+   Compiling adler2 v2.0.1
+   Compiling miniz_oxide v0.8.9
+   Compiling phf_generator v0.8.0
+   Compiling pkcs8 v0.10.2
+   Compiling event-listener v5.4.1
+   Compiling specta v2.0.0-rc.25
+   Compiling dpi v0.1.2
+   Compiling spin v0.9.8
+   Compiling cookie v0.18.1
+   Compiling libdbus-sys v0.2.7
+   Compiling x11-dl v2.21.0
+   Compiling Inflector v0.11.4
+   Compiling specta-macros v2.0.0-rc.25
+   Compiling flate2 v1.1.9
+   Compiling javascriptcore-rs v1.1.2
+   Compiling soup3 v0.5.0
+   Compiling fdeflate v0.3.7
+   Compiling string_cache_codegen v0.5.4
+   Compiling tokio-util v0.7.18
+   Compiling raw-window-handle v0.6.2
+   Compiling png v0.17.16
+   Compiling http-body v1.0.1
+   Compiling crossbeam-channel v0.5.15
+   Compiling toml_edit v0.25.11+spec-1.1.0
+   Compiling enumflags2_derive v0.7.12
+   Compiling dlopen2_derive v0.4.3
+   Compiling wry v0.55.1
+   Compiling tauri-runtime v2.11.2
+   Compiling foldhash v0.1.5
+   Compiling httparse v1.10.1
+   Compiling webkit2gtk v2.0.2
+   Compiling allocator-api2 v0.2.21
+   Compiling hashbrown v0.15.5
+   Compiling dlopen2 v0.8.2
+   Compiling proc-macro-crate v3.5.0
+   Compiling dbus v0.9.11
+   Compiling ico v0.5.0
+   Compiling gdkx11 v0.18.2
+   Compiling hmac v0.12.1
+   Compiling gdkwayland-sys v0.18.2
+   Compiling zvariant_utils v3.3.1
+   Compiling serde_repr v0.1.20
+   Compiling ring v0.17.14
+   Compiling wayland-sys v0.31.11
+   Compiling unicode-segmentation v1.13.2
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling proc-macro-hack v0.5.20+deprecated
+   Compiling try-lock v0.2.5
+   Compiling tower-service v0.3.3
+   Compiling want v0.3.1
+   Compiling keyboard-types v0.7.0
+   Compiling zvariant_derive v5.11.0
+   Compiling tao v0.35.2
+   Compiling tauri-codegen v2.6.2
+   Compiling h2 v0.4.14
+   Compiling lazy_static v1.5.0
+   Compiling event-listener-strategy v0.5.4
+   Compiling phf_codegen v0.8.0
+   Compiling futures-lite v2.6.1
+   Compiling ff v0.13.1
+   Compiling signature v2.2.0
+   Compiling phf_macros v0.11.3
+   Compiling rustls-pki-types v1.14.1
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling wayland-backend v0.3.15
+   Compiling httpdate v1.0.3
+   Compiling base16ct v0.2.0
+   Compiling mac v0.1.1
+   Compiling futf v0.1.5
+   Compiling sec1 v0.7.3
+   Compiling serialize-to-javascript v0.1.2
+   Compiling phf v0.11.3
+   Compiling group v0.13.0
+   Compiling tauri-macros v2.6.2
+   Compiling hyper v1.9.0
+   Compiling muda v0.19.1
+   Compiling string_cache v0.8.9
+   Compiling hkdf v0.12.4
+   Compiling crypto-bigint v0.5.5
+   Compiling num-integer v0.1.46
+   Compiling either v1.15.0
+   Compiling async-io v2.6.0
+   Compiling http-range v0.1.5
+   Compiling untrusted v0.9.0
+   Compiling wayland-client v0.31.14
+   Compiling downcast-rs v1.2.1
+   Compiling rustversion v1.0.22
+   Compiling ipnet v2.12.0
+   Compiling mime v0.3.17
+   Compiling hyper-util v0.1.20
+   Compiling tendril v0.4.3
+   Compiling elliptic-curve v0.13.8
+   Compiling phf_macros v0.8.0
+   Compiling enumflags2 v0.7.12
+   Compiling rand_core v0.9.5
+   Compiling phf_codegen v0.11.3
+   Compiling libsqlite3-sys v0.30.1
+   Compiling polling v3.11.0
+   Compiling wayland-scanner v0.31.10
+   Compiling openssl-src v300.6.0+3.6.2
+   Compiling os_pipe v1.2.3
+   Compiling endi v1.1.1
+   Compiling async-task v4.7.1
+   Compiling rustls v0.23.40
+   Compiling tree-sitter-language v0.1.7
+   Compiling ryu v1.0.23
+   Compiling utf8parse v0.2.2
+   Compiling crc-catalog v2.5.0
+   Compiling crc v3.4.0
+   Compiling anstyle-parse v1.0.0
+   Compiling serde_urlencoded v0.7.1
+   Compiling zvariant v5.11.0
+   Compiling openssl-sys v0.9.116
+   Compiling web_atoms v0.1.3
+   Compiling tokio-stream v0.1.18
+   Compiling phf v0.8.0
+   Compiling rustls-webpki v0.103.13
+   Compiling hashlink v0.10.0
+   Compiling async-channel v2.5.0
+   Compiling crossbeam-queue v0.3.12
+   Compiling rfc6979 v0.4.0
+   Compiling http-body-util v0.1.3
+   Compiling futures-intrusive v0.5.0
+   Compiling rand_chacha v0.3.1
+   Compiling libz-sys v1.1.28
+   Compiling curve25519-dalek v4.1.3
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling onig_sys v69.9.3
+   Compiling ahash v0.8.12
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling compression-core v0.4.32
+   Compiling anstyle-query v1.1.5
+   Compiling signal-hook v0.3.18
+   Compiling prettyplease v0.2.37
+   Compiling anstyle v1.0.14
+   Compiling num-bigint-dig v0.8.6
+   Compiling fixedbitset v0.5.7
+   Compiling cfg_aliases v0.2.1
+   Compiling colorchoice v1.0.5
+   Compiling anstream v1.0.0
+   Compiling nix v0.30.1
+   Compiling petgraph v0.8.3
+   Compiling compression-codecs v0.4.38
+   Compiling sqlx-core v0.8.6
+   Compiling flume v0.11.1
+   Compiling ecdsa v0.16.9
+   Compiling atoi v2.0.0
+   Compiling async-signal v0.2.14
+   Compiling zbus_names v4.3.2
+   Compiling wayland-protocols v0.32.12
+   Compiling rand_chacha v0.9.0
+   Compiling primeorder v0.13.6
+   Compiling num-iter v0.1.45
+   Compiling markup5ever v0.10.1
+   Compiling async-lock v3.4.2
+   Compiling piper v0.2.5
+   Compiling terminal_size v0.4.4
+   Compiling gethostname v1.1.0
+   Compiling cssparser v0.27.2
+   Compiling tree-sitter v0.25.10
+   Compiling sync_wrapper v1.0.2
+   Compiling async-trait v0.1.89
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling nom v8.0.0
+   Compiling cargo-platform v0.3.3
+   Compiling openssl-probe v0.2.1
+   Compiling pxfm v0.1.29
+   Compiling clap_lex v1.1.0
+   Compiling tinyvec_macros v0.1.1
+   Compiling tower-layer v0.3.3
+   Compiling tower v0.5.3
+   Compiling tinyvec v1.11.0
+   Compiling clap_builder v4.6.0
+   Compiling moxcms v0.8.1
+   Compiling rustls-native-certs v0.8.3
+   Compiling cargo_metadata v0.23.1
+   Compiling tree_magic_mini v3.2.2
+   Compiling wayland-protocols-wlr v0.3.12
+   Compiling png v0.18.1
+   Compiling blocking v1.6.2
+   Compiling sqlx-sqlite v0.8.6
+   Compiling async-process v2.5.0
+   Compiling rand v0.9.4
+   Compiling zbus_macros v5.15.0
+   Compiling tokio-rustls v0.26.4
+   Compiling async-compression v0.4.42
+   Compiling async-executor v1.14.0
+   Compiling num-bigint v0.4.6
+   Compiling webpki-roots v1.0.7
+   Compiling ed25519 v2.2.3
+   Compiling selectors v0.22.0
+   Compiling async-broadcast v0.7.2
+   Compiling pkcs1 v0.7.5
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-os v2.3.2
+   Compiling tauri-plugin-clipboard-manager v2.3.2
+   Compiling tauri-plugin-shell v2.3.5
+   Compiling tauri-plugin-notification v2.3.3
+   Compiling html5ever v0.25.2
+   Compiling ordered-stream v0.2.0
+   Compiling clap_derive v4.6.1
+   Compiling async-recursion v1.1.1
+   Compiling is-docker v0.2.0
+   Compiling libgit2-sys v0.18.4+1.9.3
+   Compiling hex v0.4.3
+   Compiling x11rb-protocol v0.13.2
+   Compiling iana-time-zone v0.1.65
+   Compiling nodrop v0.1.14
+   Compiling itoa v0.4.8
+   Compiling matches v0.1.10
+   Compiling bytemuck v1.25.0
+   Compiling entities v1.0.1
+   Compiling jetscii v0.5.3
+   Compiling zstd-safe v7.2.4
+   Compiling convert_case v0.4.0
+   Compiling dotenvy v0.15.7
+   Compiling byteorder-lite v0.1.0
+   Compiling derive_more v0.99.20
+   Compiling image v0.25.10
+   Compiling sqlx-macros-core v0.8.6
+   Compiling x11rb v0.13.2
+   Compiling comrak v0.48.0
+   Compiling clap v4.6.1
+   Compiling servo_arc v0.1.1
+   Compiling chrono v0.4.44
+   Compiling zbus v5.15.0
+   Compiling is-wsl v0.4.0
+   Compiling rsa v0.9.10
+   Compiling simple_asn1 v0.6.4
+   Compiling ed25519-dalek v2.2.0
+   Compiling hyper-rustls v0.27.9
+   Compiling bon-macros v3.9.1
+   Compiling sigchld v0.2.4
+   Compiling hashbrown v0.14.5
+   Compiling tower-http v0.6.10
+   Compiling onig v6.5.3
+   Compiling markup5ever v0.35.0
+   Compiling wl-clipboard-rs v0.9.3
+   Compiling tempfile v3.27.0
+   Compiling octocrab v0.50.0
+   Compiling unicode-normalization v0.1.25
+   Compiling p256 v0.13.2
+   Compiling p384 v0.13.1
+   Compiling fxhash v0.2.1
+   Compiling pem v3.0.6
+   Compiling phf_shared v0.12.1
+   Compiling futures v0.3.32
+   Compiling bincode v1.3.3
+   Compiling snafu-derive v0.8.9
+   Compiling match_token v0.35.0
+   Compiling pin-project-internal v1.1.13
+   Compiling inotify-sys v0.1.5
+   Compiling thin-slice v0.1.1
+   Compiling streaming-iterator v0.1.9
+   Compiling pathdiff v0.2.3
+   Compiling chrono-tz v0.10.4
+   Compiling open v5.3.5
+   Compiling snafu v0.8.9
+   Compiling inotify v0.11.1
+   Compiling pin-project v1.1.13
+   Compiling html5ever v0.35.0
+   Compiling syntect v5.3.0
+   Compiling phf v0.12.1
+   Compiling jsonwebtoken v10.4.0
+   Compiling caseless v0.2.2
+   Compiling arboard v3.6.1
+   Compiling bon v3.9.1
+   Compiling hashlink v0.9.1
+   Compiling shared_child v1.1.1
+   Compiling os_info v3.14.0
+   Compiling notify-rust v4.17.0
+   Compiling sqlx-macros v0.8.6
+   Compiling arc-swap v1.9.1
+   Compiling cssparser v0.35.0
+   Compiling hyper-timeout v0.5.2
+   Compiling emojis v0.6.4
+   Compiling sharded-slab v0.1.7
+   Compiling specta-util v0.0.12
+   Compiling specta-serde v0.0.12
+   Compiling specta-typescript v0.0.12
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+   Compiling matchers v0.2.0
+   Compiling tracing-log v0.2.0
+   Compiling secrecy v0.10.3
+   Compiling serde_path_to_error v0.1.20
+   Compiling notify-types v2.1.0
+   Compiling encoding_rs v0.8.35
+   Compiling thread_local v1.1.9
+   Compiling nu-ansi-term v0.50.3
+   Compiling openssl-probe v0.1.6
+   Compiling xdg v2.5.2
+   Compiling fmt2io v1.0.0
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling typed-arena v2.0.2
+   Compiling fallible-iterator v0.3.0
+   Compiling sys-locale v0.3.2
+   Compiling shell-words v1.1.1
+   Compiling unicode_categories v0.1.1
+   Compiling web-time v1.1.0
+   Compiling maplit v1.0.2
+   Compiling ammonia v4.1.2
+   Compiling rusqlite v0.32.1
+   Compiling tracing-subscriber v0.3.23
+   Compiling notify v8.2.0
+   Compiling tauri-specta v2.0.0-rc.25
+   Compiling sqlx v0.8.6
+   Compiling kuchiki v0.8.1
+   Compiling zstd v0.13.3
+   Compiling tree-sitter-highlight v0.25.10
+   Compiling reqwest v0.12.28
+   Compiling keyring v3.6.3
+   Compiling similar v3.1.0
+   Compiling crossbeam-epoch v0.9.18
+   Compiling rayon-core v1.13.0
+   Compiling crossbeam-deque v0.8.6
+   Compiling half v2.7.1
+   Compiling alloca v0.4.0
+   Compiling ciborium-io v0.2.2
+   Compiling plotters-backend v0.3.7
+   Compiling plotters-svg v0.3.7
+   Compiling ciborium-ll v0.2.2
+   Compiling itertools v0.13.0
+   Compiling assert-json-diff v2.0.2
+   Compiling num_cpus v1.17.0
+   Compiling wait-timeout v0.2.1
+   Compiling cast v0.3.0
+   Compiling quick-error v1.2.3
+   Compiling deadpool-runtime v0.1.4
+   Compiling deadpool v0.12.3
+   Compiling rusty-fork v0.3.1
+   Compiling criterion-plot v0.8.2
+   Compiling rayon v1.12.0
+   Compiling ciborium v0.2.2
+   Compiling plotters v0.3.7
+   Compiling rand_xorshift v0.4.0
+   Compiling tinytemplate v1.2.1
+   Compiling page_size v0.6.0
+   Compiling similar v2.7.0
+   Compiling anes v0.1.6
+   Compiling colored v3.1.1
+   Compiling oorandom v11.1.5
+   Compiling unarray v0.1.4
+   Compiling proptest v1.11.0
+   Compiling criterion v0.8.2
+   Compiling mockito v1.7.2
+   Compiling wiremock v0.6.5
+   Compiling git2 v0.20.4
+    Finished `bench` profile [optimized] target(s) in 8m 48s
+     Running benches/comrak_render_throughput.rs (target/release/deps/comrak_render_throughput-f6c13fa840598e0a)
+Gnuplot not found, using plotters backend
+Benchmarking comrak_render_throughput/comrak_render_throughput
+Benchmarking comrak_render_throughput/comrak_render_throughput: Warming up for 300.00 ms
+Benchmarking comrak_render_throughput/comrak_render_throughput: Collecting 30 samples in estimated 3.0051 s (107k iterations)
+Benchmarking comrak_render_throughput/comrak_render_throughput: Analyzing
+comrak_render_throughput/comrak_render_throughput
+                        time:   [27.388 µs 27.501 µs 27.609 µs]
+                        thrpt:  [36.221 Kelem/s 36.362 Kelem/s 36.512 Kelem/s]
+Found 1 outliers among 30 measurements (3.33%)
+  1 (3.33%) high severe
+
+     Running benches/file_open_in_diff_cached.rs (target/release/deps/file_open_in_diff_cached-1680a7b8e2a98461)
+Gnuplot not found, using plotters backend
+Benchmarking file_open_in_diff_cached
+Benchmarking file_open_in_diff_cached: Warming up for 300.00 ms
+Benchmarking file_open_in_diff_cached: Collecting 20 samples in estimated 2.0636 s (2730 iterations)
+Benchmarking file_open_in_diff_cached: Analyzing
+file_open_in_diff_cached
+                        time:   [696.63 µs 721.20 µs 741.79 µs]
+
+     Running benches/inbox_first_paint.rs (target/release/deps/inbox_first_paint-5c779fd4e93558c5)
+Gnuplot not found, using plotters backend
+Benchmarking inbox_first_paint
+Benchmarking inbox_first_paint: Warming up for 300.00 ms
+Benchmarking inbox_first_paint: Collecting 20 samples in estimated 2.3507 s (80 iterations)
+Benchmarking inbox_first_paint: Analyzing
+inbox_first_paint       time:   [29.555 ms 29.827 ms 30.102 ms]
+
+     Running benches/mutation_submit_visible.rs (target/release/deps/mutation_submit_visible-10b97a6c79381aea)
+Gnuplot not found, using plotters backend
+Benchmarking mutation_submit_visible_online
+Benchmarking mutation_submit_visible_online: Warming up for 250.00 ms
+Benchmarking mutation_submit_visible_online: Collecting 20 samples in estimated 2.0302 s (6720 iterations)
+Benchmarking mutation_submit_visible_online: Analyzing
+mutation_submit_visible_online
+                        time:   [274.14 µs 288.12 µs 301.90 µs]
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) low mild
+  1 (5.00%) high mild
+
+Benchmarking mutation_submit_visible_offline
+Benchmarking mutation_submit_visible_offline: Warming up for 250.00 ms
+Benchmarking mutation_submit_visible_offline: Collecting 20 samples in estimated 2.0577 s (6930 iterations)
+Benchmarking mutation_submit_visible_offline: Analyzing
+mutation_submit_visible_offline
+                        time:   [293.43 µs 346.44 µs 395.41 µs]
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+
+     Running benches/pr_detail_open.rs (target/release/deps/pr_detail_open-a1371ac9983e0123)
+Gnuplot not found, using plotters backend
+Benchmarking pr_detail_open/preloaded
+Benchmarking pr_detail_open/preloaded: Warming up for 300.00 ms
+Benchmarking pr_detail_open/preloaded: Collecting 20 samples in estimated 2.0610 s (3360 iterations)
+Benchmarking pr_detail_open/preloaded: Analyzing
+pr_detail_open/preloaded
+                        time:   [566.43 µs 598.88 µs 645.10 µs]
+
+Benchmarking pr_detail_open/cold_cache
+Benchmarking pr_detail_open/cold_cache: Warming up for 300.00 ms
+Benchmarking pr_detail_open/cold_cache: Collecting 20 samples in estimated 2.3807 s (80 iterations)
+Benchmarking pr_detail_open/cold_cache: Analyzing
+pr_detail_open/cold_cache
+                        time:   [29.067 ms 29.379 ms 29.682 ms]
+
+inbox_first_paint_ms=29.83
+pr_detail_open_preloaded_ms=0.63
+pr_detail_open_cold_ms=29.38
+file_open_in_diff_cached_ms=0.69
+mutation_submit_visible_online_ms=0.28
+mutation_submit_visible_offline_ms=0.31
+mutation_submit_visible_ms=0.31
+comrak_render_throughput_ops_per_sec=36301.18
+browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/webkit-2287/pw_run.sh
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     pnpm exec playwright install                           ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
+node tools/perf-bench/run-frontend-bench.mjs failed with 1
+ ELIFECYCLE  Command failed with exit code 1.
