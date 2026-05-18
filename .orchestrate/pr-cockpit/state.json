@@ -1053,6 +1053,14 @@
     {
       "at": "2026-05-18T08:02:54.187Z",
       "message": "m5-editor-power-worktree-write: respawned by self-planner (was error); resuming from orch/pr-cockpit/m5-editor-power-worktree-write"
+    },
+    {
+      "at": "2026-05-18T08:37:46.832Z",
+      "message": "m5-editor-power-worktree-write: SSE idle 346441ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T08:37:46.833Z",
+      "message": "m5-editor-power-worktree-write: tool_call idle 346442ms; last=2026-05-18T08:32:00.391Z"
     }
   ]
 }
