@@ -1,0 +1,142 @@
+{
+  "rootSlug": "m6-stacks-relay-polish",
+  "tasks": [
+    {
+      "name": "m6-stacks",
+      "type": "worker",
+      "branch": "orch/m6-stacks-relay-polish/m6-stacks",
+      "startingRef": "orch/m5-editor-power-worktree-write/m5-finalize",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m6-relay-and-ghe",
+      "type": "worker",
+      "branch": "orch/m6-stacks-relay-polish/m6-relay-and-ghe",
+      "startingRef": "orch/m5-editor-power-worktree-write/m5-finalize",
+      "dependsOn": [
+        "m6-stacks"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m6-polish",
+      "type": "worker",
+      "branch": "orch/m6-stacks-relay-polish/m6-polish",
+      "startingRef": "orch/m5-editor-power-worktree-write/m5-finalize",
+      "dependsOn": [
+        "m6-relay-and-ghe"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m6-finalize",
+      "type": "worker",
+      "branch": "orch/m6-stacks-relay-polish/m6-finalize",
+      "startingRef": "orch/m5-editor-power-worktree-write/m5-finalize",
+      "dependsOn": [
+        "m6-polish"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m6-verify",
+      "type": "verifier",
+      "branch": "orch/m6-stacks-relay-polish/m6-verify",
+      "startingRef": "orch/m6-stacks-relay-polish/m6-finalize",
+      "dependsOn": [
+        "m6-finalize"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m6-tag-v1",
+      "type": "worker",
+      "branch": "orch/m6-stacks-relay-polish/m6-tag-v1",
+      "startingRef": "orch/m6-stacks-relay-polish/m6-finalize",
+      "dependsOn": [
+        "m6-verify"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
