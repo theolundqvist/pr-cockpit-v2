@@ -13,11 +13,20 @@ export function applyTolerance(baseline, kind, tolerancePct) {
   return kind === "max" ? baseline * (1 + tolerance) : baseline * (1 - tolerance);
 }
 
-export function compareBudgets({ budgets, rustMetrics, frontendMetrics }) {
-  const sources = {
-    rust: rustMetrics,
-    frontend: frontendMetrics,
-  };
+export function compareBudgets({
+  budgets,
+  rustMetrics,
+  frontendMetrics,
+  commandPaletteMetrics,
+  measurements,
+}) {
+  const sources =
+    measurements ??
+    {
+      rust: rustMetrics,
+      frontend: frontendMetrics,
+      command_palette: commandPaletteMetrics,
+    };
 
   const failures = [];
   const reports = [];

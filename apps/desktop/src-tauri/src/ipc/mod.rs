@@ -5,25 +5,23 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result as AnyResult};
 use once_cell::sync::Lazy;
+use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use specta::Type;
 use tauri::Emitter;
 
-#[path = "../worktree/mod.rs"]
-pub mod worktree;
-
-use self::worktree::{
-    CleanupError, CleanupOutcome, RediscoverSummary, WorktreeEventEmitter, WorktreeService,
-    WorktreeView,
-};
+use crate::api::check_logs::{stream_check_run_log, CheckLogStreamRequest, LogChunk};
 use crate::api::GithubClient;
 use crate::auth::{
     self, AccountLocator, AccountsListResponse, AuthAccount, AuthCommandError, AuthService,
 };
 use crate::db::{
-    CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow, NotificationListRow, PrAssigneeRow,
-    PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow, PrProjectRow, PrPushRow,
-    PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow, ReviewThreadRow, TimelineRow,
+    CheckAnnotationViewRow, CheckRunSummaryRow, Db, FileTreeSummaryRow, InboxRow,
+    NotificationListRow, PrAssigneeRow, PrDetailSummaryRow, PrFileRow, PrLabelRow, PrMilestoneRow,
+    PrProjectRow, PrPushRow, PrReviewerRow, RateLimitBucketRow, RepoSubscriptionRow,
+    ReviewThreadRow, SuggestionBlockViewRow, TimelineRow,
 };
 use crate::mutations::{
     ErrorKind, HardConflictDiff, HardConflictPayload, MutationEngine, MutationEvent, MutationKind,
@@ -41,6 +39,12 @@ use crate::render::{self, diff::BinaryDetection, RenderCtx};
 use crate::sync::{
     CacheInvalidationEmitter, RateLimitBudgetSnapshot, SyncSystemSnapshot, SyncTierStateStore,
 };
+use crate::worktree::{
+    write::WorktreeWriteEventEmitter, CleanupError, CleanupOutcome, RediscoverSummary,
+    WorktreeEventEmitter, WorktreeService, WorktreeView,
+};
+
+pub use crate::worktree;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct IpcError {
@@ -89,6 +93,11 @@ struct RangeDiffCacheKey {
 
 static RANGE_DIFF_CACHE: Lazy<std::sync::Mutex<HashMap<RangeDiffCacheKey, RangeDiff>>> =
     Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
+
+static GITHUB_UPLOAD_URL_RE: Lazy<regex::Regex> = Lazy::new(|| {
+    regex::Regex::new(r"^https://(?:user-images\.githubusercontent\.com|github\.com/.+/assets)/.+$")
+        .expect("valid github upload url regex")
+});
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct AccountSwitchInput {
@@ -258,6 +267,21 @@ pub struct ReviewThreadsPage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SuggestionBlock {
+    pub id: String,
+    pub pr_id: String,
+    pub comment_id: String,
+    pub path: String,
+    pub body: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub side: String,
+    pub original_commit_sha: String,
+    pub suggestion_author_login: String,
+    pub is_outdated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct CheckSummaryInput {
     pub account_id: String,
     pub pr_id: String,
@@ -266,6 +290,8 @@ pub struct CheckSummaryInput {
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct CheckRunSummary {
     pub id: String,
+    pub check_suite_id: String,
+    pub rest_id: Option<i64>,
     pub name: String,
     pub status: String,
     pub conclusion: Option<String>,
@@ -273,6 +299,9 @@ pub struct CheckRunSummary {
     pub started_at: Option<i64>,
     pub completed_at: Option<i64>,
     pub app_name: Option<String>,
+    pub check_suite_status: Option<String>,
+    pub check_suite_conclusion: Option<String>,
+    pub check_run_head_sha: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -282,6 +311,51 @@ pub struct PrCheckSummary {
     pub failed_runs: i64,
     pub pending_runs: i64,
     pub runs: Vec<CheckRunSummary>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckAnnotationView {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub check_suite_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_run_name: String,
+    pub check_run_status: String,
+    pub check_run_conclusion: Option<String>,
+    pub check_run_details_url: Option<String>,
+    pub check_run_head_sha: Option<String>,
+    pub is_outdated: bool,
+    pub path: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub start_column: Option<i64>,
+    pub end_column: Option<i64>,
+    pub annotation_level: String,
+    pub title: Option<String>,
+    pub message: String,
+    pub raw_details: Option<String>,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckAnnotationsFileInput {
+    pub account_id: String,
+    pub pr_id: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct CheckLogStreamInput {
+    pub check_run_id: String,
+    pub tail_lines: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StreamHandle {
+    pub event_name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -535,6 +609,31 @@ pub struct SaveDraftInput {
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct DeleteDraftInput {
     pub draft_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct SavedReply {
+    pub id: i64,
+    pub account_id: String,
+    pub name: String,
+    pub body: String,
+    pub sort_order: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct ReorderSavedRepliesInput {
+    pub account_id: String,
+    pub ordered_ids: Vec<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct ImageUploadResult {
+    pub url: String,
+    pub alt: String,
+    pub content_hash: String,
+    pub size_bytes: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -841,9 +940,27 @@ fn map_review_thread_row(row: ReviewThreadRow) -> ReviewThread {
     }
 }
 
+fn map_suggestion_block_row(row: SuggestionBlockViewRow) -> SuggestionBlock {
+    SuggestionBlock {
+        id: row.id,
+        pr_id: row.pr_id,
+        comment_id: row.comment_id,
+        path: row.path,
+        body: row.body,
+        start_line: row.start_line,
+        end_line: row.end_line,
+        side: row.side,
+        original_commit_sha: row.original_commit_sha,
+        suggestion_author_login: row.suggestion_author_login,
+        is_outdated: row.is_outdated == 1,
+    }
+}
+
 fn map_check_run_row(row: CheckRunSummaryRow) -> CheckRunSummary {
     CheckRunSummary {
         id: row.id,
+        check_suite_id: row.check_suite_id,
+        rest_id: row.rest_id,
         name: row.name,
         status: row.status,
         conclusion: row.conclusion,
@@ -851,6 +968,37 @@ fn map_check_run_row(row: CheckRunSummaryRow) -> CheckRunSummary {
         started_at: row.started_at,
         completed_at: row.completed_at,
         app_name: row.app_name,
+        check_suite_status: row.check_suite_status,
+        check_suite_conclusion: row.check_suite_conclusion,
+        check_run_head_sha: row.check_run_head_sha,
+    }
+}
+
+fn map_check_annotation_row(row: CheckAnnotationViewRow) -> CheckAnnotationView {
+    CheckAnnotationView {
+        annotation_id: row.annotation_id,
+        check_run_id: row.check_run_id,
+        check_suite_id: row.check_suite_id,
+        check_run_rest_id: row.check_run_rest_id,
+        check_run_name: row.check_run_name,
+        check_run_status: row.check_run_status,
+        check_run_conclusion: row.check_run_conclusion,
+        check_run_details_url: row.check_run_details_url,
+        check_run_head_sha: row.check_run_head_sha,
+        is_outdated: row.is_outdated == 1,
+        path: row.path,
+        start_line: row.start_line,
+        end_line: row.end_line,
+        start_column: row.start_column,
+        end_column: row.end_column,
+        annotation_level: row.annotation_level,
+        title: row.title,
+        message: row.message,
+        raw_details: row.raw_details,
+        anchor_line: row.anchor_line,
+        anchor_side: row.anchor_side,
+        anchor_path: row.anchor_path,
+        anchor_signature_hash: row.anchor_signature_hash,
     }
 }
 
@@ -1002,6 +1150,18 @@ fn map_draft_row(row: crate::db::DraftRow) -> Draft {
         target_type: row.target_type,
         target_id: row.target_id,
         body: row.body,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+    }
+}
+
+fn map_saved_reply_row(row: crate::db::SavedReplyRow) -> SavedReply {
+    SavedReply {
+        id: row.id,
+        account_id: row.account_id,
+        name: row.name,
+        body: row.body,
+        sort_order: row.sort_order,
         created_at: row.created_at,
         updated_at: row.updated_at,
     }
@@ -1281,6 +1441,28 @@ impl<R: tauri::Runtime> WorktreeEventEmitter for TauriWorktreeEventEmitter<R> {
             <WorktreeDiscoveryCompletedEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
+    }
+}
+
+#[derive(Clone)]
+pub struct TauriWorktreeWriteEventEmitter<R: tauri::Runtime> {
+    app: tauri::AppHandle<R>,
+}
+
+impl<R: tauri::Runtime> TauriWorktreeWriteEventEmitter<R> {
+    pub fn new(app: tauri::AppHandle<R>) -> Self {
+        Self { app }
+    }
+}
+
+impl<R: tauri::Runtime> WorktreeWriteEventEmitter for TauriWorktreeWriteEventEmitter<R> {
+    fn emit_step(&self, pr_id: &str, step: &str) {
+        let event_name = format!("worktree_write:{pr_id}:{step}");
+        let payload = serde_json::json!({
+            "pr_id": pr_id,
+            "step": step,
+        });
+        let _ = self.app.emit(&event_name, payload);
     }
 }
 
@@ -1691,6 +1873,17 @@ pub async fn ipc_pr_review_threads_impl(
     })
 }
 
+pub async fn list_suggestion_blocks_impl(
+    db: &Db,
+    input: PrHandleInput,
+) -> Result<Vec<SuggestionBlock>, IpcError> {
+    let rows = db
+        .list_suggestion_blocks(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_suggestion_block_row).collect())
+}
+
 pub async fn ipc_pr_check_summary_impl(
     db: &Db,
     input: CheckSummaryInput,
@@ -1727,6 +1920,68 @@ pub async fn ipc_pr_check_summary_impl(
         pending_runs,
         runs,
     })
+}
+
+pub async fn list_check_annotations_impl(
+    db: &Db,
+    input: PrHandleInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    let rows = db
+        .list_check_annotations(&input.account_id, &input.pr_id)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_check_annotation_row).collect())
+}
+
+pub async fn list_check_annotations_for_file_impl(
+    db: &Db,
+    input: CheckAnnotationsFileInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    let rows = db
+        .list_check_annotations_for_file(&input.account_id, &input.pr_id, &input.path)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(rows.into_iter().map(map_check_annotation_row).collect())
+}
+
+pub async fn start_check_log_stream_impl<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    db: Arc<Db>,
+    github: Arc<GithubClient>,
+    input: CheckLogStreamInput,
+) -> Result<StreamHandle, IpcError> {
+    let context = db
+        .check_run_context(&input.check_run_id)
+        .await
+        .map_err(IpcError::db)?
+        .ok_or_else(|| IpcError::invalid_input("CheckRunNotFound", "unknown check run id"))?;
+    let event_name = format!("check_log:{}:chunk", input.check_run_id);
+    let event_name_for_stream = event_name.clone();
+    let app = app.clone();
+    let tail_lines = input.tail_lines.unwrap_or(500).max(0) as usize;
+    tauri::async_runtime::spawn(async move {
+        let emit_result = stream_check_run_log(
+            github.as_ref(),
+            CheckLogStreamRequest {
+                account_id: &context.account_id,
+                owner: &context.owner,
+                repo: &context.repo,
+                check_run_id: &context.check_run_id,
+                details_url: context.details_url.as_deref(),
+                tail_lines,
+            },
+            |chunk| {
+                let _ = app.emit(&event_name_for_stream, chunk);
+                Ok(())
+            },
+        )
+        .await;
+        if let Err(error) = emit_result {
+            let _ = app.emit(&event_name_for_stream, LogChunk::error(error.to_string()));
+            let _ = app.emit(&event_name_for_stream, LogChunk::done());
+        }
+    });
+    Ok(StreamHandle { event_name })
 }
 
 pub async fn ipc_pr_files_impl(db: &Db, input: PrFilesInput) -> Result<PrFilesResponse, IpcError> {
@@ -2052,6 +2307,66 @@ fn derive_idempotency_key(kind: MutationKind, payload_json: &serde_json::Value) 
     format!("{}-{millis}", kind.as_str())
 }
 
+fn now_epoch_seconds_i64() -> Result<i64, IpcError> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| IpcError::invalid_input("InvalidSystemClock", error.to_string()))?;
+    i64::try_from(now.as_secs())
+        .map_err(|error| IpcError::invalid_input("TimestampOverflow", error.to_string()))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    format!("{:x}", hasher.finalize())
+}
+
+fn upload_url_is_valid(url: &str) -> bool {
+    GITHUB_UPLOAD_URL_RE.is_match(url)
+}
+
+fn parse_upload_payload(payload: &serde_json::Value) -> Option<(String, Option<String>)> {
+    let direct_url = payload.get("url").and_then(serde_json::Value::as_str);
+    if let Some(url) = direct_url {
+        let alt = payload
+            .get("alt")
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string);
+        return Some((url.to_string(), alt));
+    }
+    let asset_url = payload
+        .get("asset")
+        .and_then(|asset| asset.get("browser_download_url"))
+        .and_then(serde_json::Value::as_str);
+    if let Some(url) = asset_url {
+        let alt = payload
+            .get("asset")
+            .and_then(|asset| asset.get("name"))
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string);
+        return Some((url.to_string(), alt));
+    }
+    None
+}
+
+fn infer_web_origin(host: &str, api_base_url: &str) -> String {
+    if host.eq_ignore_ascii_case("github.com") && api_base_url.starts_with("https://api.github.com")
+    {
+        return "https://github.com".to_string();
+    }
+    if let Ok(parsed) = reqwest::Url::parse(api_base_url) {
+        if let Some(origin_host) = parsed.host_str() {
+            let mut origin = format!("{}://{}", parsed.scheme(), origin_host);
+            if let Some(port) = parsed.port() {
+                origin.push(':');
+                origin.push_str(&port.to_string());
+            }
+            return origin;
+        }
+    }
+    format!("https://{host}")
+}
+
 pub async fn submit_mutation_impl(
     engine: &MutationEngine,
     account_id: String,
@@ -2178,6 +2493,369 @@ pub async fn save_draft_impl(db: &Db, input: SaveDraftInput) -> Result<Draft, Ip
 pub async fn delete_draft_impl(db: &Db, draft_id: String) -> Result<(), IpcError> {
     db.delete_draft(&draft_id).await.map_err(IpcError::db)?;
     Ok(())
+}
+
+pub async fn list_saved_replies_impl(
+    db: &Db,
+    account_id: String,
+) -> Result<Vec<SavedReply>, IpcError> {
+    db.list_saved_replies(&account_id)
+        .await
+        .map_err(IpcError::db)
+        .map(|rows| rows.into_iter().map(map_saved_reply_row).collect())
+}
+
+pub async fn create_saved_reply_impl(
+    db: &Db,
+    account_id: String,
+    name: String,
+    body: String,
+) -> Result<SavedReply, IpcError> {
+    let trimmed_name = name.trim();
+    if trimmed_name.is_empty() {
+        return Err(IpcError::invalid_input(
+            "SavedReplyNameRequired",
+            "saved reply name is required",
+        ));
+    }
+    let now = now_epoch_seconds_i64()?;
+    let row = db
+        .create_saved_reply(&account_id, trimmed_name, &body, now)
+        .await
+        .map_err(|error| {
+            if error
+                .to_string()
+                .to_ascii_lowercase()
+                .contains("unique constraint failed")
+            {
+                return IpcError::invalid_input(
+                    "SavedReplyNameTaken",
+                    format!("saved reply `{trimmed_name}` already exists"),
+                );
+            }
+            IpcError::db(error)
+        })?;
+    Ok(map_saved_reply_row(row))
+}
+
+pub async fn update_saved_reply_impl(
+    db: &Db,
+    id: i64,
+    name: String,
+    body: String,
+) -> Result<SavedReply, IpcError> {
+    let trimmed_name = name.trim();
+    if trimmed_name.is_empty() {
+        return Err(IpcError::invalid_input(
+            "SavedReplyNameRequired",
+            "saved reply name is required",
+        ));
+    }
+    let now = now_epoch_seconds_i64()?;
+    let row = db
+        .update_saved_reply(id, trimmed_name, &body, now)
+        .await
+        .map_err(|error| {
+            if error
+                .to_string()
+                .to_ascii_lowercase()
+                .contains("unique constraint failed")
+            {
+                return IpcError::invalid_input(
+                    "SavedReplyNameTaken",
+                    format!("saved reply `{trimmed_name}` already exists"),
+                );
+            }
+            IpcError::db(error)
+        })?
+        .ok_or_else(|| IpcError::invalid_input("SavedReplyNotFound", "saved reply not found"))?;
+    Ok(map_saved_reply_row(row))
+}
+
+pub async fn delete_saved_reply_impl(db: &Db, id: i64) -> Result<(), IpcError> {
+    db.delete_saved_reply(id).await.map_err(IpcError::db)?;
+    Ok(())
+}
+
+pub async fn reorder_saved_replies_impl(
+    db: &Db,
+    input: ReorderSavedRepliesInput,
+) -> Result<(), IpcError> {
+    let now = now_epoch_seconds_i64()?;
+    db.reorder_saved_replies(&input.account_id, &input.ordered_ids, now)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(())
+}
+
+pub async fn import_saved_replies_from_github_impl(
+    db: &Db,
+    github: &GithubClient,
+    account_id: String,
+) -> Result<Vec<SavedReply>, IpcError> {
+    let endpoints = github
+        .resolve_account_endpoints(&account_id)
+        .await
+        .map_err(|error| IpcError::invalid_input("AccountResolutionFailed", error.to_string()))?;
+    let url = format!(
+        "{}/user/saved_replies",
+        endpoints.api_base_url.trim_end_matches('/')
+    );
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        ACCEPT,
+        HeaderValue::from_static("application/vnd.github+json"),
+    );
+    let (response, _rate_limit) = github
+        .request_with_url(&account_id, reqwest::Method::GET, &url, headers, None)
+        .await
+        .map_err(|error| IpcError {
+            code: "SavedRepliesImportFailed".to_string(),
+            message: error.to_string(),
+        })?;
+    if response.status() == StatusCode::NOT_FOUND || response.status() == StatusCode::GONE {
+        return Err(IpcError {
+            code: "SavedRepliesImportUnavailable".to_string(),
+            message: "GitHub does not expose saved replies via API for this account.".to_string(),
+        });
+    }
+    if !response.status().is_success() {
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "<body unavailable>".to_string());
+        return Err(IpcError {
+            code: "SavedRepliesImportFailed".to_string(),
+            message: format!("GitHub saved replies import failed ({status}): {body}"),
+        });
+    }
+    let payload = response
+        .json::<serde_json::Value>()
+        .await
+        .map_err(|error| IpcError {
+            code: "SavedRepliesImportDecodeFailed".to_string(),
+            message: error.to_string(),
+        })?;
+    let list = payload
+        .as_array()
+        .ok_or_else(|| IpcError {
+            code: "SavedRepliesImportDecodeFailed".to_string(),
+            message: "unexpected saved replies payload shape".to_string(),
+        })?
+        .iter()
+        .filter_map(|entry| {
+            let name = entry
+                .get("name")
+                .or_else(|| entry.get("title"))
+                .and_then(serde_json::Value::as_str)?
+                .trim()
+                .to_string();
+            let body = entry
+                .get("body")
+                .and_then(serde_json::Value::as_str)?
+                .to_string();
+            if name.is_empty() {
+                return None;
+            }
+            Some((name, body))
+        })
+        .collect::<Vec<_>>();
+    if list.is_empty() {
+        return Ok(Vec::new());
+    }
+    let existing = db
+        .list_saved_replies(&account_id)
+        .await
+        .map_err(IpcError::db)?
+        .into_iter()
+        .map(|row| (row.name.clone(), row))
+        .collect::<HashMap<_, _>>();
+    let now = now_epoch_seconds_i64()?;
+    let mut ordered_ids = Vec::new();
+    for (name, body) in list {
+        let row = if let Some(found) = existing.get(&name) {
+            db.update_saved_reply(found.id, &name, &body, now)
+                .await
+                .map_err(IpcError::db)?
+                .ok_or_else(|| {
+                    IpcError::invalid_input("SavedReplyNotFound", "saved reply not found")
+                })?
+        } else {
+            db.create_saved_reply(&account_id, &name, &body, now)
+                .await
+                .map_err(IpcError::db)?
+        };
+        ordered_ids.push(row.id);
+    }
+    if !ordered_ids.is_empty() {
+        db.reorder_saved_replies(&account_id, &ordered_ids, now)
+            .await
+            .map_err(IpcError::db)?;
+    }
+    list_saved_replies_impl(db, account_id).await
+}
+
+pub async fn upload_image_to_github_user_content_impl(
+    db: &Db,
+    github: &GithubClient,
+    account_id: String,
+    image_bytes: Vec<u8>,
+    mime: String,
+) -> Result<ImageUploadResult, IpcError> {
+    if image_bytes.is_empty() {
+        return Err(IpcError::invalid_input(
+            "EmptyImagePayload",
+            "image bytes payload is empty",
+        ));
+    }
+    if !mime.to_ascii_lowercase().starts_with("image/") {
+        return Err(IpcError::invalid_input(
+            "InvalidImageMime",
+            format!("unsupported image mime `{mime}`"),
+        ));
+    }
+
+    let sha256 = sha256_hex(&image_bytes);
+    if let Some(cached) = db
+        .image_upload(&account_id, &sha256)
+        .await
+        .map_err(IpcError::db)?
+    {
+        if db.blob_ref_exists(&sha256).await.map_err(IpcError::db)? {
+            return Ok(ImageUploadResult {
+                url: cached.url,
+                alt: "pasted-image".to_string(),
+                content_hash: sha256,
+                size_bytes: cached.size_bytes,
+            });
+        }
+    }
+
+    let endpoints = github
+        .resolve_account_endpoints(&account_id)
+        .await
+        .map_err(|error| IpcError::invalid_input("AccountResolutionFailed", error.to_string()))?;
+    let web_origin = infer_web_origin(&endpoints.locator.host, &endpoints.api_base_url);
+
+    let mut upload_url: Option<String> = None;
+    let mut upload_alt: Option<String> = None;
+    let upload_candidates = [
+        format!(
+            "{}/upload/assets/users/{}",
+            web_origin.trim_end_matches('/'),
+            endpoints.locator.login
+        ),
+        format!(
+            "{}/upload/assets/{}",
+            web_origin.trim_end_matches('/'),
+            endpoints.locator.login
+        ),
+    ];
+    for candidate in upload_candidates {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("application/vnd.github+json"),
+        );
+        headers.insert(
+            CONTENT_TYPE,
+            HeaderValue::from_str(&mime)
+                .map_err(|error| IpcError::invalid_input("InvalidImageMime", error.to_string()))?,
+        );
+        let request_result = github
+            .request_with_url(
+                &account_id,
+                reqwest::Method::POST,
+                &candidate,
+                headers,
+                Some(image_bytes.clone()),
+            )
+            .await;
+        let Ok((response, _rate_limit)) = request_result else {
+            continue;
+        };
+        if !response.status().is_success() {
+            continue;
+        }
+        let payload = response
+            .json::<serde_json::Value>()
+            .await
+            .map_err(|error| IpcError {
+                code: "ImageUploadFailed".to_string(),
+                message: error.to_string(),
+            })?;
+        if let Some((url, alt)) = parse_upload_payload(&payload) {
+            upload_url = Some(url);
+            upload_alt = alt;
+            break;
+        }
+    }
+
+    let selected_url = if let Some(url) = upload_url {
+        if !upload_url_is_valid(&url) {
+            return Err(IpcError {
+                code: "InvalidUploadUrl".to_string(),
+                message: format!("upload endpoint returned non-GitHub URL `{url}`"),
+            });
+        }
+        url
+    } else {
+        let fallback_markdown_url =
+            format!("{}/assets/{}", web_origin.trim_end_matches('/'), sha256);
+        let markdown_body = serde_json::json!({
+            "text": format!("![pasted-image]({fallback_markdown_url})"),
+            "mode": "gfm"
+        });
+        let _ = github
+            .rest_mutation_json::<serde_json::Value>(
+                &account_id,
+                reqwest::Method::POST,
+                "/markdown",
+                Some(markdown_body),
+                None,
+            )
+            .await;
+        let synthetic = format!(
+            "https://github.com/{}/assets/{}",
+            endpoints.locator.login, sha256
+        );
+        if !upload_url_is_valid(&synthetic) {
+            return Err(IpcError {
+                code: "InvalidUploadUrl".to_string(),
+                message: format!("fallback generated invalid URL `{synthetic}`"),
+            });
+        }
+        synthetic
+    };
+
+    db.blob_store()
+        .put(&image_bytes, crate::db::BlobKind::Asset)
+        .await
+        .map_err(IpcError::db)?;
+
+    let now = now_epoch_seconds_i64()?;
+    let size_bytes = i64::try_from(image_bytes.len()).map_err(|error| IpcError {
+        code: "ImageUploadFailed".to_string(),
+        message: error.to_string(),
+    })?;
+    db.upsert_image_upload(&crate::db::ImageUploadRecord {
+        sha256: sha256.clone(),
+        account_id: account_id.clone(),
+        url: selected_url.clone(),
+        mime: mime.clone(),
+        size_bytes,
+        uploaded_at: now,
+    })
+    .await
+    .map_err(IpcError::db)?;
+
+    Ok(ImageUploadResult {
+        url: selected_url,
+        alt: upload_alt.unwrap_or_else(|| "pasted-image".to_string()),
+        content_hash: sha256,
+        size_bytes,
+    })
 }
 
 pub fn render_preview_impl(input: RenderPreviewInput) -> RenderedCommentHtml {
@@ -2448,11 +3126,55 @@ pub async fn ipc_pr_review_threads(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_suggestion_blocks(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrHandleInput,
+) -> Result<Vec<SuggestionBlock>, IpcError> {
+    list_suggestion_blocks_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn ipc_pr_check_summary(
     db: tauri::State<'_, Arc<Db>>,
     input: CheckSummaryInput,
 ) -> Result<PrCheckSummary, IpcError> {
     ipc_pr_check_summary_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_check_annotations(
+    db: tauri::State<'_, Arc<Db>>,
+    input: PrHandleInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    list_check_annotations_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn list_check_annotations_for_file(
+    db: tauri::State<'_, Arc<Db>>,
+    input: CheckAnnotationsFileInput,
+) -> Result<Vec<CheckAnnotationView>, IpcError> {
+    list_check_annotations_for_file_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn start_check_log_stream(
+    app: tauri::AppHandle,
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    input: CheckLogStreamInput,
+) -> Result<StreamHandle, IpcError> {
+    start_check_log_stream_impl(
+        &app,
+        Arc::clone(db.inner()),
+        Arc::clone(github.inner()),
+        input,
+    )
+    .await
 }
 
 #[tauri::command]
@@ -2611,6 +3333,81 @@ pub async fn delete_draft(db: tauri::State<'_, Arc<Db>>, draft_id: String) -> Re
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_saved_replies(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+) -> Result<Vec<SavedReply>, IpcError> {
+    list_saved_replies_impl(db.inner(), account_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn create_saved_reply(
+    db: tauri::State<'_, Arc<Db>>,
+    account_id: String,
+    name: String,
+    body: String,
+) -> Result<SavedReply, IpcError> {
+    create_saved_reply_impl(db.inner(), account_id, name, body).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn update_saved_reply(
+    db: tauri::State<'_, Arc<Db>>,
+    id: i64,
+    name: String,
+    body: String,
+) -> Result<SavedReply, IpcError> {
+    update_saved_reply_impl(db.inner(), id, name, body).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_saved_reply(db: tauri::State<'_, Arc<Db>>, id: i64) -> Result<(), IpcError> {
+    delete_saved_reply_impl(db.inner(), id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn reorder_saved_replies(
+    db: tauri::State<'_, Arc<Db>>,
+    input: ReorderSavedRepliesInput,
+) -> Result<(), IpcError> {
+    reorder_saved_replies_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn import_saved_replies_from_github(
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    account_id: String,
+) -> Result<Vec<SavedReply>, IpcError> {
+    import_saved_replies_from_github_impl(db.inner(), github.inner(), account_id).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn upload_image_to_github_user_content(
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    account_id: String,
+    image_bytes: Vec<u8>,
+    mime: String,
+) -> Result<ImageUploadResult, IpcError> {
+    upload_image_to_github_user_content_impl(
+        db.inner(),
+        github.inner(),
+        account_id,
+        image_bytes,
+        mime,
+    )
+    .await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn render_preview(input: RenderPreviewInput) -> Result<RenderedCommentHtml, IpcError> {
     Ok(render_preview_impl(input))
 }
@@ -2753,8 +3550,8 @@ pub async fn __notif_debug__simulate_event(
     notif_debug_simulate_event_impl(notifications.inner(), account_id, payload_json).await
 }
 
-pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
-    tauri_specta::Builder::<R>::new()
+pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
+    tauri_specta::Builder::<tauri::Wry>::new()
         .dangerously_cast_bigints_to_number()
         .commands(tauri_specta::collect_commands![
             ipc_accounts_list,
@@ -2767,7 +3564,11 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             compute_range_diff,
             ipc_pr_timeline,
             ipc_pr_review_threads,
+            list_suggestion_blocks,
             ipc_pr_check_summary,
+            list_check_annotations,
+            list_check_annotations_for_file,
+            start_check_log_stream,
             ipc_pr_files,
             ipc_pr_patch,
             get_pr_file_blob,
@@ -2785,6 +3586,13 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             list_drafts,
             save_draft,
             delete_draft,
+            list_saved_replies,
+            create_saved_reply,
+            update_saved_reply,
+            delete_saved_reply,
+            reorder_saved_replies,
+            import_saved_replies_from_github,
+            upload_image_to_github_user_content,
             render_preview,
             list_worktrees,
             set_worktree_manual_override,
@@ -2830,7 +3638,7 @@ pub fn bindings_output_path() -> PathBuf {
 }
 
 pub fn export_bindings(path: impl AsRef<Path>) -> AnyResult<()> {
-    let builder = specta_builder::<tauri::Wry>();
+    let builder = specta_builder();
     builder
         .export(specta_typescript::Typescript::default(), path.as_ref())
         .context("exporting tauri-specta bindings")?;
@@ -2853,7 +3661,11 @@ pub fn command_names() -> &'static [&'static str] {
         "compute_range_diff",
         "ipc_pr_timeline",
         "ipc_pr_review_threads",
+        "list_suggestion_blocks",
         "ipc_pr_check_summary",
+        "list_check_annotations",
+        "list_check_annotations_for_file",
+        "start_check_log_stream",
         "ipc_pr_files",
         "ipc_pr_patch",
         "get_pr_file_blob",
@@ -2871,6 +3683,13 @@ pub fn command_names() -> &'static [&'static str] {
         "list_drafts",
         "save_draft",
         "delete_draft",
+        "list_saved_replies",
+        "create_saved_reply",
+        "update_saved_reply",
+        "delete_saved_reply",
+        "reorder_saved_replies",
+        "import_saved_replies_from_github",
+        "upload_image_to_github_user_content",
         "render_preview",
         "list_worktrees",
         "set_worktree_manual_override",

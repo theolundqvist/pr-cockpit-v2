@@ -205,6 +205,8 @@ pub struct CheckSuiteNode {
     pub app: Option<CheckSuiteApp>,
     pub status: Option<String>,
     pub conclusion: Option<String>,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<String>,
     #[serde(rename = "workflowRun")]
     pub workflow_run: Option<WorkflowRunNode>,
     #[serde(rename = "checkRuns")]
@@ -229,9 +231,13 @@ pub struct CheckRunsConnection {
 #[derive(Debug, Deserialize)]
 pub struct CheckRunNode {
     pub id: String,
+    #[serde(rename = "databaseId")]
+    pub database_id: Option<i64>,
     pub name: String,
     pub status: Option<String>,
     pub conclusion: Option<String>,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<String>,
     #[serde(rename = "detailsUrl")]
     pub details_url: Option<String>,
     pub title: Option<String>,
@@ -946,7 +952,11 @@ pub async fn reconcile_pr_detail(
                 conclusion: suite.conclusion.clone(),
                 details_url,
                 created_at: parse_timestamp(&pr.created_at),
-                updated_at: parse_timestamp(&pr.updated_at),
+                updated_at: suite
+                    .updated_at
+                    .as_deref()
+                    .map(parse_timestamp)
+                    .unwrap_or_else(|| parse_timestamp(&pr.updated_at)),
             })
             .await?;
 
@@ -960,6 +970,7 @@ pub async fn reconcile_pr_detail(
             {
                 db.upsert_check_run(&CheckRunRecord {
                     id: run.id.clone(),
+                    rest_id: run.database_id,
                     account_id: account_id.to_string(),
                     check_suite_id: suite.id.clone(),
                     pr_id: pr.id.clone(),
@@ -972,7 +983,11 @@ pub async fn reconcile_pr_detail(
                     started_at: run.started_at.as_deref().map(parse_timestamp),
                     completed_at: run.completed_at.as_deref().map(parse_timestamp),
                     created_at: parse_timestamp(&pr.created_at),
-                    updated_at: parse_timestamp(&pr.updated_at),
+                    updated_at: run
+                        .updated_at
+                        .as_deref()
+                        .map(parse_timestamp)
+                        .unwrap_or_else(|| parse_timestamp(&pr.updated_at)),
                 })
                 .await?;
             }

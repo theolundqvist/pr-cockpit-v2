@@ -5,6 +5,7 @@ test('diff polish renders text, image, binary, and rename rows', async ({ page }
   const httpErrors: string[] = [];
   const allowedMissingAssetPaths = new Set([
     '/assets/grammars/tree-sitter-rust.wasm',
+    '/assets/grammars/tree-sitter-typescript.wasm',
     '/fixture-user.png'
   ]);
 

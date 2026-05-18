@@ -12,6 +12,7 @@ use tokio::fs;
 
 use self::blob_store::BlobStore;
 pub use self::types::*;
+use crate::render::extract_suggestion_blocks;
 
 static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("./migrations");
 
@@ -514,6 +515,62 @@ impl Db {
             .collect()
     }
 
+    pub async fn list_suggestion_blocks(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<Vec<SuggestionBlockViewRow>> {
+        let rows = sqlx::query_as::<_, SuggestionBlockSourceRow>(
+            "SELECT
+               comment_id,
+               pr_id,
+               path,
+               body,
+               line,
+               start_line,
+               side,
+               original_commit_sha,
+               suggestion_author_login,
+               is_outdated
+             FROM suggestion_blocks
+             WHERE account_id = ?1 AND pr_id = ?2
+             ORDER BY comment_id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut out = Vec::new();
+        for row in rows {
+            let parsed = extract_suggestion_blocks(
+                &row.comment_id,
+                &row.body,
+                row.start_line,
+                row.line,
+                row.side.as_deref(),
+                row.original_commit_sha.as_deref(),
+                row.suggestion_author_login.as_deref(),
+            );
+            for block in parsed {
+                out.push(SuggestionBlockViewRow {
+                    id: block.id,
+                    pr_id: row.pr_id.clone(),
+                    comment_id: block.comment_id,
+                    path: row.path.clone(),
+                    body: block.body,
+                    start_line: block.start_line,
+                    end_line: block.end_line,
+                    side: block.side,
+                    original_commit_sha: block.original_commit_sha,
+                    suggestion_author_login: block.suggestion_author_login,
+                    is_outdated: row.is_outdated,
+                });
+            }
+        }
+        Ok(out)
+    }
+
     pub async fn pr_review_threads(
         &self,
         account_id: &str,
@@ -579,13 +636,18 @@ impl Db {
         let rows = sqlx::query_as::<_, CheckRunSummaryRow>(
             "SELECT
                cr.id,
+               cr.check_suite_id,
+               cr.rest_id,
                cr.name,
                cr.status,
                cr.conclusion,
                cr.details_url,
                cr.started_at,
                cr.completed_at,
-               cs.app_name
+               cs.app_name,
+               cs.status AS check_suite_status,
+               cs.conclusion AS check_suite_conclusion,
+               cs.head_sha AS check_run_head_sha
              FROM check_runs cr
              LEFT JOIN check_suites cs ON cs.id = cr.check_suite_id
              WHERE cr.account_id = ?1 AND cr.pr_id = ?2
@@ -593,6 +655,147 @@ impl Db {
         )
         .bind(account_id)
         .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn check_run_sync_state(
+        &self,
+        check_run_id: &str,
+    ) -> Result<Option<CheckRunSyncStateRow>> {
+        let row = sqlx::query_as::<_, CheckRunSyncStateRow>(
+            "SELECT id, status, conclusion, updated_at
+             FROM check_runs
+             WHERE id = ?1
+             LIMIT 1",
+        )
+        .bind(check_run_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn check_run_context(
+        &self,
+        check_run_id: &str,
+    ) -> Result<Option<CheckRunContextRow>> {
+        let row = sqlx::query_as::<_, CheckRunContextRow>(
+            "SELECT
+               cr.id AS check_run_id,
+               cr.rest_id AS check_run_rest_id,
+               cr.check_suite_id,
+               cr.account_id,
+               cr.pr_id,
+               r.owner,
+               r.name AS repo,
+               cr.details_url,
+               pr.head_sha
+             FROM check_runs cr
+             JOIN pull_requests pr ON pr.id = cr.pr_id
+             JOIN repos r ON r.id = pr.repo_id
+             WHERE cr.id = ?1
+             LIMIT 1",
+        )
+        .bind(check_run_id)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn list_check_annotations(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+    ) -> Result<Vec<CheckAnnotationViewRow>> {
+        let rows = sqlx::query_as::<_, CheckAnnotationViewRow>(
+            "SELECT
+               ca.id AS annotation_id,
+               ca.check_run_id,
+               cr.check_suite_id,
+               cr.rest_id AS check_run_rest_id,
+               cr.name AS check_run_name,
+               cr.status AS check_run_status,
+               cr.conclusion AS check_run_conclusion,
+               cr.details_url AS check_run_details_url,
+               cs.head_sha AS check_run_head_sha,
+               CASE
+                 WHEN cs.head_sha IS NOT NULL AND pr.head_sha IS NOT NULL AND cs.head_sha != pr.head_sha THEN 1
+                 ELSE 0
+               END AS is_outdated,
+               ca.path,
+               ca.start_line,
+               ca.end_line,
+               ca.start_column,
+               ca.end_column,
+               ca.annotation_level,
+               ca.title,
+               ca.message,
+               ca.raw_details,
+               aux.anchor_line,
+               aux.anchor_side,
+               aux.anchor_path,
+               aux.anchor_signature_hash
+             FROM check_annotations ca
+             JOIN check_annotation_aux aux ON aux.annotation_id = ca.id
+             JOIN check_runs cr ON cr.id = ca.check_run_id
+             LEFT JOIN check_suites cs ON cs.id = cr.check_suite_id
+             LEFT JOIN pull_requests pr ON pr.id = ca.pr_id
+             WHERE ca.account_id = ?1 AND ca.pr_id = ?2
+             ORDER BY aux.anchor_path ASC, aux.anchor_line ASC, ca.id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn list_check_annotations_for_file(
+        &self,
+        account_id: &str,
+        pr_id: &str,
+        path: &str,
+    ) -> Result<Vec<CheckAnnotationViewRow>> {
+        let rows = sqlx::query_as::<_, CheckAnnotationViewRow>(
+            "SELECT
+               ca.id AS annotation_id,
+               ca.check_run_id,
+               cr.check_suite_id,
+               cr.rest_id AS check_run_rest_id,
+               cr.name AS check_run_name,
+               cr.status AS check_run_status,
+               cr.conclusion AS check_run_conclusion,
+               cr.details_url AS check_run_details_url,
+               cs.head_sha AS check_run_head_sha,
+               CASE
+                 WHEN cs.head_sha IS NOT NULL AND pr.head_sha IS NOT NULL AND cs.head_sha != pr.head_sha THEN 1
+                 ELSE 0
+               END AS is_outdated,
+               ca.path,
+               ca.start_line,
+               ca.end_line,
+               ca.start_column,
+               ca.end_column,
+               ca.annotation_level,
+               ca.title,
+               ca.message,
+               ca.raw_details,
+               aux.anchor_line,
+               aux.anchor_side,
+               aux.anchor_path,
+               aux.anchor_signature_hash
+             FROM check_annotations ca
+             JOIN check_annotation_aux aux ON aux.annotation_id = ca.id
+             JOIN check_runs cr ON cr.id = ca.check_run_id
+             LEFT JOIN check_suites cs ON cs.id = cr.check_suite_id
+             LEFT JOIN pull_requests pr ON pr.id = ca.pr_id
+             WHERE ca.account_id = ?1 AND ca.pr_id = ?2 AND aux.anchor_path = ?3
+             ORDER BY aux.anchor_line ASC, ca.id ASC",
+        )
+        .bind(account_id)
+        .bind(pr_id)
+        .bind(path)
         .fetch_all(&self.pool)
         .await?;
         Ok(rows)
@@ -1865,13 +2068,14 @@ impl Db {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
             "INSERT INTO check_runs(
-               id, account_id, check_suite_id, pr_id, name, status, conclusion, details_url, output_title,
+               id, rest_id, account_id, check_suite_id, pr_id, name, status, conclusion, details_url, output_title,
                output_summary, started_at, completed_at, created_at, updated_at
              )
              VALUES (
-               ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14
+               ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15
              )
              ON CONFLICT(id) DO UPDATE SET
+               rest_id = excluded.rest_id,
                account_id = excluded.account_id,
                check_suite_id = excluded.check_suite_id,
                pr_id = excluded.pr_id,
@@ -1886,6 +2090,7 @@ impl Db {
                updated_at = excluded.updated_at",
         )
         .bind(&run.id)
+        .bind(run.rest_id)
         .bind(&run.account_id)
         .bind(&run.check_suite_id)
         .bind(&run.pr_id)
@@ -1942,6 +2147,50 @@ impl Db {
         .bind(&annotation.raw_details)
         .execute(tx.as_mut())
         .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn upsert_check_annotation_aux(&self, aux: &CheckAnnotationAuxRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO check_annotation_aux(
+               annotation_id, check_run_id, pr_id, account_id, anchor_line, anchor_side, anchor_path, anchor_signature_hash
+             )
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+             ON CONFLICT(annotation_id) DO UPDATE SET
+               check_run_id = excluded.check_run_id,
+               pr_id = excluded.pr_id,
+               account_id = excluded.account_id,
+               anchor_line = excluded.anchor_line,
+               anchor_side = excluded.anchor_side,
+               anchor_path = excluded.anchor_path,
+               anchor_signature_hash = excluded.anchor_signature_hash",
+        )
+        .bind(&aux.annotation_id)
+        .bind(&aux.check_run_id)
+        .bind(&aux.pr_id)
+        .bind(&aux.account_id)
+        .bind(aux.anchor_line)
+        .bind(&aux.anchor_side)
+        .bind(&aux.anchor_path)
+        .bind(&aux.anchor_signature_hash)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn delete_check_annotations_for_run(&self, check_run_id: &str) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("DELETE FROM check_annotation_aux WHERE check_run_id = ?1")
+            .bind(check_run_id)
+            .execute(tx.as_mut())
+            .await?;
+        sqlx::query("DELETE FROM check_annotations WHERE check_run_id = ?1")
+            .bind(check_run_id)
+            .execute(tx.as_mut())
+            .await?;
         tx.commit().await?;
         Ok(())
     }
@@ -2456,6 +2705,41 @@ impl Db {
         Ok(())
     }
 
+    pub async fn insert_suggestion_apply(&self, row: &SuggestionApplyRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO suggestion_applies(
+               account_id,
+               pr_id,
+               mutation_id,
+               mode,
+               commit_sha,
+               head_sha_before,
+               head_sha_after,
+               suggestion_comment_ids,
+               applied_at,
+               outcome,
+               error_kind
+             )
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        )
+        .bind(&row.account_id)
+        .bind(&row.pr_id)
+        .bind(&row.mutation_id)
+        .bind(&row.mode)
+        .bind(&row.commit_sha)
+        .bind(&row.head_sha_before)
+        .bind(&row.head_sha_after)
+        .bind(&row.suggestion_comment_ids)
+        .bind(row.applied_at)
+        .bind(&row.outcome)
+        .bind(&row.error_kind)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
     pub async fn list_drafts(
         &self,
         account_id: &str,
@@ -2484,6 +2768,175 @@ impl Db {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    pub async fn list_saved_replies(&self, account_id: &str) -> Result<Vec<SavedReplyRow>> {
+        let rows = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE account_id = ?1
+             ORDER BY sort_order ASC, name ASC",
+        )
+        .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn create_saved_reply(
+        &self,
+        account_id: &str,
+        name: &str,
+        body: &str,
+        now_epoch: i64,
+    ) -> Result<SavedReplyRow> {
+        let mut tx = self.pool.begin().await?;
+        let max_sort: Option<i64> =
+            sqlx::query_scalar("SELECT MAX(sort_order) FROM saved_replies WHERE account_id = ?1")
+                .bind(account_id)
+                .fetch_one(tx.as_mut())
+                .await?;
+        let sort_order = max_sort.unwrap_or(-1).saturating_add(1);
+        let inserted = sqlx::query(
+            "INSERT INTO saved_replies(account_id, name, body, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?5)",
+        )
+        .bind(account_id)
+        .bind(name)
+        .bind(body)
+        .bind(sort_order)
+        .bind(now_epoch)
+        .execute(tx.as_mut())
+        .await?;
+        let inserted_id = inserted.last_insert_rowid();
+        let row = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE id = ?1",
+        )
+        .bind(inserted_id)
+        .fetch_one(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(row)
+    }
+
+    pub async fn update_saved_reply(
+        &self,
+        id: i64,
+        name: &str,
+        body: &str,
+        now_epoch: i64,
+    ) -> Result<Option<SavedReplyRow>> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "UPDATE saved_replies
+             SET name = ?2,
+                 body = ?3,
+                 updated_at = ?4
+             WHERE id = ?1",
+        )
+        .bind(id)
+        .bind(name)
+        .bind(body)
+        .bind(now_epoch)
+        .execute(tx.as_mut())
+        .await?;
+        let row = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE id = ?1",
+        )
+        .bind(id)
+        .fetch_optional(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(row)
+    }
+
+    pub async fn delete_saved_reply(&self, id: i64) -> Result<()> {
+        sqlx::query("DELETE FROM saved_replies WHERE id = ?1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn reorder_saved_replies(
+        &self,
+        account_id: &str,
+        ordered_ids: &[i64],
+        now_epoch: i64,
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        for (index, id) in ordered_ids.iter().enumerate() {
+            let sort_order =
+                i64::try_from(index).context("saved replies reorder index overflow")?;
+            sqlx::query(
+                "UPDATE saved_replies
+                 SET sort_order = ?3,
+                     updated_at = ?4
+                 WHERE id = ?1 AND account_id = ?2",
+            )
+            .bind(id)
+            .bind(account_id)
+            .bind(sort_order)
+            .bind(now_epoch)
+            .execute(tx.as_mut())
+            .await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn image_upload(
+        &self,
+        account_id: &str,
+        sha256: &str,
+    ) -> Result<Option<ImageUploadRow>> {
+        let row = sqlx::query_as::<_, ImageUploadRow>(
+            "SELECT sha256, account_id, url, mime, size_bytes, uploaded_at
+             FROM image_uploads
+             WHERE account_id = ?1 AND sha256 = ?2
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .bind(sha256)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn upsert_image_upload(&self, upload: &ImageUploadRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO image_uploads(sha256, account_id, url, mime, size_bytes, uploaded_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(sha256, account_id) DO UPDATE SET
+               url = excluded.url,
+               mime = excluded.mime,
+               size_bytes = excluded.size_bytes,
+               uploaded_at = excluded.uploaded_at",
+        )
+        .bind(&upload.sha256)
+        .bind(&upload.account_id)
+        .bind(&upload.url)
+        .bind(&upload.mime)
+        .bind(upload.size_bytes)
+        .bind(upload.uploaded_at)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn blob_ref_exists(&self, sha256: &str) -> Result<bool> {
+        let count =
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM blob_refs WHERE sha256 = ?1")
+                .bind(sha256)
+                .fetch_one(&self.pool)
+                .await?;
+        Ok(count > 0)
     }
 
     pub async fn list_pending_mutations(

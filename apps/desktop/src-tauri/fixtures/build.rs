@@ -595,6 +595,7 @@ async fn seed_active_pr_details(db: &Db, account_id: &str, base_ts: i64) -> Resu
             let run_id = format!("run_{}_{}", suite, run);
             db.upsert_check_run(&CheckRunRecord {
                 id: run_id.clone(),
+                rest_id: Some((suite * 1000) + run),
                 account_id: account_id.to_string(),
                 check_suite_id: suite_id.clone(),
                 pr_id: pr_id.to_string(),
@@ -626,6 +627,17 @@ async fn seed_active_pr_details(db: &Db, account_id: &str, base_ts: i64) -> Resu
                     title: Some("Fixture annotation".to_string()),
                     message: "Deterministic annotation message".to_string(),
                     raw_details: None,
+                })
+                .await?;
+                db.upsert_check_annotation_aux(&desktop_lib::db::CheckAnnotationAuxRecord {
+                    annotation_id: format!("ann_{}_{}", suite, run),
+                    check_run_id: format!("run_{}_{}", suite, run),
+                    account_id: account_id.to_string(),
+                    pr_id: pr_id.to_string(),
+                    anchor_line: 20 * run,
+                    anchor_side: "RIGHT".to_string(),
+                    anchor_path: "src/generated/huge_fixture.rs".to_string(),
+                    anchor_signature_hash: format!("fixture-ann-{suite}-{run}"),
                 })
                 .await?;
             }

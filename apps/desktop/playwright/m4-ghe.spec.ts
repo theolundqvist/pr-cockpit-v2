@@ -14,6 +14,7 @@ test('m4 GHE readiness flow: add account, switch, inbox/detail, endpoint routing
     window.__AUTH_DEBUG__?.clearEndpointInvocations();
   });
 
+  await page.getByRole('button', { name: 'Accounts' }).click();
   await page.getByTestId('add-account-button').click();
   await expect(page.getByTestId('add-account-modal')).toBeVisible();
   await page.getByTestId('ghe-host-link').click();

@@ -1,6 +1,7 @@
 pub mod discovery;
 pub mod mapping;
 pub mod watcher;
+pub mod write;
 
 use std::collections::BTreeSet;
 use std::path::{Component, Path, PathBuf};

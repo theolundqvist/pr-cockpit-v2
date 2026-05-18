@@ -158,6 +158,35 @@ pub struct TimelineRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct SuggestionBlockSourceRow {
+    pub comment_id: String,
+    pub pr_id: String,
+    pub path: String,
+    pub body: String,
+    pub line: Option<i64>,
+    pub start_line: Option<i64>,
+    pub side: Option<String>,
+    pub original_commit_sha: Option<String>,
+    pub suggestion_author_login: Option<String>,
+    pub is_outdated: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SuggestionBlockViewRow {
+    pub id: String,
+    pub pr_id: String,
+    pub comment_id: String,
+    pub path: String,
+    pub body: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub side: String,
+    pub original_commit_sha: String,
+    pub suggestion_author_login: String,
+    pub is_outdated: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct ReviewThreadRow {
     pub id: String,
     pub path: String,
@@ -176,6 +205,8 @@ pub struct ReviewThreadRow {
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct CheckRunSummaryRow {
     pub id: String,
+    pub check_suite_id: String,
+    pub rest_id: Option<i64>,
     pub name: String,
     pub status: String,
     pub conclusion: Option<String>,
@@ -183,6 +214,57 @@ pub struct CheckRunSummaryRow {
     pub started_at: Option<i64>,
     pub completed_at: Option<i64>,
     pub app_name: Option<String>,
+    pub check_suite_status: Option<String>,
+    pub check_suite_conclusion: Option<String>,
+    pub check_run_head_sha: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckAnnotationViewRow {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub check_suite_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_run_name: String,
+    pub check_run_status: String,
+    pub check_run_conclusion: Option<String>,
+    pub check_run_details_url: Option<String>,
+    pub check_run_head_sha: Option<String>,
+    pub is_outdated: i64,
+    pub path: String,
+    pub start_line: i64,
+    pub end_line: i64,
+    pub start_column: Option<i64>,
+    pub end_column: Option<i64>,
+    pub annotation_level: String,
+    pub title: Option<String>,
+    pub message: String,
+    pub raw_details: Option<String>,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckRunContextRow {
+    pub check_run_id: String,
+    pub check_run_rest_id: Option<i64>,
+    pub check_suite_id: String,
+    pub account_id: String,
+    pub pr_id: String,
+    pub owner: String,
+    pub repo: String,
+    pub details_url: Option<String>,
+    pub head_sha: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct CheckRunSyncStateRow {
+    pub id: String,
+    pub status: String,
+    pub conclusion: Option<String>,
+    pub updated_at: i64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
@@ -552,6 +634,7 @@ pub struct CheckSuiteRecord {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckRunRecord {
     pub id: String,
+    pub rest_id: Option<i64>,
     pub account_id: String,
     pub check_suite_id: String,
     pub pr_id: String,
@@ -582,6 +665,18 @@ pub struct CheckAnnotationRecord {
     pub title: Option<String>,
     pub message: String,
     pub raw_details: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckAnnotationAuxRecord {
+    pub annotation_id: String,
+    pub check_run_id: String,
+    pub account_id: String,
+    pub pr_id: String,
+    pub anchor_line: i64,
+    pub anchor_side: String,
+    pub anchor_path: String,
+    pub anchor_signature_hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -735,6 +830,27 @@ pub struct DraftRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct SavedReplyRow {
+    pub id: i64,
+    pub account_id: String,
+    pub name: String,
+    pub body: String,
+    pub sort_order: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ImageUploadRecord {
+    pub sha256: String,
+    pub account_id: String,
+    pub url: String,
+    pub mime: String,
+    pub size_bytes: i64,
+    pub uploaded_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
 pub struct PendingMutationRow {
     pub id: String,
     pub account_id: String,
@@ -768,6 +884,21 @@ pub struct PendingMutationRecord {
     pub updated_at: i64,
     pub last_error: Option<String>,
     pub requires_connection_confirmation: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SuggestionApplyRecord {
+    pub account_id: String,
+    pub pr_id: String,
+    pub mutation_id: String,
+    pub mode: String,
+    pub commit_sha: Option<String>,
+    pub head_sha_before: Option<String>,
+    pub head_sha_after: Option<String>,
+    pub suggestion_comment_ids: String,
+    pub applied_at: i64,
+    pub outcome: String,
+    pub error_kind: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -830,6 +961,16 @@ pub struct BlobRefRow {
     pub last_accessed_at: i64,
     pub created_at: i64,
     pub updated_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, PartialEq, Eq)]
+pub struct ImageUploadRow {
+    pub sha256: String,
+    pub account_id: String,
+    pub url: String,
+    pub mime: String,
+    pub size_bytes: i64,
+    pub uploaded_at: i64,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

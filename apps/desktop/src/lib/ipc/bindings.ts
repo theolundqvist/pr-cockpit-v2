@@ -63,7 +63,11 @@ export const commands = {
 	computeRangeDiff: (prId: string, baseSha: string, oldHeadSha: string, newHeadSha: string) => typedError<RangeDiff, IpcError>(__TAURI_INVOKE("compute_range_diff", { prId, baseSha, oldHeadSha, newHeadSha })),
 	ipcPrTimeline: (input: PagedPrInput) => typedError<TimelinePage, IpcError>(__TAURI_INVOKE("ipc_pr_timeline", { input })),
 	ipcPrReviewThreads: (input: PagedPrInput) => typedError<ReviewThreadsPage, IpcError>(__TAURI_INVOKE("ipc_pr_review_threads", { input })),
+	listSuggestionBlocks: (input: PrHandleInput) => typedError<SuggestionBlock[], IpcError>(__TAURI_INVOKE("list_suggestion_blocks", { input })),
 	ipcPrCheckSummary: (input: CheckSummaryInput) => typedError<PrCheckSummary, IpcError>(__TAURI_INVOKE("ipc_pr_check_summary", { input })),
+	listCheckAnnotations: (input: PrHandleInput) => typedError<CheckAnnotationView[], IpcError>(__TAURI_INVOKE("list_check_annotations", { input })),
+	listCheckAnnotationsForFile: (input: CheckAnnotationsFileInput) => typedError<CheckAnnotationView[], IpcError>(__TAURI_INVOKE("list_check_annotations_for_file", { input })),
+	startCheckLogStream: (input: CheckLogStreamInput) => typedError<StreamHandle, IpcError>(__TAURI_INVOKE("start_check_log_stream", { input })),
 	ipcPrFiles: (input: PrFilesInput) => typedError<PrFilesResponse, IpcError>(__TAURI_INVOKE("ipc_pr_files", { input })),
 	ipcPrPatch: (input: PrPatchInput) => typedError<PrPatchResponse, IpcError>(__TAURI_INVOKE("ipc_pr_patch", { input })),
 	getPrFileBlob: (input: PrFileBlobInput) => typedError<PrFileBlobResponse, IpcError>(__TAURI_INVOKE("get_pr_file_blob", { input })),
@@ -81,6 +85,13 @@ export const commands = {
 	listDrafts: (input: ListDraftsInput) => typedError<Draft[], IpcError>(__TAURI_INVOKE("list_drafts", { input })),
 	saveDraft: (input: SaveDraftInput) => typedError<Draft, IpcError>(__TAURI_INVOKE("save_draft", { input })),
 	deleteDraft: (draftId: string) => typedError<null, IpcError>(__TAURI_INVOKE("delete_draft", { draftId })),
+	listSavedReplies: (accountId: string) => typedError<SavedReply[], IpcError>(__TAURI_INVOKE("list_saved_replies", { accountId })),
+	createSavedReply: (accountId: string, name: string, body: string) => typedError<SavedReply, IpcError>(__TAURI_INVOKE("create_saved_reply", { accountId, name, body })),
+	updateSavedReply: (id: number, name: string, body: string) => typedError<SavedReply, IpcError>(__TAURI_INVOKE("update_saved_reply", { id, name, body })),
+	deleteSavedReply: (id: number) => typedError<null, IpcError>(__TAURI_INVOKE("delete_saved_reply", { id })),
+	reorderSavedReplies: (input: ReorderSavedRepliesInput) => typedError<null, IpcError>(__TAURI_INVOKE("reorder_saved_replies", { input })),
+	importSavedRepliesFromGithub: (accountId: string) => typedError<SavedReply[], IpcError>(__TAURI_INVOKE("import_saved_replies_from_github", { accountId })),
+	uploadImageToGithubUserContent: (accountId: string, imageBytes: number[], mime: string) => typedError<ImageUploadResult, IpcError>(__TAURI_INVOKE("upload_image_to_github_user_content", { accountId, imageBytes, mime })),
 	renderPreview: (input: RenderPreviewInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("render_preview", { input })),
 	listWorktrees: (accountId: string) => typedError<WorktreeView[], IpcError>(__TAURI_INVOKE("list_worktrees", { accountId })),
 	setWorktreeManualOverride: (worktreeId: string, prId: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_worktree_manual_override", { worktreeId, prId })),
@@ -160,8 +171,47 @@ export type AuthAccount = {
 	is_active: boolean,
 };
 
+export type CheckAnnotationView = {
+	annotation_id: string,
+	check_run_id: string,
+	check_suite_id: string,
+	check_run_rest_id: number | null,
+	check_run_name: string,
+	check_run_status: string,
+	check_run_conclusion: string | null,
+	check_run_details_url: string | null,
+	check_run_head_sha: string | null,
+	is_outdated: boolean,
+	path: string,
+	start_line: number,
+	end_line: number,
+	start_column: number | null,
+	end_column: number | null,
+	annotation_level: string,
+	title: string | null,
+	message: string,
+	raw_details: string | null,
+	anchor_line: number,
+	anchor_side: string,
+	anchor_path: string,
+	anchor_signature_hash: string,
+};
+
+export type CheckAnnotationsFileInput = {
+	account_id: string,
+	pr_id: string,
+	path: string,
+};
+
+export type CheckLogStreamInput = {
+	check_run_id: string,
+	tail_lines: number | null,
+};
+
 export type CheckRunSummary = {
 	id: string,
+	check_suite_id: string,
+	rest_id: number | null,
 	name: string,
 	status: string,
 	conclusion: string | null,
@@ -169,6 +219,9 @@ export type CheckRunSummary = {
 	started_at: number | null,
 	completed_at: number | null,
 	app_name: string | null,
+	check_suite_status: string | null,
+	check_suite_conclusion: string | null,
+	check_run_head_sha: string | null,
 };
 
 export type CheckSummaryInput = {
@@ -276,6 +329,13 @@ export type HighlightedLine = {
 	side: DiffSide,
 };
 
+export type ImageUploadResult = {
+	url: string,
+	alt: string,
+	content_hash: string,
+	size_bytes: number,
+};
+
 export type InboxChangedEventPayload = {
 	account_id: string,
 };
@@ -358,7 +418,7 @@ export type MutationHardConflictEventPayload = {
 	conflict: HardConflictPayload,
 };
 
-export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "delete_head_ref" | "enqueue_merge_queue" | "dequeue_merge_queue" | "reorder_merge_queue" | "close_pr" | "reopen_pr";
+export type MutationKind = "add_comment" | "add_review_comment" | "edit_comment" | "delete_comment" | "add_reaction" | "remove_reaction" | "add_label" | "remove_label" | "set_assignees" | "request_review" | "remove_review_request" | "submit_review" | "resolve_thread" | "unresolve_thread" | "mark_file_viewed" | "unmark_file_viewed" | "update_pr_title" | "update_pr_description" | "set_milestone" | "set_project" | "convert_to_draft" | "mark_ready_for_review" | "enable_auto_merge" | "disable_auto_merge" | "update_branch" | "merge" | "delete_head_ref" | "enqueue_merge_queue" | "dequeue_merge_queue" | "reorder_merge_queue" | "close_pr" | "reopen_pr" | "apply_suggestion" | "apply_suggestion_batch" | "rerun_check_run" | "rerun_check_suite";
 
 export type MutationReconciledEventPayload = {
 	mutation_id: string,
@@ -722,6 +782,11 @@ export type RenderedCommentInput = {
 	repo: string | null,
 };
 
+export type ReorderSavedRepliesInput = {
+	account_id: string,
+	ordered_ids: number[],
+};
+
 export type RepoSubscriptionItem = {
 	account_id: string,
 	repo_id: string,
@@ -769,6 +834,20 @@ export type SavePatTokenInput = {
 	token: string,
 };
 
+export type SavedReply = {
+	id: number,
+	account_id: string,
+	name: string,
+	body: string,
+	sort_order: number,
+	created_at: number,
+	updated_at: number,
+};
+
+export type StreamHandle = {
+	event_name: string,
+};
+
 export type SubmitReviewCommentInput = {
 	account_id: string,
 	payload_json: string,
@@ -780,6 +859,20 @@ export type SubmittedMutation = {
 	requires_confirmation: boolean,
 	optimism_level: OptimismLevel,
 	projected_changes: string[],
+};
+
+export type SuggestionBlock = {
+	id: string,
+	pr_id: string,
+	comment_id: string,
+	path: string,
+	body: string,
+	start_line: number,
+	end_line: number,
+	side: string,
+	original_commit_sha: string,
+	suggestion_author_login: string,
+	is_outdated: boolean,
 };
 
 export type SyncReconciledEventPayload = {

@@ -66,15 +66,18 @@ query PrDetail(
                 }
                 status
                 conclusion
+                updatedAt
                 workflowRun {
                   url
                 }
                 checkRuns(first: 20) {
                   nodes {
                     id
+                    databaseId
                     name
                     status
                     conclusion
+                    updatedAt
                     detailsUrl
                     title
                     summary

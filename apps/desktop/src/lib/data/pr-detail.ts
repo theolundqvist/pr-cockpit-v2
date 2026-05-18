@@ -1,20 +1,24 @@
 import type {
+  CheckAnnotationView,
   CheckRunSummary,
   PrCheckSummary,
   PrDetailSummary,
   PrFile,
   PrMetadataResponse,
   ReviewThread,
+  SuggestionBlock,
   TimelineItem
 } from '$lib/ipc/bindings';
 import {
   getCheckSummary,
+  getCheckAnnotations,
   getPrFiles,
   getPrMetadata,
   getPrPatch,
   getPrSummary,
   getPrTimeline,
   getReviewThreads,
+  getSuggestionBlocks,
   renderPreview
 } from '$lib/ipc/client';
 
@@ -28,7 +32,9 @@ export type PrDetailBundle = {
   metadata: PrMetadataResponse;
   timeline: RenderedTimelineItem[];
   review_threads: ReviewThread[];
+  suggestion_blocks: SuggestionBlock[];
   checks: PrCheckSummary;
+  check_annotations: CheckAnnotationView[];
   files: PrFile[];
   patch: string;
   patch_blob_sha: string | null;
@@ -63,22 +69,34 @@ async function loadBundle(accountId: string, prId: string): Promise<PrDetailBund
   if (!summary) {
     return null;
   }
-  const [metadata, timelinePage, threadsPage, checks, filesResponse, patchResponse] =
-    await Promise.all([
-      getPrMetadata(accountId, prId),
-      getPrTimeline(accountId, prId),
-      getReviewThreads(accountId, prId),
-      getCheckSummary(accountId, prId),
-      getPrFiles(accountId, prId, summary.head_sha),
-      getPrPatch(accountId, prId, summary.head_sha)
-    ]);
+  const [
+    metadata,
+    timelinePage,
+    threadsPage,
+    suggestionBlocks,
+    checks,
+    checkAnnotations,
+    filesResponse,
+    patchResponse
+  ] = await Promise.all([
+    getPrMetadata(accountId, prId),
+    getPrTimeline(accountId, prId),
+    getReviewThreads(accountId, prId),
+    getSuggestionBlocks(accountId, prId),
+    getCheckSummary(accountId, prId),
+    getCheckAnnotations(accountId, prId),
+    getPrFiles(accountId, prId, summary.head_sha),
+    getPrPatch(accountId, prId, summary.head_sha)
+  ]);
   const timeline = await hydrateTimeline(timelinePage.items);
   return {
     summary,
     metadata,
     timeline,
     review_threads: threadsPage.threads,
+    suggestion_blocks: suggestionBlocks,
     checks: normalizeChecks(checks),
+    check_annotations: checkAnnotations,
     files: filesResponse.files,
     patch: patchResponse.patch ?? '',
     patch_blob_sha: patchResponse.patch_blob_sha

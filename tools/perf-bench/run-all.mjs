@@ -24,6 +24,10 @@ async function main() {
     PERF_BROWSER: process.env.PERF_BROWSER ?? "webkit",
     PERF_TARGET: process.env.PERF_TARGET ?? "preview",
   });
+  run("node", ["tools/perf-bench/command-palette.mjs"], {
+    PERF_BROWSER: process.env.PERF_BROWSER ?? "webkit",
+    PERF_TARGET: process.env.PERF_TARGET ?? "preview",
+  });
   run("node", ["tools/perf-bench/compare-budgets.mjs"]);
 }
 

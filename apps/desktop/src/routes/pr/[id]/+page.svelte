@@ -1,12 +1,16 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
 
   import Composer from '$lib/components/Composer.svelte';
+  import CheckLogTail from '$lib/components/checks/CheckLogTail.svelte';
+  import ChecksRail from '$lib/components/checks/ChecksRail.svelte';
   import DiffViewer from '$lib/components/DiffViewer.svelte';
   import HardConflictModal from '$lib/components/HardConflictModal.svelte';
   import InlineMutationErrorBanner from '$lib/components/InlineMutationErrorBanner.svelte';
   import MergeBox from '$lib/components/merge/MergeBox.svelte';
+  import NoOptimismButton from '$lib/components/merge/NoOptimismButton.svelte';
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
+  import SuggestionBatchModal from '$lib/components/suggestions/SuggestionBatchModal.svelte';
   import ServerAdjustedChip from '$lib/components/ServerAdjustedChip.svelte';
   import SyncErrorsTray from '$lib/components/SyncErrorsTray.svelte';
   import WorktreeBadge from '$lib/components/worktree/WorktreeBadge.svelte';
@@ -33,6 +37,7 @@
     PendingOverlay,
     PendingMutationView,
     PrPushView,
+    SuggestionBlock,
     SubmittedMutation
   } from '$lib/ipc/bindings';
   import { reduceConversationTimeline } from '$lib/timeline/reducer';
@@ -47,7 +52,9 @@
     'close_pr',
     'reopen_pr',
     'enable_auto_merge',
-    'disable_auto_merge'
+    'disable_auto_merge',
+    'apply_suggestion',
+    'apply_suggestion_batch'
   ];
 
   let bundle: PrDetailBundle = data.bundle;
@@ -69,6 +76,8 @@
   let milestoneValue = bundle.metadata.milestones[0]?.title ?? '';
   let projectValue = bundle.metadata.projects[0]?.project_title ?? '';
   let showReviewModal = false;
+  let showSuggestionBatchModal = false;
+  let activeCheckLogRunId: string | null = null;
   let reviewBody = '';
   let confirmModal:
     | {
@@ -122,6 +131,15 @@
     $inboxStore.find(
       (row) => row.pr_id === data.prId && row.account_id === data.activeAccountId
     ) ?? null;
+  $: suggestionBlocks = bundle.suggestion_blocks ?? [];
+  $: checkAnnotations = bundle.check_annotations ?? [];
+  $: openSuggestionBlocks = suggestionBlocks.filter((suggestion) => !suggestion.is_outdated);
+  $: suggestionBlocksByComment = openSuggestionBlocks.reduce((acc, suggestion) => {
+    const existing = acc.get(suggestion.comment_id) ?? [];
+    existing.push(suggestion);
+    acc.set(suggestion.comment_id, existing);
+    return acc;
+  }, new Map<string, SuggestionBlock[]>());
 
   onMount(async () => {
     await Promise.all([
@@ -129,6 +147,16 @@
       refreshPending(),
       refreshPushHistory()
     ]);
+    window.addEventListener('command:composer-focus', onCommandComposerFocus as EventListener);
+    window.addEventListener(
+      'command:composer-identity-switch',
+      onCommandComposerIdentitySwitch as EventListener
+    );
+    window.addEventListener(
+      'command:suggestion-batch-open',
+      onCommandSuggestionBatchOpen as EventListener
+    );
+    window.addEventListener('command:pr-refresh', onCommandPrRefresh as EventListener);
   });
 
   function overlayOptimism(overlay: PendingOverlay | null): PendingMutationView['optimism'] | null {
@@ -252,12 +280,57 @@
     showReviewModal = false;
   }
 
+  async function onCommandComposerFocus(event: Event): Promise<void> {
+    const detail = (event as CustomEvent<{ ensureConversationTab?: boolean }>).detail;
+    if (detail?.ensureConversationTab) {
+      activeTab = 'conversation';
+      await tick();
+    }
+    const textarea = document.querySelector<HTMLTextAreaElement>('[data-testid="composer-textarea"]');
+    textarea?.focus();
+  }
+
+  async function onCommandComposerIdentitySwitch(): Promise<void> {
+    activeTab = 'conversation';
+    await tick();
+    const select = document.querySelector<HTMLSelectElement>('[data-testid="composer-posting-identity-select"]');
+    if (!select) {
+      return;
+    }
+    select.focus();
+    select.click();
+  }
+
+  async function onCommandSuggestionBatchOpen(): Promise<void> {
+    activeTab = 'conversation';
+    await tick();
+    showSuggestionBatchModal = true;
+  }
+
+  function onCommandPrRefresh(): void {
+    void refreshBundle();
+  }
+
   onDestroy(() => {
     for (const stop of unlisten) {
       stop();
     }
     unlisten = [];
+    window.removeEventListener('command:composer-focus', onCommandComposerFocus as EventListener);
+    window.removeEventListener(
+      'command:composer-identity-switch',
+      onCommandComposerIdentitySwitch as EventListener
+    );
+    window.removeEventListener(
+      'command:suggestion-batch-open',
+      onCommandSuggestionBatchOpen as EventListener
+    );
+    window.removeEventListener('command:pr-refresh', onCommandPrRefresh as EventListener);
   });
+
+  function openCheckLogTail(checkRunId: string): void {
+    activeCheckLogRunId = checkRunId;
+  }
 </script>
 
 <main class="pr-detail px-3 py-3">
@@ -363,22 +436,41 @@
 
   <div class="pr-layout">
     <section class="pr-main">
+      {#if openSuggestionBlocks.length >= 1}
+        <div class="flash flash-warn mb-2">
+          <div class="d-flex flex-items-center flex-justify-between gap-2">
+            <span>{openSuggestionBlocks.length} pending suggestions</span>
+            <button
+              class="btn btn-sm btn-primary"
+              type="button"
+              data-command-open-batch
+              data-testid="suggestion-batch-open"
+              on:click={() => (showSuggestionBatchModal = true)}
+            >
+              Apply {openSuggestionBlocks.length}
+            </button>
+          </div>
+        </div>
+      {/if}
       <div class="UnderlineNav mb-2">
         <nav class="UnderlineNav-body" aria-label="Pull request sections">
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'conversation' ? 'selected' : ''}`}
+            data-command-tab="conversation"
             on:click={() => (activeTab = 'conversation')}
           >
             Conversation
           </button>
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'files' ? 'selected' : ''}`}
+            data-command-tab="files"
             on:click={() => (activeTab = 'files')}
           >
             Files
           </button>
           <button
             class={`UnderlineNav-item btn-link ${activeTab === 'checks' ? 'selected' : ''}`}
+            data-command-tab="checks"
             on:click={() => (activeTab = 'checks')}
           >
             Checks
@@ -451,7 +543,7 @@
           <div class="Box-body">
             <ul class="list-style-none m-0">
               {#each conversation as item}
-                <li class="mb-2 border rounded-2">
+                <li class="mb-2 border rounded-2" data-command-thread-id={item.kind === 'thread' ? item.id : undefined}>
                   <div class="p-2 border-bottom color-border-muted d-flex flex-items-center flex-justify-between">
                     <strong class="f6">{item.title}</strong>
                     <span class="f6 color-fg-muted">{formatRelative(item.createdAt)}</span>
@@ -469,6 +561,47 @@
                         {@html item.html}
                       </article>
                       <ServerAdjustedChip visible={item.bodyServerAdjusted} />
+                      {#if suggestionBlocksByComment.get(item.id)?.length}
+                        <div class="mt-2 d-flex flex-column gap-2">
+                          {#each suggestionBlocksByComment.get(item.id) ?? [] as suggestion}
+                            <div class="Box" data-command-suggestion-id={suggestion.id}>
+                              <div class="Box-header d-flex flex-items-center flex-justify-between">
+                                <span class="f6 text-mono">
+                                  {suggestion.path}:{suggestion.start_line}-{suggestion.end_line}
+                                </span>
+                                <NoOptimismButton
+                                  kind="apply_suggestion"
+                                  payload={{
+                                    owner: activeInboxRow?.repo_owner ?? '',
+                                    repo: activeInboxRow?.repo_name ?? '',
+                                    pr_number: bundle.summary.pr_number,
+                                    pr_id: data.prId,
+                                    review_comment_id: suggestion.comment_id,
+                                    expected_head_sha: bundle.summary.head_sha,
+                                    target_id: suggestion.comment_id
+                                  }}
+                                  label="Apply suggestion"
+                                  pendingLabel="Applying…"
+                                  className="btn btn-sm btn-primary"
+                                  confirmTitle="Confirm suggestion apply"
+                                  confirmMessage="Apply this suggestion directly to the PR branch?"
+                                  disabled={suggestion.is_outdated || !activeInboxRow}
+                                  disabledReason={
+                                    suggestion.is_outdated
+                                      ? 'Suggestion is outdated and can no longer be applied.'
+                                      : 'Repository owner/name is unavailable.'
+                                  }
+                                  {submit}
+                                  onComplete={refreshBundle}
+                                />
+                              </div>
+                              <div class="Box-body">
+                                <pre class="m-0 f6">{suggestion.body}</pre>
+                              </div>
+                            </div>
+                          {/each}
+                        </div>
+                      {/if}
                       {#if item.reviewState}
                         <div class="mt-1"><span class="Label">{item.reviewState}</span></div>
                       {/if}
@@ -546,6 +679,9 @@
                         <button
                           class="btn btn-sm"
                           type="button"
+                          data-command-thread-id={item.id}
+                          data-command-thread-focus
+                          data-command-action="resolve-thread"
                           on:click={() =>
                             submit('resolve_thread', {
                               pr_id: data.prId,
@@ -558,6 +694,8 @@
                         <button
                           class="btn btn-sm"
                           type="button"
+                          data-command-thread-id={item.id}
+                          data-command-action="unresolve-thread"
                           on:click={() =>
                             submit('unresolve_thread', {
                               pr_id: data.prId,
@@ -664,6 +802,7 @@
                 <label class="d-flex flex-items-center gap-2 flex-auto">
                   <input
                     type="checkbox"
+                    data-command-file-path={file.path}
                     checked={file.is_viewed}
                     on:change={(event) => {
                       const checked = (event.currentTarget as HTMLInputElement).checked;
@@ -704,29 +843,28 @@
           patch={bundle.patch}
           files={bundle.files}
           reviewThreads={bundle.review_threads}
+          checkAnnotations={checkAnnotations}
           accountId={data.activeAccountId}
           prId={data.prId}
           headSha={bundle.summary.head_sha}
           pullRequestNodeId={bundle.summary.pr_id}
           on:reviewcommentsubmitted={refreshBundle}
+          on:openlogtail={(event) => openCheckLogTail(event.detail.checkRunId)}
         />
       {:else}
-        <div class="Box">
-          <div class="Box-header">Check runs</div>
-          <ul class="Box-body list-style-none m-0">
-            {#if bundle.checks.runs.length === 0}
-              <li class="f6 color-fg-muted">No checks found for this PR.</li>
-            {:else}
-              {#each bundle.checks.runs as run}
-                <li class="d-flex flex-items-center flex-justify-between py-2 border-bottom color-border-muted">
-                  <span>{run.name}</span>
-                  <span class="Label">{run.conclusion ?? run.status}</span>
-                </li>
-              {/each}
-            {/if}
-          </ul>
-        </div>
+        <ChecksRail
+          accountId={data.activeAccountId}
+          prId={data.prId}
+          owner={activeInboxRow?.repo_owner ?? ''}
+          repo={activeInboxRow?.repo_name ?? ''}
+          headSha={bundle.summary.head_sha}
+          checks={bundle.checks}
+          pendingMutations={pendingMutations}
+          on:openlogtail={(event) => openCheckLogTail(event.detail.checkRunId)}
+        />
       {/if}
+
+      <CheckLogTail checkRunId={activeCheckLogRunId} on:close={() => (activeCheckLogRunId = null)} />
     </section>
 
     <aside class="pr-rail">
@@ -930,6 +1068,20 @@
       </div>
     </aside>
   </div>
+
+  <SuggestionBatchModal
+    open={showSuggestionBatchModal}
+    prId={data.prId}
+    expectedHeadSha={bundle.summary.head_sha}
+    suggestions={openSuggestionBlocks}
+    worktree={currentWorktree}
+    {submit}
+    on:close={() => (showSuggestionBatchModal = false)}
+    on:submitted={async () => {
+      showSuggestionBatchModal = false;
+      await refreshBundle();
+    }}
+  />
 
   <SyncErrorsTray
     open={syncTrayOpen}

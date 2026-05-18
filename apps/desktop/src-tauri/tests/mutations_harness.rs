@@ -361,7 +361,8 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
         | MutationKind::DisableAutoMerge
         | MutationKind::EnqueueMergeQueue
         | MutationKind::DequeueMergeQueue
-        | MutationKind::ReorderMergeQueue => {}
+        | MutationKind::ReorderMergeQueue
+        | MutationKind::RerunCheckSuite => {}
         MutationKind::MarkFileViewed => {
             Mock::given(method("PUT"))
                 .and(path(
@@ -418,6 +419,26 @@ pub async fn mount_success(server: &MockServer, kind: MutationKind) {
                 .mount(server)
                 .await;
         }
+        MutationKind::ApplySuggestion => {
+            Mock::given(method("PUT"))
+                .and(path(
+                    "/repos/octo/hello-world/pulls/comments/review-comment-1",
+                ))
+                .respond_with(
+                    ResponseTemplate::new(200)
+                        .set_body_json(serde_json::json!({ "commit_sha": "applied-commit-sha" })),
+                )
+                .mount(server)
+                .await;
+        }
+        MutationKind::ApplySuggestionBatch => {}
+        MutationKind::RerunCheckRun => {
+            Mock::given(method("POST"))
+                .and(path("/repos/octo/hello-world/check-runs/9001/rerequest"))
+                .respond_with(ResponseTemplate::new(201).set_body_json(serde_json::json!({})))
+                .mount(server)
+                .await;
+        }
     }
 }
 
@@ -465,6 +486,10 @@ pub async fn mount_failure(server: &MockServer, kind: MutationKind) {
         MutationKind::UpdateBranch => "/repos/octo/hello-world/pulls/1/update-branch",
         MutationKind::Merge => "/repos/octo/hello-world/pulls/1/merge",
         MutationKind::DeleteHeadRef => "/repos/octo/hello-world/git/refs/heads/feature",
+        MutationKind::ApplySuggestion => "/repos/octo/hello-world/pulls/comments/review-comment-1",
+        MutationKind::ApplySuggestionBatch => "/repos/octo/hello-world/pulls/1",
+        MutationKind::RerunCheckRun => "/repos/octo/hello-world/check-runs/9001/rerequest",
+        MutationKind::RerunCheckSuite => "/graphql",
     };
     Mock::given(path(endpoint))
         .respond_with(conflict)
@@ -633,6 +658,28 @@ pub fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
         }),
         MutationKind::ClosePr | MutationKind::ReopenPr => serde_json::json!({
             "previous_state": "open",
+        }),
+        MutationKind::ApplySuggestion => serde_json::json!({
+            "review_comment_id": "review-comment-1",
+            "expected_head_sha": "head",
+        }),
+        MutationKind::ApplySuggestionBatch => serde_json::json!({
+            "pr_id": PR_ID,
+            "suggestion_ids": ["comment-1:0"],
+            "expected_head_sha": "head",
+            "worktree_path": "/tmp/worktree",
+            "force_with_stash": false,
+        }),
+        MutationKind::RerunCheckRun => serde_json::json!({
+            "check_run_id": "run-node-1",
+            "check_run_rest_id": 9001,
+            "target_type": "check_run",
+            "target_id": "run-node-1",
+        }),
+        MutationKind::RerunCheckSuite => serde_json::json!({
+            "check_suite_id": "suite-node-1",
+            "target_type": "check_suite",
+            "target_id": "suite-node-1",
         }),
     };
     if let serde_json::Value::Object(extra_map) = extra {

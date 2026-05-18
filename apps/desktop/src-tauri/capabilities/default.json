@@ -9,6 +9,7 @@
     "os:default",
     "clipboard-manager:default",
     "notification:default",
+    "shell:allow-open",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "$APPDATA/blobs/**/*" }]

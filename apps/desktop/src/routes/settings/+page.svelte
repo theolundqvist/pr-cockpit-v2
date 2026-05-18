@@ -4,6 +4,7 @@
   import { savePatToken, testEndpoints, toAccountId } from '$lib/ipc/client';
   import type { EndpointTestResult } from '$lib/ipc/bindings';
   import NotificationsSettings from '$lib/components/settings/Notifications.svelte';
+  import SavedRepliesSettings from '$lib/components/settings/SavedRepliesSettings.svelte';
   import {
     accountsStore,
     activeAccountIdStore,
@@ -19,6 +20,7 @@
   let addError = '';
   let addPending = false;
   let endpointResult: EndpointTestResult | null = null;
+  let activeTab: 'accounts' | 'notifications' | 'saved-replies' = 'notifications';
 
   function openAddModal(): void {
     addModalOpen = true;
@@ -61,42 +63,76 @@
 </script>
 
 <main class="px-3 py-3">
-  <section class="Box mb-3">
-    <div class="Box-header d-flex flex-justify-between flex-items-center">
-      <h1 class="f3 m-0">Accounts</h1>
-      <button class="btn btn-sm" type="button" on:click={openAddModal} data-testid="add-account-button">
-        Add account
+  <nav class="UnderlineNav mb-3" aria-label="Settings sections">
+    <div class="UnderlineNav-body">
+      <button
+        class={`UnderlineNav-item btn-link ${activeTab === 'accounts' ? 'selected' : ''}`}
+        type="button"
+        on:click={() => (activeTab = 'accounts')}
+      >
+        Accounts
       </button>
+      <button
+        class={`UnderlineNav-item btn-link ${activeTab === 'notifications' ? 'selected' : ''}`}
+        type="button"
+        on:click={() => (activeTab = 'notifications')}
+      >
+        Notifications
+      </button>
+      <button
+        class={`UnderlineNav-item btn-link ${activeTab === 'saved-replies' ? 'selected' : ''}`}
+        type="button"
+        data-testid="settings-tab-saved-replies"
+        on:click={() => (activeTab = 'saved-replies')}
+      >
+        Saved replies
+      </button>
+      <a class="UnderlineNav-item" href="/settings/keyboard" data-testid="settings-tab-keyboard">
+        Keyboard
+      </a>
     </div>
-    <div class="Box-body">
-      <p class="f6 color-fg-muted mt-0">
-        Device flow + gh import are github.com only; use a PAT for GHE.
-      </p>
-      <ul class="list-style-none m-0 p-0">
-        {#each $accountsStore as account}
-          <li class="mb-2 d-flex flex-items-center gap-2">
-            <span class="text-bold">@{account.login}</span>
-            <span class="color-fg-muted">{account.host}</span>
-            {#if account.host !== 'github.com'}
-              <span class="Label Label--accent-emphasis">GHE</span>
-            {/if}
-            {#if toAccountId(account) === $activeAccountIdStore}
-              <span class="Label Label--secondary">active</span>
-            {/if}
-          </li>
-        {/each}
-      </ul>
-    </div>
-  </section>
+  </nav>
 
-  <section class="Box">
-    <div class="Box-header">
-      <h1 class="f3 m-0">Notification settings</h1>
-    </div>
-    <div class="Box-body">
-      <NotificationsSettings accountId={$activeAccountIdStore} />
-    </div>
-  </section>
+  {#if activeTab === 'accounts'}
+    <section class="Box mb-3">
+      <div class="Box-header d-flex flex-justify-between flex-items-center">
+        <h1 class="f3 m-0">Accounts</h1>
+        <button class="btn btn-sm" type="button" on:click={openAddModal} data-testid="add-account-button">
+          Add account
+        </button>
+      </div>
+      <div class="Box-body">
+        <p class="f6 color-fg-muted mt-0">
+          Device flow + gh import are github.com only; use a PAT for GHE.
+        </p>
+        <ul class="list-style-none m-0 p-0">
+          {#each $accountsStore as account}
+            <li class="mb-2 d-flex flex-items-center gap-2">
+              <span class="text-bold">@{account.login}</span>
+              <span class="color-fg-muted">{account.host}</span>
+              {#if account.host !== 'github.com'}
+                <span class="Label Label--accent-emphasis">GHE</span>
+              {/if}
+              {#if toAccountId(account) === $activeAccountIdStore}
+                <span class="Label Label--secondary">active</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </section>
+  {:else if activeTab === 'notifications'}
+    <section class="Box">
+      <div class="Box-header">
+        <h1 class="f3 m-0">Notification settings</h1>
+      </div>
+      <div class="Box-body">
+        <NotificationsSettings accountId={$activeAccountIdStore} />
+      </div>
+    </section>
+  {:else}
+    <SavedRepliesSettings accountId={$activeAccountIdStore} />
+  {/if}
 </main>
 
 {#if addModalOpen}

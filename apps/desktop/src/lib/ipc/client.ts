@@ -1,9 +1,11 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { open as openExternal } from '@tauri-apps/plugin-shell';
 
 import {
   commands,
   type AccountLocator,
   type AuthAccount,
+  type CheckAnnotationView,
   type Draft,
   type InitInboxResponse,
   type IpcError,
@@ -17,11 +19,16 @@ import {
   type NetState,
   type RateLimitBucket,
   type PendingMutationView,
+  type PrCheckSummary,
   type PrDetailSummary,
   type PrPushView,
+  type SavedReply,
+  type StreamHandle,
   type RangeDiff,
+  type SuggestionBlock,
   type SubmittedMutation,
   type SystemStatusResponse,
+  type ImageUploadResult,
   type CleanupError,
   type WorktreeView,
   type CleanupOutcome,
@@ -29,6 +36,7 @@ import {
 } from '$lib/ipc/bindings';
 import {
   MOCK_ACCOUNTS,
+  MOCK_CHECK_ANNOTATIONS,
   MOCK_CLEANUP_OUTCOME,
   MOCK_CHECKS,
   MOCK_FILES,
@@ -57,6 +65,10 @@ let mockMutationSeq = 0;
 let mockDraftSeq = 0;
 let mockNetState: NetState = { state: 'online' };
 let mockPrDetail: PrDetailSummary = { ...MOCK_PR_DETAIL };
+let mockChecksState: PrCheckSummary = {
+  ...MOCK_CHECKS,
+  runs: MOCK_CHECKS.runs.map((run) => ({ ...run }))
+};
 let mockAutoSettleMutations = true;
 const mockPendingMutations = new Map<string, PendingMutationView>();
 const mockMutationInputs = new Map<
@@ -70,9 +82,63 @@ const mockMutationCalls: Array<{
   payload: Record<string, unknown>;
 }> = [];
 const mockDrafts = new Map<string, Draft>();
+let mockSavedReplySeq = 0;
+const mockSavedReplies = new Map<string, SavedReply[]>();
+type MockImageUploadStep =
+  | { kind: 'success'; result: ImageUploadResult }
+  | { kind: 'error'; message: string };
+const mockImageUploadQueue: MockImageUploadStep[] = [];
+const mockImageUploadInvocations: Array<{ account_id: string; mime: string; size_bytes: number }> =
+  [];
+const mockExternalOpenInvocations: string[] = [];
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
 let mockWorktrees = [...MOCK_WORKTREES];
+const mockAppliedSuggestionCommentIds = new Set<string>();
+const mockSuggestionBlocks: SuggestionBlock[] = [
+  {
+    id: 'comment_3:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_3',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let x = 1;',
+    start_line: 120,
+    end_line: 120,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-03',
+    is_outdated: false
+  },
+  {
+    id: 'comment_6:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_6',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let y = 2;',
+    start_line: 128,
+    end_line: 128,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-06',
+    is_outdated: false
+  },
+  {
+    id: 'comment_9:0',
+    pr_id: 'pr_1',
+    comment_id: 'comment_9',
+    path: 'src/generated/huge_fixture.rs',
+    body: 'let z = 3;',
+    start_line: 136,
+    end_line: 136,
+    side: 'RIGHT',
+    original_commit_sha: MOCK_PR_DETAIL.head_sha,
+    suggestion_author_login: 'fixture-user-09',
+    is_outdated: false
+  }
+];
+const mockCheckAnnotations: CheckAnnotationView[] = MOCK_CHECK_ANNOTATIONS.map((annotation) => ({
+  ...annotation
+}));
 const mockNotificationRules = new Map<string, NotificationRule[]>();
 const mockNotificationEvents = new Map<string, NotificationEventRow[]>();
 const mockNotificationSettings = new Map<
@@ -137,7 +203,9 @@ const cautiousKinds = new Set<MutationKind>([
   'set_project',
   'convert_to_draft',
   'mark_ready_for_review',
-  'update_branch'
+  'update_branch',
+  'rerun_check_run',
+  'rerun_check_suite'
 ]);
 const noneKinds = new Set<MutationKind>([
   'merge',
@@ -148,7 +216,9 @@ const noneKinds = new Set<MutationKind>([
   'enable_auto_merge',
   'disable_auto_merge',
   'close_pr',
-  'reopen_pr'
+  'reopen_pr',
+  'apply_suggestion',
+  'apply_suggestion_batch'
 ]);
 
 function isTauriRuntime(): boolean {
@@ -227,6 +297,52 @@ function ensureMockNotificationSettings(accountId: string): {
   };
   mockNotificationSettings.set(accountId, generated);
   return generated;
+}
+
+function ensureMockSavedReplies(accountId: string): SavedReply[] {
+  const existing = mockSavedReplies.get(accountId);
+  if (existing) {
+    return existing;
+  }
+  const seeded =
+    accountId === toAccountId(MOCK_ACCOUNTS.accounts[0]!)
+      ? ([
+          {
+            id: ++mockSavedReplySeq,
+            account_id: accountId,
+            name: 'Friendly follow-up',
+            body: 'Thanks for the update! Could you add one regression test for this path?',
+            sort_order: 0,
+            created_at: nowEpoch(),
+            updated_at: nowEpoch()
+          },
+          {
+            id: ++mockSavedReplySeq,
+            account_id: accountId,
+            name: 'Needs clarification',
+            body: 'Can you clarify the behavior change in the PR description?',
+            sort_order: 1,
+            created_at: nowEpoch(),
+            updated_at: nowEpoch()
+          }
+        ] satisfies SavedReply[])
+      : [];
+  mockSavedReplies.set(accountId, seeded);
+  return seeded;
+}
+
+function sortSavedReplies(rows: SavedReply[]): SavedReply[] {
+  return [...rows].sort(
+    (left, right) => left.sort_order - right.sort_order || left.name.localeCompare(right.name)
+  );
+}
+
+function mockImageHash(bytes: number[]): string {
+  let hash = 0;
+  for (const value of bytes) {
+    hash = (hash * 31 + value) >>> 0;
+  }
+  return `mock-${hash.toString(16).padStart(8, '0')}`;
 }
 
 function pushMockNotificationInvocation(command: string, payload: unknown): void {
@@ -322,6 +438,12 @@ async function settleMockMutation(mutation: PendingMutationView): Promise<void> 
   }
   await emitMockEvent('mutation:applied', { mutation_id: mutation.id });
   const mutationInput = mockMutationInputs.get(mutation.id);
+  if (mutationInput?.kind === 'apply_suggestion_batch') {
+    const prId = (mutationInput.payload.pr_id as string | undefined) ?? 'unknown';
+    for (const step of ['opened', 'assertions_ok', 'patched', 'committed', 'pushed']) {
+      await emitMockEvent(`worktree_write:${prId}:${step}`, { pr_id: prId, step });
+    }
+  }
   if (mutationInput) {
     applyMockMutationSideEffects(mutationInput.kind, mutationInput.payload);
   }
@@ -424,6 +546,69 @@ function applyMockMutationSideEffects(kind: MutationKind, payload: Record<string
         merge_state_status: 'clean'
       };
       break;
+    case 'apply_suggestion': {
+      const commentId = optionalString(payload.review_comment_id);
+      if (commentId) {
+        mockAppliedSuggestionCommentIds.add(commentId);
+      }
+      break;
+    }
+    case 'apply_suggestion_batch': {
+      const suggestionIds = (payload.suggestion_ids as string[] | undefined) ?? [];
+      for (const suggestionId of suggestionIds) {
+        const commentId = suggestionId.split(':')[0];
+        if (commentId) {
+          mockAppliedSuggestionCommentIds.add(commentId);
+        }
+      }
+      mockPrDetail = {
+        ...mockPrDetail,
+        head_sha: `${mockPrDetail.head_sha.slice(0, 30)}${Date.now().toString().slice(-10)}`
+      };
+      break;
+    }
+    case 'rerun_check_run': {
+      const runId = optionalString(payload.check_run_id) ?? optionalString(payload.target_id);
+      if (!runId) {
+        break;
+      }
+      mockChecksState = {
+        ...mockChecksState,
+        runs: mockChecksState.runs.map((run) =>
+          run.id === runId
+            ? {
+                ...run,
+                status: 'queued',
+                conclusion: null,
+                completed_at: null
+              }
+            : run
+        ),
+        pending_runs: Math.max(mockChecksState.pending_runs + 1, 1)
+      };
+      break;
+    }
+    case 'rerun_check_suite': {
+      const suiteId = optionalString(payload.check_suite_id) ?? optionalString(payload.target_id);
+      if (!suiteId) {
+        break;
+      }
+      mockChecksState = {
+        ...mockChecksState,
+        runs: mockChecksState.runs.map((run) =>
+          run.check_suite_id === suiteId
+            ? {
+                ...run,
+                status: 'queued',
+                conclusion: null,
+                completed_at: null
+              }
+            : run
+        ),
+        pending_runs: Math.max(mockChecksState.pending_runs + 1, 1)
+      };
+      break;
+    }
     default:
       break;
   }
@@ -661,13 +846,117 @@ export async function getReviewThreads(accountId: string, prId: string) {
   return prId === 'pr_1' ? MOCK_THREADS : { threads: [], next_offset: null };
 }
 
+export async function getSuggestionBlocks(
+  accountId: string,
+  prId: string
+): Promise<SuggestionBlock[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listSuggestionBlocks({ account_id: accountId, pr_id: prId }));
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockSuggestionBlocks
+    .filter((suggestion) => suggestion.pr_id === prId)
+    .filter((suggestion) => !mockAppliedSuggestionCommentIds.has(suggestion.comment_id));
+}
+
 export async function getCheckSummary(accountId: string, prId: string) {
   if (isTauriRuntime()) {
     return unwrap(commands.ipcPrCheckSummary({ account_id: accountId, pr_id: prId }));
   }
   return prId === 'pr_1'
-    ? MOCK_CHECKS
+    ? mockChecksState
     : { total_runs: 0, successful_runs: 0, failed_runs: 0, pending_runs: 0, runs: [] };
+}
+
+export async function getCheckAnnotations(
+  accountId: string,
+  prId: string
+): Promise<CheckAnnotationView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listCheckAnnotations({ account_id: accountId, pr_id: prId }));
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockCheckAnnotations.map((annotation) => ({
+    ...annotation,
+    is_outdated:
+      annotation.is_outdated ||
+      Boolean(
+        annotation.check_run_head_sha && annotation.check_run_head_sha !== mockPrDetail.head_sha
+      )
+  }));
+}
+
+export async function getCheckAnnotationsForFile(
+  accountId: string,
+  prId: string,
+  path: string
+): Promise<CheckAnnotationView[]> {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.listCheckAnnotationsForFile({
+        account_id: accountId,
+        pr_id: prId,
+        path
+      })
+    );
+  }
+  if (prId !== 'pr_1') {
+    return [];
+  }
+  return mockCheckAnnotations
+    .filter((annotation) => annotation.anchor_path === path)
+    .map((annotation) => ({
+      ...annotation,
+      is_outdated:
+        annotation.is_outdated ||
+        Boolean(
+          annotation.check_run_head_sha && annotation.check_run_head_sha !== mockPrDetail.head_sha
+        )
+    }));
+}
+
+export async function startCheckLogStream(
+  checkRunId: string,
+  tailLines = 500
+): Promise<StreamHandle> {
+  if (isTauriRuntime()) {
+    return unwrap(
+      commands.startCheckLogStream({
+        check_run_id: checkRunId,
+        tail_lines: tailLines
+      })
+    );
+  }
+  const eventName = `check_log:${checkRunId}:chunk`;
+  queueMicrotask(async () => {
+    const run = mockChecksState.runs.find((entry) => entry.id === checkRunId);
+    const detailsUrl = run?.details_url ?? null;
+    const isActions = detailsUrl?.includes('/actions/runs/') ?? false;
+    if (!isActions) {
+      await emitMockEvent(eventName, {
+        kind: 'fallback',
+        text: null,
+        details_url: detailsUrl
+      });
+      await emitMockEvent(eventName, { kind: 'done', text: null, details_url: null });
+      return;
+    }
+    const lines = Array.from(
+      { length: 40 },
+      (_value, index) => `log line ${index + 1} for ${checkRunId}\n`
+    );
+    for (const line of lines) {
+      await emitMockEvent(eventName, { kind: 'chunk', text: line, details_url: null });
+    }
+    const tail = lines.slice(-Math.min(lines.length, tailLines)).join('');
+    await emitMockEvent(eventName, { kind: 'tail', text: tail, details_url: null });
+    await emitMockEvent(eventName, { kind: 'done', text: null, details_url: null });
+  });
+  return { event_name: eventName };
 }
 
 export async function getPrFiles(accountId: string, prId: string, headSha: string) {
@@ -973,6 +1262,22 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
     payload: parsed
   });
   await emitMockEvent('mutation:submitted', { mutation });
+  if (
+    kind === 'apply_suggestion_batch' &&
+    optionalString(parsed.expected_head_sha) &&
+    optionalString(parsed.expected_head_sha) !== mockPrDetail.head_sha
+  ) {
+    queueMicrotask(() => {
+      void failMockMutation(mutationId, 'conflict');
+    });
+    return {
+      mutation_id: mutationId,
+      deduped: false,
+      requires_confirmation: mutation.requires_connection_confirmation,
+      optimism_level: optimism,
+      projected_changes: [kind]
+    };
+  }
   if (mockNetState.state === 'online' && mockAutoSettleMutations) {
     queueMicrotask(() => {
       void settleMockMutation(mutation);
@@ -1143,6 +1448,167 @@ export async function deleteDraft(draftId: string): Promise<void> {
   mockDrafts.delete(draftId);
 }
 
+export async function listSavedReplies(accountId: string): Promise<SavedReply[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.listSavedReplies(accountId));
+  }
+  return sortSavedReplies(ensureMockSavedReplies(accountId));
+}
+
+export async function createSavedReply(
+  accountId: string,
+  name: string,
+  body: string
+): Promise<SavedReply> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.createSavedReply(accountId, name, body));
+  }
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error('SavedReplyNameRequired: saved reply name is required');
+  }
+  const rows = ensureMockSavedReplies(accountId);
+  if (rows.some((row) => row.name.toLowerCase() === trimmed.toLowerCase())) {
+    throw new Error(`SavedReplyNameTaken: saved reply "${trimmed}" already exists`);
+  }
+  const sort_order = rows.length;
+  const timestamp = nowEpoch();
+  const created: SavedReply = {
+    id: ++mockSavedReplySeq,
+    account_id: accountId,
+    name: trimmed,
+    body,
+    sort_order,
+    created_at: timestamp,
+    updated_at: timestamp
+  };
+  mockSavedReplies.set(accountId, [...rows, created]);
+  return created;
+}
+
+export async function updateSavedReply(
+  id: number,
+  name: string,
+  body: string
+): Promise<SavedReply> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.updateSavedReply(id, name, body));
+  }
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error('SavedReplyNameRequired: saved reply name is required');
+  }
+  for (const [accountId, rows] of mockSavedReplies.entries()) {
+    const target = rows.find((row) => row.id === id);
+    if (!target) {
+      continue;
+    }
+    if (rows.some((row) => row.id !== id && row.name.toLowerCase() === trimmed.toLowerCase())) {
+      throw new Error(`SavedReplyNameTaken: saved reply "${trimmed}" already exists`);
+    }
+    const updated: SavedReply = {
+      ...target,
+      name: trimmed,
+      body,
+      updated_at: nowEpoch()
+    };
+    mockSavedReplies.set(
+      accountId,
+      rows.map((row) => (row.id === id ? updated : row))
+    );
+    return updated;
+  }
+  throw new Error('SavedReplyNotFound: saved reply not found');
+}
+
+export async function deleteSavedReply(id: number): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.deleteSavedReply(id));
+    return;
+  }
+  for (const [accountId, rows] of mockSavedReplies.entries()) {
+    if (!rows.some((row) => row.id === id)) {
+      continue;
+    }
+    const filtered = rows
+      .filter((row) => row.id !== id)
+      .map((row, index) => ({ ...row, sort_order: index, updated_at: nowEpoch() }));
+    mockSavedReplies.set(accountId, filtered);
+    return;
+  }
+}
+
+export async function reorderSavedReplies(accountId: string, orderedIds: number[]): Promise<void> {
+  if (isTauriRuntime()) {
+    await unwrap(commands.reorderSavedReplies({ account_id: accountId, ordered_ids: orderedIds }));
+    return;
+  }
+  const rows = ensureMockSavedReplies(accountId);
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const reordered = orderedIds
+    .map((id) => byId.get(id))
+    .filter((row): row is SavedReply => Boolean(row))
+    .map((row, index) => ({ ...row, sort_order: index, updated_at: nowEpoch() }));
+  const missing = rows
+    .filter((row) => !orderedIds.includes(row.id))
+    .map((row, index) => ({
+      ...row,
+      sort_order: reordered.length + index,
+      updated_at: nowEpoch()
+    }));
+  mockSavedReplies.set(accountId, [...reordered, ...missing]);
+}
+
+export async function importSavedRepliesFromGithub(accountId: string): Promise<SavedReply[]> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.importSavedRepliesFromGithub(accountId));
+  }
+  void accountId;
+  throw new Error(
+    'SavedRepliesImportUnavailable: GitHub does not expose saved replies via API; create them here.'
+  );
+}
+
+export async function uploadImageToGithubUserContent(
+  accountId: string,
+  imageBytes: number[],
+  mime: string
+): Promise<ImageUploadResult> {
+  if (isTauriRuntime()) {
+    return unwrap(commands.uploadImageToGithubUserContent(accountId, imageBytes, mime));
+  }
+  mockImageUploadInvocations.push({
+    account_id: accountId,
+    mime,
+    size_bytes: imageBytes.length
+  });
+  const next = mockImageUploadQueue.shift();
+  if (next?.kind === 'error') {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    throw new Error(`ImageUploadFailed: ${next.message}`);
+  }
+  if (next?.kind === 'success') {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    return next.result;
+  }
+  const hash = mockImageHash(imageBytes);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  return {
+    url: `https://user-images.githubusercontent.com/mock/${hash}.png`,
+    alt: 'pasted-image',
+    content_hash: hash,
+    size_bytes: imageBytes.length
+  };
+}
+
+export async function openExternalUrl(url: string): Promise<void> {
+  if (isTauriRuntime()) {
+    await openExternal(url);
+    return;
+  }
+  mockExternalOpenInvocations.push(url);
+}
+
 export async function setMockNetworkState(accountId: string, state: NetState): Promise<void> {
   mockNetState = state;
   await emitMockEvent(`network:${accountId} changed`, { account_id: accountId, state });
@@ -1264,6 +1730,26 @@ declare global {
       setMode: (mode: 'local' | 'rest' | null) => void;
       getMode: () => 'local' | 'rest' | null;
     };
+    __M5_SUGGESTION_DEBUG__?: {
+      emitWorktreeStep: (
+        prId: string,
+        step: 'opened' | 'assertions_ok' | 'patched' | 'committed' | 'pushed'
+      ) => Promise<void>;
+      setWorktreeDirty: (dirty: boolean) => Promise<void>;
+      resetSuggestions: () => void;
+    };
+    __M5_SAVED_REPLIES_DEBUG__?: {
+      setSavedReplies: (accountId: string, replies: Array<{ name: string; body: string }>) => void;
+      clearSavedReplies: (accountId: string) => void;
+      queueImageUploadFailure: (message: string) => void;
+      queueImageUploadSuccess: (url: string, alt?: string) => void;
+      resetImageUploadQueue: () => void;
+      imageUploadInvocations: () => Array<{ account_id: string; mime: string; size_bytes: number }>;
+    };
+    __COMMANDS_DEBUG__?: {
+      externalOpenInvocations: () => string[];
+      clearExternalOpenInvocations: () => void;
+    };
   }
 }
 
@@ -1319,6 +1805,11 @@ if (typeof window !== 'undefined' && !window.__M4_DEBUG__) {
     },
     resetPrDetail: () => {
       mockPrDetail = { ...MOCK_PR_DETAIL };
+      mockChecksState = {
+        ...MOCK_CHECKS,
+        runs: MOCK_CHECKS.runs.map((run) => ({ ...run }))
+      };
+      mockAppliedSuggestionCommentIds.clear();
     },
     setAutoSettleMutations: (enabled) => {
       mockAutoSettleMutations = enabled;
@@ -1356,5 +1847,84 @@ if (typeof window !== 'undefined' && !window.__RANGE_DIFF_DEBUG__) {
       writeStoredRangeDiffMode(mode);
     },
     getMode: () => mockRangeDiffModeOverride
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M5_SUGGESTION_DEBUG__) {
+  window.__M5_SUGGESTION_DEBUG__ = {
+    emitWorktreeStep: (prId, step) =>
+      emitMockEvent(`worktree_write:${prId}:${step}`, { pr_id: prId, step }),
+    setWorktreeDirty: async (dirty) => {
+      mockWorktrees = mockWorktrees.map((worktree) =>
+        worktree.mapped_pr_id === 'pr_1'
+          ? {
+              ...worktree,
+              dirty,
+              untracked_count: dirty ? 1 : 0,
+              modified_count: dirty ? 1 : 0
+            }
+          : worktree
+      );
+      await emitMockEvent('worktree:discovery completed', {
+        summary: {
+          ...MOCK_REDISCOVER_SUMMARY,
+          roots: mockWorktreeRoots,
+          discovered: mockWorktrees.length,
+          watched: mockWorktrees.length
+        }
+      });
+    },
+    resetSuggestions: () => {
+      mockAppliedSuggestionCommentIds.clear();
+    }
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M5_SAVED_REPLIES_DEBUG__) {
+  window.__M5_SAVED_REPLIES_DEBUG__ = {
+    setSavedReplies: (accountId, replies) => {
+      const now = nowEpoch();
+      const mapped: SavedReply[] = replies.map((reply, index) => ({
+        id: ++mockSavedReplySeq,
+        account_id: accountId,
+        name: reply.name,
+        body: reply.body,
+        sort_order: index,
+        created_at: now,
+        updated_at: now
+      }));
+      mockSavedReplies.set(accountId, mapped);
+    },
+    clearSavedReplies: (accountId) => {
+      mockSavedReplies.set(accountId, []);
+    },
+    queueImageUploadFailure: (message) => {
+      mockImageUploadQueue.push({ kind: 'error', message });
+    },
+    queueImageUploadSuccess: (url, alt = 'pasted-image') => {
+      mockImageUploadQueue.push({
+        kind: 'success',
+        result: {
+          url,
+          alt,
+          content_hash: `mock-${Date.now()}`,
+          size_bytes: 1
+        }
+      });
+    },
+    resetImageUploadQueue: () => {
+      mockImageUploadQueue.splice(0, mockImageUploadQueue.length);
+      mockImageUploadInvocations.splice(0, mockImageUploadInvocations.length);
+    },
+    imageUploadInvocations: () => [...mockImageUploadInvocations]
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__COMMANDS_DEBUG__) {
+  window.__COMMANDS_DEBUG__ = {
+    externalOpenInvocations: () => [...mockExternalOpenInvocations],
+    clearExternalOpenInvocations: () => {
+      mockExternalOpenInvocations.splice(0, mockExternalOpenInvocations.length);
+    }
   };
 }

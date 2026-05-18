@@ -52,6 +52,163 @@ Decision:
 
 Reason: M4 needs deterministic merge controls with explicit server-truth gating and reproducible queue/backoff semantics that match GitHub behavior while preserving PLAN §3.2 non-optimistic UX guarantees.
 
+### 2026-05-18: M5 suggestion-apply endpoint, worktree-write safety contract, and event schema
+
+Decision:
+
+- **Single-suggestion endpoint** uses REST with a two-step strategy:
+  1. Primary attempt:
+     - `PUT /repos/{owner}/{repo}/pulls/comments/{review_comment_id}`
+     - request body:
+       ```json
+       {
+         "operation": "apply_suggestion",
+         "expected_head_sha": "<sha>"
+       }
+       ```
+     - expected success response shape:
+       ```json
+       {
+         "commit_sha": "<sha>"
+       }
+       ```
+  2. Fallback when primary returns `404` or `not implemented`:
+     - `POST /repos/{owner}/{repo}/pulls/{number}/reviews`
+     - request body:
+       ```json
+       {
+         "event": "COMMENT",
+         "commit_id": "<sha>",
+         "comments": [
+           {
+             "in_reply_to": "<review_comment_id>",
+             "body": "Applied suggested change from PR Cockpit"
+           }
+         ]
+       }
+       ```
+     - expected success response shape:
+       ```json
+       {
+         "commit_id": "<sha>"
+       }
+       ```
+- **Worktree-write safety contract** is fail-closed:
+  - clean worktree required by default,
+  - dirty worktree fails with `WorktreeDirty` unless `force_with_stash = true`,
+  - force-with-stash is explicit opt-in and records `dirty_snapshot`,
+  - branch/head assertions run before mutation (`BranchMismatch`, `HeadMismatch`),
+  - push uses force-with-lease semantics by reading remote branch head before push and rejecting on mismatch (`PushRejected`),
+  - push rejection rolls local head back to `head_sha_before`.
+- **Suggestion-block detection algorithm** derives rows from `review_comments` content via read-model view `suggestion_blocks` and parses fenced code blocks matching:
+  - start fence: ```` ```suggestion ```` (with optional fence suffix),
+  - end fence: closing ```` ``` ````.
+  Each block produces one `SuggestionBlock` row with
+  `{ id, comment_id, body, start_line, end_line, side, original_commit_sha, suggestion_author_login }`.
+- **Co-authored-by trailer format** for batched apply commits is:
+  - `Co-authored-by: <login> <login@users.noreply.github.com>`
+  - one trailer per distinct suggestion author login.
+- **Worktree progress events** use dynamic event names:
+  - `worktree_write:<pr_id>:opened`
+  - `worktree_write:<pr_id>:assertions_ok`
+  - `worktree_write:<pr_id>:patched`
+  - `worktree_write:<pr_id>:committed`
+  - `worktree_write:<pr_id>:pushed`
+  with payload `{ "pr_id": "<pr_id>", "step": "<step>" }`.
+
+### 2026-05-18: M5 check annotations, log-tail streaming, rerun checks, and panel placement
+
+Decision:
+
+- **Check-annotation anchoring is GitHub-authoritative and right-side only.**
+  We persist annotation `path`, `start_line`, and `end_line` as provided by the
+  REST API and derive `anchor_side = RIGHT` for `check_annotation_aux`. We do
+  not locally re-anchor across force-pushes; annotations are marked stale when
+  `check_suites.head_sha` differs from current `pull_requests.head_sha`, and the
+  next sync refreshes anchors from GitHub.
+- **Annotation sync uses per-run REST pagination and O(1) file-line lookup.**
+  `GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations` is fetched
+  with `per_page=100` pages, then upserted into `check_annotations` plus
+  `check_annotation_aux` keyed by `annotation_id`. Indexed lookup on
+  `(pr_id, anchor_path, anchor_line)` is used by the diff renderer.
+- **Failed-job log tail follows GitHub Actions redirect flow with bounded memory.**
+  For Actions-backed checks we call
+  `GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs`, follow the redirect to
+  the signed blob URL, stream 8 KB chunks, and keep a ring buffer of the last
+  `N` lines for tail emission. This avoids loading full logs (which can be very
+  large) while preserving live stream behavior.
+- **Non-Actions checks do not attempt third-party scraping.**
+  If the check `details_url` is not an Actions job URL, the stream emits a
+  fallback payload and UI shows a single "View full log on GitHub" affordance.
+- **Rerun-suite path is GraphQL-first with REST fallback.**
+  We prefer GraphQL `rerunCheckSuite` for suite-level reruns to stay aligned
+  with existing mutation flow, and only use REST
+  `/check-suites/{id}/rerequest` when a REST suite id is available and GraphQL
+  rerun fails.
+- **Log-tail panel is docked in the main content flow (bottom rail).**
+  We chose bottom-docked rendering under the primary PR pane to minimize layout
+  churn and avoid right-rail crowding with metadata controls.
+
+### 2026-05-18: M5 saved replies and paste-image upload contracts
+
+Decision:
+
+- **Saved replies are local-first and account-scoped by design.**
+  We persist `saved_replies` with `(account_id, name)` uniqueness and sort order,
+  and all read/write IPC paths require `account_id`. This enforces PLAN §9
+  account scoping so viewer-dependent presets do not leak across accounts.
+- **GitHub saved-replies import remains opportunistic and fail-closed.**
+  We probe `/user/saved_replies` and import only on successful payloads. When
+  GitHub returns unavailable/not-found shapes, UI surfaces a disabled-state
+  notice (`SavedRepliesImportUnavailable`) instead of pretending parity with a
+  non-public API.
+- **Paste-image upload uses GitHub web upload endpoints with strict URL validation.**
+  The upload flow tries `.../upload/assets/users/{login}` then
+  `.../upload/assets/{login}` and accepts only URLs matching:
+  `^https://(?:user-images\.githubusercontent\.com|github\.com/.+/assets)/.+$`.
+  Non-matching URLs return `InvalidUploadUrl` and are never inserted into
+  markdown.
+- **Image dedup contract is sha256 + account scoped.**
+  Before upload we hash bytes and check `image_uploads(account_id, sha256)` plus
+  blob-store presence; cache hits return the existing GitHub URL without another
+  HTTP upload call.
+- **Placeholder strategy is literal markdown replacement.**
+  Composer inserts `![Uploading image…](pending-<token>)` at cursor immediately,
+  then replaces that literal text on success or removes it on failure while
+  showing inline retry/dismiss chips.
+
+### 2026-05-18: M5 command palette + keyboard layer contracts
+
+Decision:
+
+- **Command registry is a static + dynamic merge over one O(1) index.**
+  We keep one in-memory `Map<id, Command>` for constant-time dispatch and a
+  separately maintained sorted id array for default palette ordering.
+  Static commands live in `src/lib/commands/commands.ts`; dynamic saved-reply
+  commands are refreshed per active account via `list_saved_replies` and
+  registered as `savedReply.insert.{id}`.
+- **Input-focus suppression is strict for plain keys and permissive for modified keys.**
+  When an `input/textarea/select/contenteditable` owns focus, non-modifier
+  bindings (`c`, `r`, `v`, `j`, `k`) are ignored so typing is not hijacked.
+  Modifier-bearing shortcuts (`Ctrl+K`, `Ctrl+Shift+R`, `Ctrl+Alt+Y`) remain
+  active.
+- **Sequence shortcuts use a two-key state machine with a 500 ms timeout.**
+  `g` is the lead key and second-key matches (`i`, `p`, `s`, `S`, `G`) must
+  arrive within 500 ms; otherwise the sequence resets without dispatch.
+- **Palette performance strategy is preload + frame-debounce + conditional virtualization.**
+  The palette component is mounted eagerly (hidden) so open path is render-light,
+  search recompute is debounced to 16 ms and scheduled with
+  `requestIdleCallback` when available, and result rendering switches to
+  `@tanstack/svelte-virtual` when rows exceed 50.
+- **Recently used persistence is localStorage-backed and command-id based.**
+  Last five invoked command ids are stored under `palette.recent` and rendered
+  as a sticky "Recently used" section at the top of the palette.
+- **Open-in-browser destinations are explicit and host-aware.**
+  `pr.openInGithub` resolves the active PR canonical URL
+  (`https://<host>/<owner>/<repo>/pull/<number>`). `inbox.openInGithub` targets
+  the issues-style inbox URL (`https://<host>/issues?q=author%3A%40me`) to match
+  GitHub’s issue-navigation semantics.
+
 ### 2026-05-18: M4 GHE schema-readiness endpoint routing and auth boundary (M6 parity deferred)
 
 Decision:

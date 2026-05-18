@@ -16,11 +16,13 @@ async function main() {
   const budgets = await readJson("bench/budgets.json");
   const rust = await readJson("bench/results/rust.json");
   const frontend = await readJson("bench/results/frontend.json");
+  const commandPalette = await readJson("bench/results/command-palette.json");
 
   const { failures, reports } = compareBudgets({
     budgets,
     rustMetrics: rust.metrics,
     frontendMetrics: frontend.metrics,
+    commandPaletteMetrics: commandPalette.metrics,
   });
 
   for (const report of reports) {

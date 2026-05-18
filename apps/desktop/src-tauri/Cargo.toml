@@ -61,6 +61,7 @@ tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-fs = { workspace = true }
 tauri-plugin-notification = { workspace = true }
 tauri-plugin-os = { workspace = true }
+tauri-plugin-shell = { workspace = true }
 tauri-specta = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }

@@ -422,6 +422,27 @@ fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
         MutationKind::ClosePr | MutationKind::ReopenPr => merge_with_base(serde_json::json!({
             "previous_state": "open",
         })),
+        MutationKind::ApplySuggestion => merge_with_base(serde_json::json!({
+            "review_comment_id": "review-comment-1",
+            "expected_head_sha": "head",
+        })),
+        MutationKind::ApplySuggestionBatch => merge_with_base(serde_json::json!({
+            "suggestion_ids": ["comment-1:0"],
+            "expected_head_sha": "head",
+            "worktree_path": "/tmp/worktree",
+            "force_with_stash": false,
+        })),
+        MutationKind::RerunCheckRun => merge_with_base(serde_json::json!({
+            "check_run_id": "run-node-1",
+            "check_run_rest_id": 9001,
+            "target_type": "check_run",
+            "target_id": "run-node-1",
+        })),
+        MutationKind::RerunCheckSuite => merge_with_base(serde_json::json!({
+            "check_suite_id": "suite-node-1",
+            "target_type": "check_suite",
+            "target_id": "suite-node-1",
+        })),
     };
     SubmitPayload {
         kind,
@@ -467,6 +488,10 @@ fn all_mutation_kinds() -> Vec<MutationKind> {
         MutationKind::ReorderMergeQueue,
         MutationKind::ClosePr,
         MutationKind::ReopenPr,
+        MutationKind::ApplySuggestion,
+        MutationKind::ApplySuggestionBatch,
+        MutationKind::RerunCheckRun,
+        MutationKind::RerunCheckSuite,
     ]
 }
 
