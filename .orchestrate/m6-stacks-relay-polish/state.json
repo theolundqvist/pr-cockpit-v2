@@ -10,17 +10,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T17:06:54.075Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T17:06:54.075Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m6-relay-and-ghe",
