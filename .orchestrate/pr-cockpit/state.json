@@ -194,7 +194,7 @@
     {
       "name": "m5-editor-power-worktree-write",
       "type": "subplanner",
-      "branch": "`orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93246 chore(verify): m5 verification matrix + report` on top, but `db1f235 chore(m5): finalize smoke docs and stability polish` is the pure deliverable tip if you want non-verifier history)",
+      "branch": "orch/pr-cockpit/m5-editor-power-worktree-write",
       "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "verify-m4-merge-multiaccount"
@@ -219,25 +219,25 @@
       "name": "verify-m5-editor-power-worktree-write",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m5-editor-power-worktree-write",
-      "startingRef": "`orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93246 chore(verify): m5 verification matrix + report` on top, but `db1f235 chore(m5): finalize smoke docs and stability polish` is the pure deliverable tip if you want non-verifier history)",
+      "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
       "dependsOn": [
         "m5-editor-power-worktree-write"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "error",
+      "status": "pending",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T16:03:28.451Z",
-      "note": "spawn failed after 3 transient sub-attempts: Error: m5-editor-power-worktree-write: branch must be orch/pr-cockpit/m5-editor-power-worktree-write, got `orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93…",
+      "lastUpdate": "2026-05-18T16:04:21.011Z",
+      "note": "respawned by self-planner (was error; attempts=1)",
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
-      "failureMode": "unknown",
-      "verification": null,
-      "attempts": 1
+      "failureMode": null,
+      "verification": null
     },
     {
       "name": "m6-stacks-relay-polish",
