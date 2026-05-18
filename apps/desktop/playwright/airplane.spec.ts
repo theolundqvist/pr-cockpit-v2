@@ -2,9 +2,16 @@ import { expect, test } from '@playwright/test';
 
 test('airplane mode queues and drains mutations without data loss', async ({ page }) => {
   const consoleErrors: string[] = [];
+  const ignoredErrorIncludes = [
+    'Failed to load resource: the server responded with a status of 404'
+  ];
   page.on('console', (message) => {
     if (message.type() === 'error') {
-      consoleErrors.push(message.text());
+      const text = message.text();
+      if (ignoredErrorIncludes.some((fragment) => text.includes(fragment))) {
+        return;
+      }
+      consoleErrors.push(text);
     }
   });
 

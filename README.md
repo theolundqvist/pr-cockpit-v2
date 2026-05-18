@@ -13,8 +13,8 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: **M3 diff polish + worktree read + notifications complete**. Milestones
-M4 → M6 continue per the brief and `PLAN.md`.
+Status: **M4 merge surface + force-push range-diff + multi-account complete**.
+Milestones M5 → M6 continue per the brief and `PLAN.md`.
 
 ## Feature highlights
 
@@ -37,6 +37,31 @@ M4 → M6 continue per the brief and `PLAN.md`.
   focus mode, and per-repo filtering (proofs:
   `apps/desktop/src-tauri/tests/notifications_*.rs`,
   `apps/desktop/playwright/notifications.spec.ts`).
+- Merge surface is shipped with repo-settings-aware merge/squash/rebase controls,
+  auto-merge enable/disable, merge queue enqueue/dequeue/reorder, update-branch,
+  and delete-branch-after-merge no-optimism sequencing (proofs:
+  `apps/desktop/playwright/m4-merge-surface.spec.ts`,
+  `apps/desktop/src-tauri/tests/mutations_harness.rs`,
+  `apps/desktop/src-tauri/tests/sync_integration.rs`).
+- Force-push range-diff is shipped with local `git range-diff` preference and
+  REST fallback rendering parity (proofs:
+  `apps/desktop/playwright/m4-range-diff.spec.ts`,
+  `apps/desktop/src-tauri/tests/range_diff_local_git.rs`,
+  `apps/desktop/src-tauri/tests/range_diff_rest_compare.rs`,
+  `apps/desktop/src-tauri/tests/range_diff_fallback.rs`).
+- Multi-account UX is shipped with aggregated inbox badges, composer posting
+  identity quick-switch, and per-account rate-limit meters/bypass signaling
+  (proofs:
+  `apps/desktop/playwright/m4-multi-account.spec.ts`,
+  `apps/desktop/src-tauri/tests/multi_account_inbox.rs`,
+  `apps/desktop/src-tauri/tests/multi_account_rate_limit.rs`,
+  `apps/desktop/src-tauri/tests/composer_posting_identity.rs`).
+- GHE schema readiness is shipped for host-aware endpoint/auth plumbing against
+  a stubbed enterprise host (proofs:
+  `apps/desktop/playwright/m4-ghe.spec.ts`,
+  `apps/desktop/src-tauri/tests/ghe_endpoint_derivation.rs`,
+  `apps/desktop/src-tauri/tests/ghe_round_trip.rs`,
+  `apps/desktop/src-tauri/tests/ghe_token_storage.rs`).
 - Offline/airplane behavior: queued safe mutations replay on reconnect with
   explicit connection-required affordances for unsafe writes (proof drill:
   `apps/desktop/src-tauri/tests/airplane_drill.rs`).
@@ -63,7 +88,7 @@ For headless checks without a desktop display server, run:
 pnpm --filter desktop test:smoke
 ```
 
-## CI quality gates (M3)
+## CI quality gates (M4)
 
 The required local/CI gate matrix is:
 

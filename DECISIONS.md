@@ -1,5 +1,32 @@
 # Decisions
 
+## M4 contract decisions (promoted for M5+)
+
+These M4 contracts are stable inputs for M5+ unless explicitly superseded:
+
+1. **Merge controls are repo-settings + branch-protection driven and strictly no-optimism.**
+   Merge/squash/rebase availability comes from persisted summary fields
+   (`merge_commit_allowed`, `squash_merge_allowed`, `rebase_merge_allowed`,
+   `branch_protection_summary_json`), and merge-family actions use the
+   confirmation → spinner → server reconcile lifecycle (`NoOptimismButton`).
+2. **Merge queue + update-branch are first-class mutation contracts.**
+   Queue operations are enqueue/dequeue/reorder (`TOP`/`BOTTOM`), and update
+   branch remains explicit non-optimistic reconcile behavior.
+3. **Mergeable-null polling follows the fixed backoff contract.**
+   Schedule is `2s, 5s, 15s, 45s, 120s, 300s` with emitted
+   `mergeable_backoff:<account_id>:<pr_id> tick` events carrying attempt/next
+   sleep metadata.
+4. **Force-push range-diff is dual-provider with deterministic fallback.**
+   Prefer local `git range-diff` when a mapped worktree is available; otherwise
+   use REST compare commit pairing + Rust-side intra-line diff rendering.
+5. **Multi-account behavior is account-scoped for reads, writes, and budgets.**
+   Aggregated inbox rows carry host/login identity, composer posting identity is
+   explicit via `posting_account_id`, and budget pressure/bypass signals are
+   emitted per-account.
+6. **GHE readiness is host-aware schema/auth plumbing, not full parity.**
+   Endpoint routing derives from host (+ optional host overrides), PAT works for
+   dotcom and GHE, while device flow/gh import stay dotcom-only in M4.
+
 ### 2026-05-18: M4 merge surface contracts (queue reorder mutation, no-optimism button lifecycle, branch-protection JSON, backoff event schema, merge+delete sequencing)
 
 Decision:
@@ -50,38 +77,6 @@ Decision:
 
 Reason: M4 requires host-aware endpoint correctness and safe multi-host auth wiring now, while deliberately deferring enterprise-complete OAuth/device/feature-surface parity until M6.
 
-## M3 contract decisions (promoted for M4+)
-
-These M3 contracts are promoted because downstream milestones depend on them:
-
-1. **Diff comment transport contract is payload-shaped and keeps full optimism.**
-   `add_review_comment` remains `OptimismLevel::Full`; transport selection is
-   reply vs pending-review comment vs new review thread based on anchor payload.
-2. **Viewed-file state is head-SHA scoped, not path-only.**
-   `is_viewed` is only true when `viewed_at_head_sha == pull_requests.head_sha`,
-   and a head SHA change clears previously viewed marks by design.
-3. **Diff file kinds are normalized to text/image/binary with constrained asset scope.**
-   Image rendering must use blob-store asset URLs limited to
-   `$APPDATA/blobs/**/*`; binary files render placeholders instead of text.
-4. **Worktree discovery/mapping is bounded and explainable.**
-   Discovery roots are explicit (`~/dev`, `~/code`, `~/src`, `~/repos` unless
-   user-overridden), `git worktree list --porcelain` is authoritative, and PR
-   mapping confidence must expose per-signal contributions plus manual override.
-5. **Worktree cleanup remains fail-closed around ownership and dirty state.**
-   User-managed worktrees are never auto-removed; dirty worktrees are snapshot-only
-   and never deleted.
-6. **Notification dispatch is post-reconcile with DB-backed dedup and suppression.**
-   Dedup key is `(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)`
-   with `INSERT OR IGNORE`; quiet-hours/focus/filter suppression still records
-   events in-app while suppressing OS delivery.
-7. **Markdown corpus gate is tightened to 1.5% weighted drift.**
-   `pnpm corpus` fails above `weighted_mean > 0.015`; accepted residual drift must
-   be explicit per-entry and reviewable in source control.
-8. **M3 a11y screen-reader pass is enforced by Playwright spec.**
-   PR detail must preserve accessible naming for visible interactive elements,
-   maintain keyboard-reachable section progression, and expose visible focus
-   affordances under `:focus-visible`.
-
 ### 2026-05-18: M4 force-push range-diff source strategy and fallback contract
 
 Decision:
@@ -101,33 +96,6 @@ Decision:
 - Worktree-missing-commit policy is explicit: local provider attempts a single `git fetch origin <sha>` recovery per missing commit. If commit objects remain unavailable, it returns `WorktreeMissingCommits`, and IPC dispatch falls through to REST `/compare` computation.
 
 Reason: M4 requires deterministic force-push inspection that prefers local fidelity when available, but still renders reliably when worktrees are stale, partial, or absent.
-
-### 2026-05-17: M3 notifications engine contracts (plugin ownership, trigger predicates, dedup, suppression)
-
-Decision:
-
-- Native OS dispatch is owned by Rust only through `tauri-plugin-notification`; renderer code never calls the notification plugin directly.
-- Cross-platform delivery behavior is treated as platform-native:
-  - macOS requires user approval for "Allow Notifications" on first send,
-  - Linux routes through desktop notification services (`notify-send`/DBus-backed),
-  - Windows relies on AppUserModelID-backed toasts; bundled app setup is handled by Tauri plugin wiring, while some dev-mode runs may require env override for shell identity.
-- Trigger semantics are snapshot-diff based and evaluated post-reconcile against canonical SQLite state:
-  - `review_requested`: new `pr_reviewers` row for the viewer account,
-  - `changes_requested`: review upsert to `CHANGES_REQUESTED` by non-viewer actor,
-  - `approved`: review upsert to `APPROVED` by non-viewer actor,
-  - `mention`: comment body includes `@<viewer-login>` from non-viewer author,
-  - `ci_fail`: aggregate check-suite state flips green→red for authored/reviewed PRs,
-  - `ci_recover`: aggregate check-suite state flips red→green for authored/reviewed PRs,
-  - `merge_conflict`: `pull_requests.mergeable_state` flips to `dirty`,
-  - `mutation_failure`: `MutationEvent::Failed` that is not classified as transient network.
-- Dedup primitive is schema-level `UNIQUE(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)` plus `INSERT OR IGNORE`; only successful inserts can dispatch OS notifications.
-- Quiet-hours and focus-mode suppression still persist events for inbox visibility:
-  - `deduped = 0` means OS dispatch attempted,
-  - `deduped = 1` means suppressed/failed OS dispatch but event row retained.
-- Per-repo filter precedence is `deny > allow`; non-empty allow-list restricts scope, deny-list always excludes.
-- Mutation-failure notifications preserve M2 silent-revert policy: transient network failures stay silent; non-network failures can notify.
-
-Reason: M3 needs deterministic local-notification behavior that aligns with post-reconcile state, avoids duplicate OS spam, and keeps renderer architecture/token-safety boundaries unchanged.
 
 ### 2026-05-18: M4 multi-account budgeting/inbox/composer/meter contracts
 
@@ -166,6 +134,65 @@ Token-safety audit:
 Reason: M4 multi-account UX requires account-scoped read/write paths so one
 account's low budget does not degrade another account, while preserving M2
 isolation (renderer stays IPC-only) and token fail-closed constraints.
+
+## M3 contract decisions (promoted for M4+)
+
+These M3 contracts are promoted because downstream milestones depend on them:
+
+1. **Diff comment transport contract is payload-shaped and keeps full optimism.**
+   `add_review_comment` remains `OptimismLevel::Full`; transport selection is
+   reply vs pending-review comment vs new review thread based on anchor payload.
+2. **Viewed-file state is head-SHA scoped, not path-only.**
+   `is_viewed` is only true when `viewed_at_head_sha == pull_requests.head_sha`,
+   and a head SHA change clears previously viewed marks by design.
+3. **Diff file kinds are normalized to text/image/binary with constrained asset scope.**
+   Image rendering must use blob-store asset URLs limited to
+   `$APPDATA/blobs/**/*`; binary files render placeholders instead of text.
+4. **Worktree discovery/mapping is bounded and explainable.**
+   Discovery roots are explicit (`~/dev`, `~/code`, `~/src`, `~/repos` unless
+   user-overridden), `git worktree list --porcelain` is authoritative, and PR
+   mapping confidence must expose per-signal contributions plus manual override.
+5. **Worktree cleanup remains fail-closed around ownership and dirty state.**
+   User-managed worktrees are never auto-removed; dirty worktrees are snapshot-only
+   and never deleted.
+6. **Notification dispatch is post-reconcile with DB-backed dedup and suppression.**
+   Dedup key is `(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)`
+   with `INSERT OR IGNORE`; quiet-hours/focus/filter suppression still records
+   events in-app while suppressing OS delivery.
+7. **Markdown corpus gate is tightened to 1.5% weighted drift.**
+   `pnpm corpus` fails above `weighted_mean > 0.015`; accepted residual drift must
+   be explicit per-entry and reviewable in source control.
+8. **M3 a11y screen-reader pass is enforced by Playwright spec.**
+   PR detail must preserve accessible naming for visible interactive elements,
+   maintain keyboard-reachable section progression, and expose visible focus
+   affordances under `:focus-visible`.
+
+### 2026-05-17: M3 notifications engine contracts (plugin ownership, trigger predicates, dedup, suppression)
+
+Decision:
+
+- Native OS dispatch is owned by Rust only through `tauri-plugin-notification`; renderer code never calls the notification plugin directly.
+- Cross-platform delivery behavior is treated as platform-native:
+  - macOS requires user approval for "Allow Notifications" on first send,
+  - Linux routes through desktop notification services (`notify-send`/DBus-backed),
+  - Windows relies on AppUserModelID-backed toasts; bundled app setup is handled by Tauri plugin wiring, while some dev-mode runs may require env override for shell identity.
+- Trigger semantics are snapshot-diff based and evaluated post-reconcile against canonical SQLite state:
+  - `review_requested`: new `pr_reviewers` row for the viewer account,
+  - `changes_requested`: review upsert to `CHANGES_REQUESTED` by non-viewer actor,
+  - `approved`: review upsert to `APPROVED` by non-viewer actor,
+  - `mention`: comment body includes `@<viewer-login>` from non-viewer author,
+  - `ci_fail`: aggregate check-suite state flips green→red for authored/reviewed PRs,
+  - `ci_recover`: aggregate check-suite state flips red→green for authored/reviewed PRs,
+  - `merge_conflict`: `pull_requests.mergeable_state` flips to `dirty`,
+  - `mutation_failure`: `MutationEvent::Failed` that is not classified as transient network.
+- Dedup primitive is schema-level `UNIQUE(account_id, repo_id, pr_id, event_type, actor_id, server_event_id)` plus `INSERT OR IGNORE`; only successful inserts can dispatch OS notifications.
+- Quiet-hours and focus-mode suppression still persist events for inbox visibility:
+  - `deduped = 0` means OS dispatch attempted,
+  - `deduped = 1` means suppressed/failed OS dispatch but event row retained.
+- Per-repo filter precedence is `deny > allow`; non-empty allow-list restricts scope, deny-list always excludes.
+- Mutation-failure notifications preserve M2 silent-revert policy: transient network failures stay silent; non-network failures can notify.
+
+Reason: M3 needs deterministic local-notification behavior that aligns with post-reconcile state, avoids duplicate OS spam, and keeps renderer architecture/token-safety boundaries unchanged.
 
 ## M2 contract decisions (promoted for M3+)
 

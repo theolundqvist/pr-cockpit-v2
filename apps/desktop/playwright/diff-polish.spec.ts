@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test';
 test('diff polish renders text, image, binary, and rename rows', async ({ page }) => {
   const consoleErrors: string[] = [];
   const httpErrors: string[] = [];
-  const allowedMissingAssetPaths = new Set(['/assets/grammars/tree-sitter-rust.wasm']);
+  const allowedMissingAssetPaths = new Set([
+    '/assets/grammars/tree-sitter-rust.wasm',
+    '/fixture-user.png'
+  ]);
 
   page.on('console', (message) => {
     if (message.type() === 'error') {

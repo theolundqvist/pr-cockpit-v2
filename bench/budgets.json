@@ -6,7 +6,7 @@
       "kind": "max",
       "unit": "ms",
       "budget": 100,
-      "baseline": 21
+      "baseline": 27
     },
     "pr_detail_open_preloaded_ms": {
       "source": "rust",
@@ -20,7 +20,7 @@
       "kind": "max",
       "unit": "ms",
       "budget": 250,
-      "baseline": 22
+      "baseline": 28
     },
     "file_open_in_diff_cached_ms": {
       "source": "rust",

@@ -13,6 +13,7 @@ async function openFixturePr(page: Page) {
 
 async function resetMergeFixture(page: Page, partial: Record<string, unknown> = {}) {
   await page.goto('/');
+  await page.waitForFunction(() => Boolean(window.__M4_DEBUG__));
   const fixturePatch = {
     delete_branch_on_merge_default: false,
     ...partial
