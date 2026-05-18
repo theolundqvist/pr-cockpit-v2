@@ -170,7 +170,7 @@
     {
       "name": "verify-m4-merge-multiaccount",
       "type": "verifier",
-      "branch": "orch/pr-cockpit/verify-m4-merge-multiaccount",
+      "branch": "`orch/pr-cockpit/m4-merge-multiaccount` (verifier-rerun commit `8e9ba92` on top of inherited tip `a95f504`)",
       "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "m4-merge-multiaccount"
@@ -178,12 +178,12 @@
       "agentId": "bc-fc39074f-1761-4408-b6ce-8b9793258f5e",
       "runId": "run-71d21ada-8908-46c9-9a05-c466f45bb031",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/verify-m4-merge-multiaccount.md",
       "startedAt": "2026-05-18T06:44:42.172Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T06:44:45.080Z",
+      "finishedAt": "2026-05-18T07:19:08.292Z",
+      "lastUpdate": "2026-05-18T07:19:08.292Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
