@@ -1,0 +1,19 @@
+
+> pr-cockpit@0.1.0 svelte-check /tmp/m5-verify
+> pnpm ipc:bindings && pnpm --filter desktop svelte-check
+
+
+> pr-cockpit@0.1.0 ipc:bindings /tmp/m5-verify
+> cargo run -p desktop --bin generate-ipc-bindings
+
+   Compiling desktop v0.1.0 (/tmp/m5-verify/apps/desktop/src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.50s
+     Running `target/debug/generate-ipc-bindings`
+
+> desktop@0.1.0 svelte-check /tmp/m5-verify/apps/desktop
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /tmp/m5-verify/apps/desktop
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings

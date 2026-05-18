@@ -1,0 +1,645 @@
+   Compiling desktop v0.1.0 (/tmp/m5-verify/apps/desktop/src-tauri)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 56.40s
+     Running unittests src/lib.rs (target/debug/deps/desktop_lib-61be5afd1bc72a24)
+
+running 16 tests
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_405 ... ok
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_409 ... ok
+test mutations::handlers::merge_controls::tests::merge_hard_conflict_maps_422 ... ok
+test auth::gh::tests::parses_status_sections_by_token_match ... ok
+test mutations::net::tests::api_error_marks_offline_immediately ... ok
+test mutations::net::tests::probe_transitions_offline_to_online ... ok
+test render::tests::extracts_suggestion_blocks_from_markdown_fences ... ok
+test mutations::projector::tests::optimistic_prediction_stamps_pending_overlay ... ok
+test mutations::projector::tests::apply_forward_then_inverse_is_noop_for_single_row ... ok
+test render::tests::sanitizes_scripts ... ok
+test render::tests::normalizes_github_issue_and_comment_autolinks ... ok
+test tests::package_name_is_stable ... ok
+test worktree::discovery::tests::parses_porcelain_entries ... ok
+test render::tests::normalizes_same_repo_label_links ... ok
+test sync::tests::mergeable_backoff_emits_tick_schedule ... ok
+test render::tests::normalizes_same_repo_pr_autolinks ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/main.rs (target/debug/deps/desktop-4efd14034a732ae1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests fixtures/build.rs (target/debug/deps/fixture_build-e0e8d2f35b791aec)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/generate_ipc_bindings.rs (target/debug/deps/generate_ipc_bindings-040608d24339e602)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/render_batch.rs (target/debug/deps/render_batch-f0531a8fd1f3c8a7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/airplane_drill.rs (target/debug/deps/airplane_drill-0e5c50812eebbf40)
+
+running 1 test
+test airplane_offline_queue_replay_drill ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/canonical_queries.rs (target/debug/deps/canonical_queries-df2bfb625554159c)
+
+running 1 test
+test graphql_queries_are_canonicalized ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/check_annotations_sync.rs (target/debug/deps/check_annotations_sync-33e79722a56278c1)
+
+running 1 test
+test syncs_paginated_annotations_into_primary_and_aux_tables ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/check_log_stream.rs (target/debug/deps/check_log_stream-75a03d89b00374ca)
+
+running 2 tests
+test falls_back_for_non_actions_checks ... ok
+test streams_chunks_and_emits_tail_buffer ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/composer_posting_identity.rs (target/debug/deps/composer_posting_identity-5dca8d1bb217d1b6)
+
+running 2 tests
+test submit_rejects_unknown_posting_account_id ... ok
+test submit_uses_posting_account_token_when_provided ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/db_integration.rs (target/debug/deps/db_integration-ba07a14d05088fba)
+
+running 6 tests
+test fts_search_returns_expected_hits ... ok
+test open_fixture_loads_inbox_under_timing_budget_best_effort ... ok
+test migrations_apply_cleanly_to_empty_file ... ok
+test read_models_match_hand_rolled_selects_on_fixture ... ok
+test blob_store_round_trip_and_ref_counts_work ... ok
+test pr_file_rename_round_trip_surfaces_previous_path_and_similarity ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running tests/diff_polish_viewed_files_head_sha.rs (target/debug/deps/diff_polish_viewed_files_head_sha-acde2addaecc8388)
+
+running 1 test
+test viewed_state_is_scoped_to_current_head_sha ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/ghe_endpoint_derivation.rs (target/debug/deps/ghe_endpoint_derivation-ba0f2f0102056e14)
+
+running 3 tests
+test resolve_login_for_host_targets_derived_and_overridden_api_bases ... ok
+test derives_default_dotcom_and_ghe_endpoints ... ok
+test hosts_toml_override_wins_for_matching_host ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/ghe_round_trip.rs (target/debug/deps/ghe_round_trip-373c9847ec9132e8)
+
+running 1 test
+test ghe_account_round_trip_uses_host_overrides_end_to_end ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/ghe_token_storage.rs (target/debug/deps/ghe_token_storage-2dd34caae94b6ee7)
+
+running 1 test
+test ghe_pat_stays_keyring_only_and_out_of_sqlite_and_logs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/image_uploads.rs (target/debug/deps/image_uploads-98f4e40d178613d1)
+
+running 2 tests
+test upload_rejects_non_github_urls ... ok
+test upload_reuses_cached_url_for_identical_image_bytes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/ipc_bindings.rs (target/debug/deps/ipc_bindings-17d8953affd23ea2)
+
+running 1 test
+test ipc_bindings_are_up_to_date ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/ipc_token_safety.rs (target/debug/deps/ipc_token_safety-f90b21113ed27005)
+
+running 1 test
+test ipc_flow_tracing_does_not_leak_stubbed_tokens ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/multi_account_inbox.rs (target/debug/deps/multi_account_inbox-b94b932aee128e3a)
+
+running 1 test
+test list_inbox_none_returns_all_accounts_sorted_with_denormalized_badges ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/multi_account_rate_limit.rs (target/debug/deps/multi_account_rate_limit-8b19b15bd3b89615)
+
+running 1 test
+test budgeter_scopes_throttle_by_account_and_emits_pressure_and_bypass ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/mutation_engine_proptest.rs (target/debug/deps/mutation_engine_proptest-579aee8878922798)
+
+running 4 tests
+test dispatch_table_covers_full_kind_set ... ok
+test prop_projector_is_involution ... ok
+test prop_submit_then_rollback_restores_domain_state_for_all_kinds ... ok
+test prop_interleaved_submit_discard_is_deterministic ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.45s
+
+     Running tests/mutations_collaboration.rs (target/debug/deps/mutations_collaboration-584556be4816e74a)
+
+running 2 tests
+test collaboration_failure_paths_roll_back ... ok
+test collaboration_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.22s
+
+     Running tests/mutations_comments.rs (target/debug/deps/mutations_comments-fa80ec099f76f56a)
+
+running 2 tests
+test comments_happy_paths_round_trip ... ok
+test comments_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.66s
+
+     Running tests/mutations_e2e.rs (target/debug/deps/mutations_e2e-5cd976e4a81ffcba)
+
+running 1 test
+test cross_family_e2e_reflects_optimistic_then_reconciled_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/mutations_harness.rs (target/debug/deps/mutations_harness-0b021f6a4c22aea0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutations_pr_meta.rs (target/debug/deps/mutations_pr_meta-109eacd65b3c2f46)
+
+running 2 tests
+test pr_meta_happy_paths_round_trip ... ok
+test pr_meta_failure_paths_roll_back ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.71s
+
+     Running tests/mutations_review_comments.rs (target/debug/deps/mutations_review_comments-ec4ba81d6cd3d27f)
+
+running 2 tests
+test review_comment_422_rolls_back_and_marks_failed_mutation ... ok
+test review_comment_happy_path_line_multiline_and_reply_match_snapshot ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/mutations_reviews_threads.rs (target/debug/deps/mutations_reviews_threads-d852eef217d27b40)
+
+running 2 tests
+test review_and_thread_failure_paths_roll_back ... ok
+test review_and_thread_happy_paths_round_trip ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+
+     Running tests/notifications_dedup.rs (target/debug/deps/notifications_dedup-54699d33d8e1b46f)
+
+running 1 test
+test duplicate_events_dispatch_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/notifications_focus_mode.rs (target/debug/deps/notifications_focus_mode-18f66614062628b2)
+
+running 1 test
+test focus_mode_suppresses_all_os_notifications ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/notifications_per_repo_filters.rs (target/debug/deps/notifications_per_repo_filters-7bc9bc55ee16d3c5)
+
+running 1 test
+test allow_list_limits_dispatch_and_deny_takes_precedence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/notifications_quiet_hours.rs (target/debug/deps/notifications_quiet_hours-ac923ab7f4e42595)
+
+running 1 test
+test quiet_hours_suppress_os_dispatch_but_record_events ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/notifications_rule_engine.rs (target/debug/deps/notifications_rule_engine-4c82f65ad8477c61)
+
+running 7 tests
+test changes_requested_trigger_fires ... ok
+test approved_trigger_fires ... ok
+test ci_fail_and_recover_triggers_fire ... ok
+test mention_trigger_fires ... ok
+test merge_conflict_trigger_fires ... ok
+test mutation_failure_trigger_fires_for_non_network ... ok
+test review_requested_trigger_fires ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
+
+     Running tests/online_demo.rs (target/debug/deps/online_demo-ba54df7bbea08947)
+
+running 1 test
+test optional_online_inbox_refresh_demo ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/perf_smoke.rs (target/debug/deps/perf_smoke-44a0760e746d1fdc)
+
+running 1 test
+test inbox_cold_paint_fixture_budget_smoke ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/push_history_reconcile.rs (target/debug/deps/push_history_reconcile-b0288ba999581dcd)
+
+running 1 test
+test reconcile_records_push_rows_with_expected_kind_transitions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/range_diff_fallback.rs (target/debug/deps/range_diff_fallback-2e60c57699627294)
+
+running 1 test
+test missing_worktree_commits_fall_back_to_rest_compare ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/range_diff_local_git.rs (target/debug/deps/range_diff_local_git-3d0f67fdd73d3e93)
+
+running 1 test
+test local_git_provider_builds_modified_pair_with_highlights ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/range_diff_rest_compare.rs (target/debug/deps/range_diff_rest_compare-75eec06b466cd053)
+
+running 1 test
+test rest_compare_provider_matches_modified_commit_pair ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/render.rs (target/debug/deps/render-2d372ff780fe1163)
+
+running 10 tests
+test binary_detection_classifies_images_and_binary ... ok
+test renders_alert_block ... ok
+test renders_emoji_shortcode ... ok
+test renders_issue_autolink ... ok
+test renders_sha_autolink ... ok
+test renders_user_autolink ... ok
+test renders_suggestion_fence ... ok
+test mini_corpus_smoke_snapshot ... ok
+test uses_render_cache_on_second_render ... ok
+test pr_file_blob_ipc_resolves_fixture_image_blob ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/renderer_isolation.rs (target/debug/deps/renderer_isolation-951e4402373db133)
+
+running 1 test
+test renderer_does_not_reach_sqlite_or_github_directly ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/rerun_check_run.rs (target/debug/deps/rerun_check_run-d967b55f2bd90e96)
+
+running 1 test
+test rerun_mutations_dispatch_with_cautious_optimism ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+     Running tests/saved_replies.rs (target/debug/deps/saved_replies-e01eb540a183a4bd)
+
+running 1 test
+test saved_reply_crud_reorder_and_account_isolation ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/sync_integration.rs (target/debug/deps/sync_integration-79ce95b3d091dc4e)
+
+running 6 tests
+test mergeable_null_recovery_uses_expected_virtual_clock_schedule ... ok
+test rate_limit_budgeter_throttles_background_only ... ok
+test etag_304_round_trip_avoids_counter_decrement_and_db_writes ... ok
+test pr_detail_reconcile_upserts_expected_sqlite_rows ... ok
+test tiered_scheduler_honors_focus_pause_and_foreground_bypass ... ok
+test notifications_change_detector_honors_headers_and_emits_refetch_targets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.80s
+
+     Running tests/token_safety.rs (target/debug/deps/token_safety-84e77c60d9984e28)
+
+running 1 test
+test token_safety_guards_all_auth_paths ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/worktree_cleanup_safety.rs (target/debug/deps/worktree_cleanup_safety-b6cc7d70f5899542)
+
+running 1 test
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpar3fxw/user-clean/.git/
+[master (root-commit) 2fac81c] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpar3fxw/app-dirty/.git/
+[master (root-commit) 2fac81c] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpar3fxw/app-clean/.git/
+[master (root-commit) 2fac81c] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+test cleanup_safety_gates_fail_closed ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/worktree_discovery.rs (target/debug/deps/worktree_discovery-fb5991b591c67357)
+
+running 1 test
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpL7xcOO/dev/repo-a/.git/
+[master (root-commit) 2fac81c] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+Preparing worktree (new branch 'repo-a-wt')
+HEAD is now at 2fac81c seed
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpL7xcOO/dev/repo-b/.git/
+[master (root-commit) 2fac81c] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+Preparing worktree (new branch 'repo-b-wt')
+HEAD is now at 2fac81c seed
+test discovery_and_watcher_refresh_state_is_deterministic ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+     Running tests/worktree_mapping_signals.rs (target/debug/deps/worktree_mapping_signals-6ebbfbc6bb6740cf)
+
+running 3 tests
+test low_confidence_branch_convention_only ... ok
+test high_confidence_uses_remote_upstream_and_head_sha ... ok
+test manual_override_wins_and_clearing_restores_auto ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/worktree_write.rs (target/debug/deps/worktree_write-82b55d88a0596ad9)
+
+running 7 tests
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpIKHnbs/remote.git/
+Initialized empty Git repository in /tmp/.tmp7GqSmw/remote.git/
+Initialized empty Git repository in /tmp/.tmpUDC9jl/repo/.git/
+Initialized empty Git repository in /tmp/.tmpZky0P6/remote.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpIKHnbs/repo/.git/
+Initialized empty Git repository in /tmp/.tmp7GqSmw/repo/.git/
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpZky0P6/repo/.git/
+[master (root-commit) 70ee522] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 f.txt
+[master (root-commit) 5813d98] seed
+ 2 files changed, 6 insertions(+)
+ create mode 100644 src/lib.rs
+ create mode 100644 src/main.rs
+test worktree_write_branch_mismatch ... ok
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpL5vx4a/repo/.git/
+[master (root-commit) ea3ac94] seed
+ 1 file changed, 2 insertions(+)
+ create mode 100644 file.txt
+[master (root-commit) dbe146b] seed
+ 1 file changed, 2 insertions(+)
+ create mode 100644 f.txt
+To /tmp/.tmpIKHnbs/remote.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+[master (root-commit) fd63506] seed
+ 1 file changed, 1 insertion(+)
+ create mode 100644 f.txt
+test worktree_write_happy_path_pushes_commit_with_coauthors ... ok
+To /tmp/.tmp7GqSmw/remote.git
+ * [new branch]      main -> main
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+test worktree_write_head_mismatch ... ok
+branch 'main' set up to track 'origin/main'.
+Initialized empty Git repository in /tmp/.tmpoV1fF9/remote.git/
+To /tmp/.tmpZky0P6/remote.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /tmp/.tmpoV1fF9/repo/.git/
+Initialized empty Git repository in /tmp/.tmpsZWOwG/repo/.git/
+test worktree_write_dirty_blocks_without_force ... ok
+test worktree_write_force_with_stash_restores_local_dirty_state ... ok
+[master (root-commit) a949a9a] seed
+ 1 file changed, 2 insertions(+)
+ create mode 100644 f.txt
+test worktree_write_suggestion_conflict ... ok
+[master (root-commit) a949a9a] seed
+ 1 file changed, 2 insertions(+)
+ create mode 100644 f.txt
+To /tmp/.tmpoV1fF9/remote.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+Cloning into '/tmp/.tmpoV1fF9/peer'...
+done.
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+[main 6d235b5] remote advance
+ 1 file changed, 1 insertion(+)
+ create mode 100644 peer.txt
+To /tmp/.tmpoV1fF9/remote.git
+   a949a9a..6d235b5  main -> main
+test worktree_write_push_rejected_rolls_back_local_commit ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.21s
+
+   Doc-tests desktop_lib
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

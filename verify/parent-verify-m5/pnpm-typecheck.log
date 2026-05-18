@@ -1,0 +1,91 @@
+
+> pr-cockpit@0.1.0 typecheck /tmp/m5-verify
+> pnpm ipc:bindings && pnpm --filter desktop typecheck
+
+
+> pr-cockpit@0.1.0 ipc:bindings /tmp/m5-verify
+> cargo run -p desktop --bin generate-ipc-bindings
+
+   Compiling crossbeam-utils v0.8.21
+   Compiling zerocopy v0.8.48
+   Compiling bit-set v0.8.0
+   Compiling tokio v1.52.3
+   Compiling dom_query v0.27.0
+   Compiling concurrent-queue v2.5.0
+   Compiling event-listener v5.4.1
+   Compiling crossbeam-channel v0.5.15
+   Compiling tauri-utils v2.9.2
+   Compiling tao v0.35.2
+   Compiling ppv-lite86 v0.2.21
+   Compiling rand_chacha v0.2.2
+   Compiling rand v0.7.3
+   Compiling event-listener-strategy v0.5.4
+   Compiling tauri-runtime-wry v2.11.2
+   Compiling phf_generator v0.8.0
+   Compiling phf_codegen v0.8.0
+   Compiling muda v0.19.1
+   Compiling crossbeam-queue v0.3.12
+   Compiling phf_macros v0.8.0
+   Compiling async-io v2.6.0
+   Compiling hyper v1.9.0
+   Compiling phf v0.8.0
+   Compiling async-channel v2.5.0
+   Compiling rand_chacha v0.3.1
+   Compiling either v1.15.0
+   Compiling hyper-util v0.1.20
+   Compiling sqlx-core v0.8.6
+   Compiling rand v0.8.6
+   Compiling tauri-plugin v2.6.2
+   Compiling tauri-build v2.6.2
+   Compiling tauri-codegen v2.6.2
+   Compiling async-signal v0.2.14
+   Compiling markup5ever v0.10.1
+   Compiling async-lock v3.4.2
+   Compiling tokio-util v0.7.18
+   Compiling blocking v1.6.2
+   Compiling async-process v2.5.0
+   Compiling tower v0.5.3
+   Compiling sqlx-sqlite v0.8.6
+   Compiling num-bigint-dig v0.8.6
+   Compiling tokio-rustls v0.26.4
+   Compiling ahash v0.8.12
+   Compiling async-compression v0.4.42
+   Compiling async-executor v1.14.0
+   Compiling selectors v0.22.0
+   Compiling async-broadcast v0.7.2
+   Compiling tokio-stream v0.1.18
+   Compiling cssparser v0.27.2
+   Compiling sqlx-macros-core v0.8.6
+   Compiling zbus v5.15.0
+   Compiling tauri v2.11.2
+   Compiling tauri-macros v2.6.2
+   Compiling tauri-plugin-fs v2.5.1
+   Compiling tauri-plugin-shell v2.3.5
+   Compiling tauri-plugin-clipboard-manager v2.3.2
+   Compiling tauri-plugin-notification v2.3.3
+   Compiling tauri-plugin-os v2.3.2
+   Compiling rsa v0.9.10
+   Compiling rand_chacha v0.9.0
+   Compiling tower-http v0.6.10
+   Compiling hyper-rustls v0.27.9
+   Compiling hashbrown v0.14.5
+   Compiling notify-rust v4.17.0
+   Compiling html5ever v0.25.2
+   Compiling jsonwebtoken v10.4.0
+   Compiling hashlink v0.9.1
+   Compiling rand v0.9.4
+   Compiling sqlx-macros v0.8.6
+   Compiling desktop v0.1.0 (/tmp/m5-verify/apps/desktop/src-tauri)
+   Compiling hyper-timeout v0.5.2
+   Compiling octocrab v0.50.0
+   Compiling rusqlite v0.32.1
+   Compiling tauri-specta v2.0.0-rc.25
+   Compiling sqlx v0.8.6
+   Compiling kuchiki v0.8.1
+   Compiling reqwest v0.12.28
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3m 55s
+     Running `target/debug/generate-ipc-bindings`
+
+> desktop@0.1.0 typecheck /tmp/m5-verify/apps/desktop
+> svelte-kit sync && tsc --noEmit
+

@@ -1,0 +1,10 @@
+
+> pr-cockpit@0.1.0 lint /tmp/m5-verify
+> pnpm --filter desktop lint
+
+
+> desktop@0.1.0 lint /tmp/m5-verify/apps/desktop
+> ESLINT_USE_FLAT_CONFIG=false eslint . && prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!

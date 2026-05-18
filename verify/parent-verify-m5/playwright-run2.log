@@ -1,0 +1,10 @@
+[WebServer] 
+[WebServer] [1;31m[404] GET /assets/grammars/tree-sitter-typescript.wasm[0m
+[WebServer] 
+[WebServer] [1;31m[404] GET /assets/grammars/tree-sitter-typescript.wasm[0m
+  ✓  34 playwright/m5-suggestion-apply.spec.ts:105:1 › dirty worktree blocks batch submission (1.7s)
+  ✓  35 playwright/m5-suggestion-apply.spec.ts:119:1 › force-with-stash opt-in is sent in payload (1.2s)
+  ✓  36 playwright/m5-suggestion-apply.spec.ts:139:1 › head mismatch conflict is surfaced (1.1s)
+  ✓  33 tests/smoke.spec.ts:5:1 › offline fixture inbox to diff smoke flow (34.1s)
+
+  36 passed (1.6m)
