@@ -1,0 +1,26 @@
+[2026-05-17T20:56:28.303Z] m3-diff-polish: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
+[2026-05-17T20:56:36.349Z] m3-worktree-read: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
+[2026-05-17T20:56:44.495Z] m3-notifications: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
+[2026-05-17T20:57:51.543Z] m3-diff-polish: respawned by local-cli (was error)
+[2026-05-17T20:57:52.657Z] m3-worktree-read: respawned by local-cli (was error)
+[2026-05-17T20:57:53.883Z] m3-notifications: respawned by local-cli (was error)
+[2026-05-17T21:24:09.915Z] m3-corpus-tighten: SSE idle 336342ms, polled status=running; watchdog still waiting
+[2026-05-17T21:24:09.916Z] m3-corpus-tighten: tool_call idle 336342ms; last=2026-05-17T21:18:33.573Z
+[2026-05-17T21:30:32.633Z] m3-corpus-tighten: measurement_mismatch corpus_weighted_mean [command-failed] exit=1; stderr: node:internal/modules/package_json_reader:314
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'jsdom' imported from /tmp/orch-measure-xnQlmY/tools/markdown-corpus/score.mjs
+    at Object.getPackageJSONURL (node:in…
+[2026-05-17T21:30:32.634Z] m3-corpus-tighten: verification self-reported (unit-test-verified)
+[2026-05-17T21:41:18.921Z] m3-notifications: SSE idle 330579ms, polled status=running; watchdog still waiting
+[2026-05-17T21:41:18.922Z] m3-notifications: tool_call idle 330580ms; last=2026-05-17T21:35:48.342Z
+[2026-05-17T21:42:15.810Z] m3-worktree-read: SSE idle 326235ms, polled status=running; watchdog still waiting
+[2026-05-17T21:42:15.811Z] m3-worktree-read: tool_call idle 326236ms; last=2026-05-17T21:36:49.575Z
+[2026-05-17T21:47:19.610Z] m3-notifications: verification self-reported (unit-test-verified)
+[2026-05-17T22:06:15.209Z] m3-worktree-read: verification self-reported (live-ui-verified)
+[2026-05-17T22:25:21.219Z] m3-diff-polish: verification self-reported (live-ui-verified)
+[2026-05-17T22:39:26.549Z] m3-finalize-merge: SSE idle 313061ms, polled status=running; watchdog still waiting
+[2026-05-17T22:39:26.550Z] m3-finalize-merge: tool_call idle 313061ms; last=2026-05-17T22:34:13.489Z
+[2026-05-17T23:24:09.508Z] m3-finalize-merge: verification self-reported (live-ui-verified)
+[2026-05-18T00:03:43.599Z] m3-verify: finished-no-handoff written to /workspace/.orchestrate/m3-diff-worktree-notifs/handoffs/m3-verify-finished-no-handoff.md (run status=finished but no `## Status` section produced)

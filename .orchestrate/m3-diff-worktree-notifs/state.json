@@ -134,11 +134,11 @@
       "finishedAt": "2026-05-18T00:03:42.760Z",
       "lastUpdate": "2026-05-18T00:03:42.760Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     }
   ],
   "attention": [
@@ -221,6 +221,10 @@
     {
       "at": "2026-05-17T23:24:09.508Z",
       "message": "m3-finalize-merge: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T00:03:43.599Z",
+      "message": "m3-verify: finished-no-handoff written to /workspace/.orchestrate/m3-diff-worktree-notifs/handoffs/m3-verify-finished-no-handoff.md (run status=finished but no `## Status` section produced)"
     }
   ]
 }

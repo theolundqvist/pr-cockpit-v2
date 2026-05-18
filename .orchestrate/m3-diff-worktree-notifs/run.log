@@ -1,0 +1,1077 @@
+[orchestrate] SLACK_BOT_TOKEN not set; Slack visibility disabled
+[2026-05-17T20:56:47.350Z] sweep m3-diff-worktree-notifs: pending=2 running=1 error=3
+[orchestrate] exit-on-error: 3 task(s) transitioned to error this run (m3-diff-polish, m3-worktree-read, m3-notifications); planner's turn. See handoffs/<task>-failure.md for each. Re-run 'bun cli.ts run' after reacting (in-flight workers reattach via recoverRunning).
+[orchestrate] SLACK_BOT_TOKEN not set; Slack visibility disabled
+[2026-05-17T20:58:14.325Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:58:24.328Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:58:34.329Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:58:44.330Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:58:54.331Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:04.332Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:14.333Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:24.334Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:34.335Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:44.337Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T20:59:54.338Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:04.339Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:14.341Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:24.342Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:34.344Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:44.346Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:00:54.347Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:04.348Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:14.350Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:24.351Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:34.352Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:44.353Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:01:54.355Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:04.356Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:14.357Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:24.357Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:34.359Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:44.359Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:02:54.360Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:04.361Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:14.362Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:24.363Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:34.363Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:44.365Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:03:54.366Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:04.366Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:14.367Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:24.367Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:34.368Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:44.368Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:04:54.370Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:04.371Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:14.372Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:24.373Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:34.375Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:44.376Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:05:54.376Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:04.377Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:14.378Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:24.379Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:34.380Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:44.380Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:06:54.381Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:04.383Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:14.384Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:24.385Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:34.386Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:44.387Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:07:54.388Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:04.389Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:14.389Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:24.391Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:34.392Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:44.392Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:08:54.393Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:04.394Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:14.395Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:24.395Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:34.396Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:44.398Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:09:54.399Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:04.399Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:14.400Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:24.401Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:34.401Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:44.402Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:10:54.402Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:04.403Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:14.404Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:24.405Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:34.407Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:44.407Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:11:54.408Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:04.408Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:14.409Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:24.410Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:34.411Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:44.411Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:12:54.412Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:04.413Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:14.414Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:24.415Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:34.416Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:44.417Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:13:54.418Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:04.419Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:14.421Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:24.421Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:34.422Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:44.423Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:14:54.424Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:04.425Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:14.426Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:24.427Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:34.429Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:44.432Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:15:54.436Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:04.437Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:14.438Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:24.445Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:34.445Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:44.447Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:16:54.448Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:04.449Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:14.450Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:24.450Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:34.453Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:44.454Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:17:54.455Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:04.456Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:14.457Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:24.458Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:34.461Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:44.461Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:18:54.462Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:04.463Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:14.464Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:24.465Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:34.466Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:44.468Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:19:54.470Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:04.471Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:14.472Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:24.474Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:34.475Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:44.478Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:20:54.479Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:04.482Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:14.483Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:24.486Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:34.487Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:44.490Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:21:54.494Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:04.494Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:14.495Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:24.496Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:34.497Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:44.498Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:22:54.500Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:04.503Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:14.505Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:24.506Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:34.508Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:44.509Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:23:54.509Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:04.511Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:14.514Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:24.515Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:34.516Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:44.517Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:24:54.518Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:04.519Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:14.520Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:24.521Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:34.522Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:44.524Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:25:54.524Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:04.527Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:14.528Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:24.530Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:34.531Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:44.534Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:26:54.535Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:04.537Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:14.539Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:24.541Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:34.541Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:44.543Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:27:54.544Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:04.546Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:14.546Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:24.547Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:34.547Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:44.549Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:28:54.551Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:04.552Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:14.554Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:24.554Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:34.556Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:44.557Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:29:54.558Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:30:04.559Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:30:14.562Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:30:24.563Z] sweep m3-diff-worktree-notifs: pending=2 running=4
+[2026-05-17T21:30:34.564Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:30:44.566Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:30:54.567Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:04.568Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:14.570Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:24.571Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:34.571Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:44.572Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:31:54.573Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:04.575Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:14.576Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:24.578Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:34.580Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:44.580Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:32:54.583Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:04.585Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:14.586Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:24.587Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:34.588Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:44.590Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:33:54.593Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:04.595Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:14.596Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:24.597Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:34.599Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:44.600Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:34:54.602Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:04.605Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:14.607Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:24.609Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:34.614Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:44.615Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:35:54.615Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:04.616Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:14.617Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:24.617Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:34.618Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:44.619Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:36:54.622Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:04.624Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:14.625Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:24.626Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:34.629Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:44.629Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:37:54.630Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:04.631Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:14.632Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:24.633Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:34.633Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:44.634Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:38:54.634Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:04.637Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:14.639Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:24.640Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:34.643Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:44.644Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:39:54.644Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:04.647Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:14.647Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:24.648Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:34.650Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:44.651Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:40:54.651Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:04.654Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:14.656Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:24.657Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:34.658Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:44.659Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:41:54.660Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:04.662Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:14.665Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:24.665Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:34.668Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:44.668Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:42:54.669Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:04.673Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:14.675Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:24.676Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:34.679Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:44.679Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:43:54.680Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:04.682Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:14.685Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:24.686Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:34.689Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:44.689Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:44:54.691Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:04.692Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:14.695Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:24.696Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:34.698Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:44.700Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:45:54.700Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:04.702Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:14.703Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:24.705Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:34.706Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:44.707Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:46:54.708Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:47:04.710Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:47:14.710Z] sweep m3-diff-worktree-notifs: pending=2 running=3 handed-off=1
+[2026-05-17T21:47:24.711Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:47:34.712Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:47:44.713Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:47:54.713Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:04.714Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:14.715Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:24.717Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:34.717Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:44.718Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:48:54.719Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:04.720Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:14.720Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:24.721Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:34.721Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:44.722Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:49:54.724Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:04.726Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:14.726Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:24.728Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:34.728Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:44.729Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:50:54.730Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:04.732Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:14.733Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:24.735Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:34.735Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:44.737Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:51:54.739Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:04.740Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:14.741Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:24.744Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:34.746Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:44.747Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:52:54.748Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:04.751Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:14.752Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:24.755Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:34.758Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:44.759Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:53:54.763Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:04.765Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:14.766Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:24.769Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:34.771Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:44.772Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:54:54.775Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:04.777Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:14.779Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:24.781Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:34.782Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:44.785Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:55:54.786Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:04.789Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:14.792Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:24.795Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:34.797Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:44.797Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:56:54.800Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:04.802Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:14.803Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:24.805Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:34.809Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:44.810Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:57:54.811Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:58:04.812Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T21:58:06.863Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[orchestrate] planned checkpoint restart at 3600s; non-terminal tasks remain (pending=2, running=2); re-invoke 'bun cli.ts run /workspace/.orchestrate/m3-diff-worktree-notifs' to resume.
+[orchestrate] SLACK_BOT_TOKEN not set; Slack visibility disabled
+[2026-05-17T22:05:41.481Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T22:05:51.482Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T22:06:01.483Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T22:06:11.485Z] sweep m3-diff-worktree-notifs: pending=2 running=2 handed-off=2
+[2026-05-17T22:06:21.488Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:06:31.489Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:06:41.490Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:06:51.491Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:01.492Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:11.493Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:21.493Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:31.494Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:41.495Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:07:51.495Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:01.496Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:11.497Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:21.497Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:31.499Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:41.499Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:08:51.500Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:01.500Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:11.501Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:21.502Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:31.502Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:41.503Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:09:51.503Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:01.503Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:11.505Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:21.506Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:31.508Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:41.509Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:10:51.511Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:01.512Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:11.515Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:21.516Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:31.519Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:41.519Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:11:51.521Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:01.522Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:11.525Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:21.526Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:31.526Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:41.527Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:12:51.529Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:01.530Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:11.533Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:21.534Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:31.535Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:41.536Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:13:51.537Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:01.538Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:11.540Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:21.540Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:31.542Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:41.542Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:14:51.543Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:01.544Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:11.545Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:21.546Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:31.547Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:41.548Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:15:51.550Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:01.551Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:11.552Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:21.553Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:31.554Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:41.555Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:16:51.556Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:01.556Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:11.557Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:21.558Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:31.559Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:41.564Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:17:51.565Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:01.566Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:11.567Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:21.567Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:31.568Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:41.569Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:18:51.571Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:01.572Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:11.573Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:21.574Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:31.575Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:41.576Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:19:51.577Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:01.577Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:11.578Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:21.579Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:31.580Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:41.581Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:20:51.582Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:01.584Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:11.585Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:21.588Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:31.589Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:41.591Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:21:51.595Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:01.597Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:11.598Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:21.600Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:31.602Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:41.603Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:22:51.604Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:01.605Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:11.607Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:21.609Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:31.610Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:41.612Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:23:51.613Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:01.614Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:11.615Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:21.616Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:31.617Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:41.617Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:24:51.618Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:25:01.620Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:25:11.622Z] sweep m3-diff-worktree-notifs: pending=2 running=1 handed-off=3
+[2026-05-17T22:25:23.918Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:25:33.919Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:25:43.920Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:25:53.922Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:03.923Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:13.925Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:23.926Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:33.927Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:43.929Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:26:53.929Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:03.931Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:13.931Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:23.933Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:33.934Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:43.936Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:27:53.936Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:03.938Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:13.940Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:23.941Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:33.943Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:43.945Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:28:53.947Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:03.949Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:13.950Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:23.952Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:33.953Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:43.955Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:29:53.956Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:03.958Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:13.959Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:23.961Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:33.963Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:43.964Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:30:53.966Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:03.967Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:13.968Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:23.970Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:33.974Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:43.975Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:31:53.977Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:03.979Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:13.980Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:23.982Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:33.983Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:43.985Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:32:53.987Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:03.988Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:13.990Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:23.991Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:33.993Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:43.995Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:33:53.996Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:03.998Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:13.999Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:24.001Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:34.004Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:44.005Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:34:54.007Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:04.009Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:14.011Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:24.013Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:34.014Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:44.016Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:35:54.018Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:04.019Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:14.021Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:24.023Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:34.025Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:44.026Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:36:54.028Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:04.029Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:14.031Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:24.033Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:34.034Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:44.035Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:37:54.036Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:04.037Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:14.037Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:24.038Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:34.039Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:44.039Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:38:54.040Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:04.040Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:14.041Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:24.042Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:34.042Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:44.043Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:39:54.043Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:04.045Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:14.045Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:24.046Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:34.047Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:44.048Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:40:54.048Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:04.049Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:14.051Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:24.052Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:34.053Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:44.055Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:41:54.056Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:04.056Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:14.058Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:24.059Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:34.060Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:44.061Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:42:54.062Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:04.062Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:14.064Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:24.065Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:34.066Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:44.068Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:43:54.070Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:04.070Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:14.071Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:24.072Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:34.073Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:44.074Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:44:54.075Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:04.076Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:14.077Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:24.078Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:34.079Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:44.080Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:45:54.081Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:04.082Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:14.083Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:24.084Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:34.086Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:44.086Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:46:54.087Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:04.090Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:14.090Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:24.091Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:34.092Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:44.093Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:47:54.094Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:04.096Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:14.097Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:24.098Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:34.098Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:44.099Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:48:54.100Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:04.101Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:14.102Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:24.103Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:34.104Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:44.104Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:49:54.105Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:04.107Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:14.108Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:24.109Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:34.110Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:44.111Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:50:54.112Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:04.113Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:14.114Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:24.115Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:34.116Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:44.117Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:51:54.117Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:04.119Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:14.120Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:24.121Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:34.122Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:44.123Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:52:54.124Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:04.125Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:14.126Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:24.127Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:34.128Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:44.128Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:53:54.129Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:04.131Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:14.132Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:24.133Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:34.134Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:44.135Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:54:54.136Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:04.137Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:14.138Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:24.140Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:34.141Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:44.142Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:55:54.143Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:04.145Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:14.146Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:24.147Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:34.149Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:44.150Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:56:54.151Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:04.152Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:14.152Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:24.153Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:34.153Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:44.154Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:57:54.156Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:04.158Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:14.160Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:24.160Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:34.162Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:44.163Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:58:54.165Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:04.166Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:14.167Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:24.169Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:34.171Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:44.171Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T22:59:54.172Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:04.173Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:14.174Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:24.175Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:34.178Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:44.178Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:00:54.179Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:04.182Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:14.183Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:24.184Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:34.186Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:44.187Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:01:54.187Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:04.188Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:14.190Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:24.191Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:34.193Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:44.194Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:02:54.196Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:04.197Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:14.198Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:24.199Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:34.200Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:44.201Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:03:54.203Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:04.203Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:14.204Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:24.206Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:34.208Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:44.210Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:04:54.210Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:05:04.212Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:05:14.213Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:05:24.213Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:05:34.215Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:05:41.157Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[orchestrate] planned checkpoint restart at 3600s; non-terminal tasks remain (pending=1, running=1); re-invoke 'bun cli.ts run /workspace/.orchestrate/m3-diff-worktree-notifs' to resume.
+[orchestrate] SLACK_BOT_TOKEN not set; Slack visibility disabled
+[2026-05-17T23:07:52.256Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:02.257Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:12.257Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:22.258Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:32.259Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:42.259Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:08:52.260Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:02.260Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:12.261Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:22.262Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:32.262Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:42.263Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:09:52.264Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:02.264Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:12.265Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:22.267Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:32.267Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:42.270Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:10:52.271Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:02.273Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:12.273Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:22.275Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:32.276Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:42.278Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:11:52.279Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:02.282Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:12.282Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:22.284Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:32.285Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:42.287Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:12:52.288Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:02.290Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:12.291Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:22.293Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:32.294Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:42.296Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:13:52.297Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:02.299Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:12.299Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:22.301Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:32.302Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:42.303Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:14:52.304Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:02.306Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:12.307Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:22.309Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:32.310Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:42.312Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:15:52.318Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:02.319Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:12.320Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:22.320Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:32.321Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:42.322Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:16:52.323Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:02.324Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:12.324Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:22.325Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:32.326Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:42.327Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:17:52.328Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:02.329Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:12.329Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:22.331Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:32.331Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:42.332Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:18:52.333Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:02.334Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:12.335Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:22.335Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:32.336Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:42.337Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:19:52.338Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:02.339Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:12.340Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:22.341Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:32.341Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:42.342Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:20:52.343Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:02.344Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:12.344Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:22.345Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:32.346Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:42.347Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:21:52.347Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:02.348Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:12.349Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:22.350Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:32.350Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:42.351Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:22:52.352Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:02.353Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:12.355Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:22.356Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:32.357Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:42.358Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:23:52.359Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:24:02.361Z] sweep m3-diff-worktree-notifs: pending=1 running=1 handed-off=4
+[2026-05-17T23:24:14.791Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:24:24.792Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:24:34.794Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:24:44.795Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:24:54.797Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:04.798Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:14.799Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:24.800Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:34.801Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:44.802Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:25:54.804Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:04.804Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:14.805Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:24.807Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:34.808Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:44.810Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:26:54.811Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:04.812Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:14.813Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:24.817Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:34.820Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:44.821Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:27:54.823Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:04.824Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:14.825Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:24.827Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:34.827Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:44.829Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:28:54.830Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:04.831Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:14.833Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:24.834Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:34.836Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:44.838Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:29:54.839Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:04.841Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:14.843Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:24.844Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:34.846Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:44.848Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:30:54.850Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:04.851Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:14.853Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:24.854Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:34.855Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:44.857Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:31:54.858Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:04.860Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:14.861Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:24.863Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:34.864Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:44.867Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:32:54.869Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:04.869Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:14.870Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:24.871Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:34.874Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:44.875Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:33:54.876Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:04.878Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:14.880Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:24.882Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:34.883Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:44.885Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:34:54.886Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:04.887Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:14.889Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:24.890Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:34.892Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:44.894Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:35:54.895Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:04.897Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:14.897Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:24.898Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:34.898Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:44.900Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:36:54.902Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:04.903Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:14.905Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:24.906Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:34.907Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:44.908Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:37:54.909Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:04.909Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:14.910Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:24.910Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:34.911Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:44.912Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:38:54.912Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:04.913Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:14.913Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:24.914Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:34.916Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:44.919Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:39:54.920Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:04.920Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:14.921Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:24.923Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:34.928Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:44.929Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:40:54.929Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:04.931Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:14.932Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:24.933Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:34.935Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:44.936Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:41:54.937Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:04.938Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:14.939Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:24.940Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:34.941Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:44.942Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:42:54.943Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:04.944Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:14.945Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:24.947Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:34.948Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:44.949Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:43:54.949Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:04.951Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:14.952Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:24.953Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:34.955Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:44.956Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:44:54.957Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:04.959Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:14.960Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:24.960Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:34.961Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:44.962Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:45:54.963Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:04.964Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:14.965Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:24.966Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:34.967Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:44.968Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:46:54.969Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:04.970Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:14.971Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:24.972Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:34.973Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:44.973Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:47:54.975Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:04.976Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:14.977Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:24.978Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:34.981Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:44.983Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:48:54.984Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:04.985Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:14.987Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:24.988Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:34.989Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:44.990Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:49:54.991Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:04.993Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:14.993Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:24.994Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:34.996Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:44.997Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:50:54.997Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:04.999Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:15.000Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:25.000Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:35.002Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:45.003Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:51:55.003Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:05.005Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:15.005Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:25.006Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:35.008Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:45.009Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:52:55.009Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:05.011Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:15.012Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:25.012Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:35.014Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:45.015Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:53:55.015Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:05.017Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:15.019Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:25.020Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:35.020Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:45.022Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:54:55.023Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:05.025Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:15.026Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:25.027Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:35.028Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:45.029Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:55:55.030Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:05.031Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:15.032Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:25.033Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:35.034Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:45.035Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:56:55.038Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:05.040Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:15.041Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:25.042Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:35.044Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:45.045Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:57:55.045Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:05.047Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:15.048Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:25.049Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:35.050Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:45.051Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:58:55.052Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:05.053Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:15.054Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:25.056Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:35.056Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:45.057Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-17T23:59:55.058Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:05.059Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:15.060Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:25.061Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:35.062Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:45.067Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:00:55.069Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:05.071Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:15.072Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:25.073Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:35.075Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:45.075Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:01:55.076Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:05.078Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:15.079Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:25.080Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:35.081Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:45.081Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:02:55.082Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:03:05.084Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:03:15.084Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:03:25.085Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:03:35.085Z] sweep m3-diff-worktree-notifs: running=1 handed-off=5
+[2026-05-18T00:03:45.087Z] sweep m3-diff-worktree-notifs: handed-off=6
+
+orchestrate summary (m3-diff-worktree-notifs):
+  handed-off: 6
+  handoffs written to: /workspace/.orchestrate/m3-diff-worktree-notifs/handoffs
+    - handoffs/m3-diff-polish.md
+    - handoffs/m3-worktree-read.md
+    - handoffs/m3-notifications.md
+    - handoffs/m3-corpus-tighten.md
+    - handoffs/m3-finalize-merge.md
+    - handoffs/m3-verify.md
+  attention entries: 21 (see /workspace/.orchestrate/m3-diff-worktree-notifs/attention.log)
