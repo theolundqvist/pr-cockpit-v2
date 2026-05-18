@@ -85,6 +85,13 @@ export const commands = {
 	listDrafts: (input: ListDraftsInput) => typedError<Draft[], IpcError>(__TAURI_INVOKE("list_drafts", { input })),
 	saveDraft: (input: SaveDraftInput) => typedError<Draft, IpcError>(__TAURI_INVOKE("save_draft", { input })),
 	deleteDraft: (draftId: string) => typedError<null, IpcError>(__TAURI_INVOKE("delete_draft", { draftId })),
+	listSavedReplies: (accountId: string) => typedError<SavedReply[], IpcError>(__TAURI_INVOKE("list_saved_replies", { accountId })),
+	createSavedReply: (accountId: string, name: string, body: string) => typedError<SavedReply, IpcError>(__TAURI_INVOKE("create_saved_reply", { accountId, name, body })),
+	updateSavedReply: (id: number, name: string, body: string) => typedError<SavedReply, IpcError>(__TAURI_INVOKE("update_saved_reply", { id, name, body })),
+	deleteSavedReply: (id: number) => typedError<null, IpcError>(__TAURI_INVOKE("delete_saved_reply", { id })),
+	reorderSavedReplies: (input: ReorderSavedRepliesInput) => typedError<null, IpcError>(__TAURI_INVOKE("reorder_saved_replies", { input })),
+	importSavedRepliesFromGithub: (accountId: string) => typedError<SavedReply[], IpcError>(__TAURI_INVOKE("import_saved_replies_from_github", { accountId })),
+	uploadImageToGithubUserContent: (accountId: string, imageBytes: number[], mime: string) => typedError<ImageUploadResult, IpcError>(__TAURI_INVOKE("upload_image_to_github_user_content", { accountId, imageBytes, mime })),
 	renderPreview: (input: RenderPreviewInput) => typedError<RenderedCommentHtml, IpcError>(__TAURI_INVOKE("render_preview", { input })),
 	listWorktrees: (accountId: string) => typedError<WorktreeView[], IpcError>(__TAURI_INVOKE("list_worktrees", { accountId })),
 	setWorktreeManualOverride: (worktreeId: string, prId: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_worktree_manual_override", { worktreeId, prId })),
@@ -320,6 +327,13 @@ export type HighlightedLine = {
 	text: string,
 	segments: HighlightSegment[],
 	side: DiffSide,
+};
+
+export type ImageUploadResult = {
+	url: string,
+	alt: string,
+	content_hash: string,
+	size_bytes: number,
 };
 
 export type InboxChangedEventPayload = {
@@ -768,6 +782,11 @@ export type RenderedCommentInput = {
 	repo: string | null,
 };
 
+export type ReorderSavedRepliesInput = {
+	account_id: string,
+	ordered_ids: number[],
+};
+
 export type RepoSubscriptionItem = {
 	account_id: string,
 	repo_id: string,
@@ -813,6 +832,16 @@ export type SaveDraftInput = {
 export type SavePatTokenInput = {
 	host: string,
 	token: string,
+};
+
+export type SavedReply = {
+	id: number,
+	account_id: string,
+	name: string,
+	body: string,
+	sort_order: number,
+	created_at: number,
+	updated_at: number,
 };
 
 export type StreamHandle = {

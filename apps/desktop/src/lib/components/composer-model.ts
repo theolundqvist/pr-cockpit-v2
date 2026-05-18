@@ -32,6 +32,17 @@ export function insertSuggestionBlock(
   const needsLeadingBreak = prefix.length > 0 && !prefix.endsWith('\n');
   const needsTrailingBreak = suffix.length > 0 && !suffix.startsWith('\n');
   const insertion = `${needsLeadingBreak ? '\n\n' : ''}${block}${needsTrailingBreak ? '\n\n' : ''}`;
-  const nextBody = `${prefix}${insertion}${suffix}`;
-  return { nextBody, nextCaret: prefix.length + insertion.length };
+  return insertTextAtSelection(currentBody, insertion, selectionStart, selectionEnd);
+}
+
+export function insertTextAtSelection(
+  currentBody: string,
+  text: string,
+  selectionStart: number,
+  selectionEnd: number
+): { nextBody: string; nextCaret: number } {
+  const prefix = currentBody.slice(0, selectionStart);
+  const suffix = currentBody.slice(selectionEnd);
+  const nextBody = `${prefix}${text}${suffix}`;
+  return { nextBody, nextCaret: prefix.length + text.length };
 }

@@ -67,12 +67,24 @@ describe('Composer preview parity', () => {
 
   it('matches timeline rendering output for 20 corpus entries', async () => {
     const { renderTimelineBody } = await import('$lib/data/pr-detail');
-    const { renderComposerPreview } = await import('$lib/components/composer-model');
+    const { renderComposerPreview, insertTextAtSelection } =
+      await import('$lib/components/composer-model');
     const subset = loadCorpusSubset();
     for (const entry of subset) {
       const timelineHtml = await renderTimelineBody(entry.body, entry.repo);
       const composerHtml = await renderComposerPreview(entry.body, entry.repo);
       expect(composerHtml).toBe(timelineHtml);
     }
+
+    const base = 'Hello reviewer,\n\n';
+    const insertion = insertTextAtSelection(
+      base,
+      'Thanks for the update!\n',
+      base.length,
+      base.length
+    );
+    const timelineInserted = await renderTimelineBody(insertion.nextBody, 'fixture-org/repo-1');
+    const composerInserted = await renderComposerPreview(insertion.nextBody, 'fixture-org/repo-1');
+    expect(composerInserted).toBe(timelineInserted);
   });
 });

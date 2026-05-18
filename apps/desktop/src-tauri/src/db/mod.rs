@@ -2770,6 +2770,175 @@ impl Db {
         Ok(())
     }
 
+    pub async fn list_saved_replies(&self, account_id: &str) -> Result<Vec<SavedReplyRow>> {
+        let rows = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE account_id = ?1
+             ORDER BY sort_order ASC, name ASC",
+        )
+        .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn create_saved_reply(
+        &self,
+        account_id: &str,
+        name: &str,
+        body: &str,
+        now_epoch: i64,
+    ) -> Result<SavedReplyRow> {
+        let mut tx = self.pool.begin().await?;
+        let max_sort: Option<i64> =
+            sqlx::query_scalar("SELECT MAX(sort_order) FROM saved_replies WHERE account_id = ?1")
+                .bind(account_id)
+                .fetch_one(tx.as_mut())
+                .await?;
+        let sort_order = max_sort.unwrap_or(-1).saturating_add(1);
+        let inserted = sqlx::query(
+            "INSERT INTO saved_replies(account_id, name, body, sort_order, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?5)",
+        )
+        .bind(account_id)
+        .bind(name)
+        .bind(body)
+        .bind(sort_order)
+        .bind(now_epoch)
+        .execute(tx.as_mut())
+        .await?;
+        let inserted_id = inserted.last_insert_rowid();
+        let row = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE id = ?1",
+        )
+        .bind(inserted_id)
+        .fetch_one(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(row)
+    }
+
+    pub async fn update_saved_reply(
+        &self,
+        id: i64,
+        name: &str,
+        body: &str,
+        now_epoch: i64,
+    ) -> Result<Option<SavedReplyRow>> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "UPDATE saved_replies
+             SET name = ?2,
+                 body = ?3,
+                 updated_at = ?4
+             WHERE id = ?1",
+        )
+        .bind(id)
+        .bind(name)
+        .bind(body)
+        .bind(now_epoch)
+        .execute(tx.as_mut())
+        .await?;
+        let row = sqlx::query_as::<_, SavedReplyRow>(
+            "SELECT id, account_id, name, body, sort_order, created_at, updated_at
+             FROM saved_replies
+             WHERE id = ?1",
+        )
+        .bind(id)
+        .fetch_optional(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(row)
+    }
+
+    pub async fn delete_saved_reply(&self, id: i64) -> Result<()> {
+        sqlx::query("DELETE FROM saved_replies WHERE id = ?1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn reorder_saved_replies(
+        &self,
+        account_id: &str,
+        ordered_ids: &[i64],
+        now_epoch: i64,
+    ) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        for (index, id) in ordered_ids.iter().enumerate() {
+            let sort_order =
+                i64::try_from(index).context("saved replies reorder index overflow")?;
+            sqlx::query(
+                "UPDATE saved_replies
+                 SET sort_order = ?3,
+                     updated_at = ?4
+                 WHERE id = ?1 AND account_id = ?2",
+            )
+            .bind(id)
+            .bind(account_id)
+            .bind(sort_order)
+            .bind(now_epoch)
+            .execute(tx.as_mut())
+            .await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn image_upload(
+        &self,
+        account_id: &str,
+        sha256: &str,
+    ) -> Result<Option<ImageUploadRow>> {
+        let row = sqlx::query_as::<_, ImageUploadRow>(
+            "SELECT sha256, account_id, url, mime, size_bytes, uploaded_at
+             FROM image_uploads
+             WHERE account_id = ?1 AND sha256 = ?2
+             LIMIT 1",
+        )
+        .bind(account_id)
+        .bind(sha256)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(row)
+    }
+
+    pub async fn upsert_image_upload(&self, upload: &ImageUploadRecord) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            "INSERT INTO image_uploads(sha256, account_id, url, mime, size_bytes, uploaded_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(sha256, account_id) DO UPDATE SET
+               url = excluded.url,
+               mime = excluded.mime,
+               size_bytes = excluded.size_bytes,
+               uploaded_at = excluded.uploaded_at",
+        )
+        .bind(&upload.sha256)
+        .bind(&upload.account_id)
+        .bind(&upload.url)
+        .bind(&upload.mime)
+        .bind(upload.size_bytes)
+        .bind(upload.uploaded_at)
+        .execute(tx.as_mut())
+        .await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn blob_ref_exists(&self, sha256: &str) -> Result<bool> {
+        let count =
+            sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM blob_refs WHERE sha256 = ?1")
+                .bind(sha256)
+                .fetch_one(&self.pool)
+                .await?;
+        Ok(count > 0)
+    }
+
     pub async fn list_pending_mutations(
         &self,
         account_id: &str,
