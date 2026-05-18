@@ -1290,6 +1290,10 @@
     {
       "at": "2026-05-18T16:03:19.450Z",
       "message": "m5-editor-power-worktree-write: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T16:03:29.535Z",
+      "message": "verify-m5-editor-power-worktree-write: spawn failed after 3 transient sub-attempts: Error: m5-editor-power-worktree-write: branch must be orch/pr-cockpit/m5-editor-power-worktree-write, got `orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93…"
     }
   ]
 }
