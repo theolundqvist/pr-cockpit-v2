@@ -39,13 +39,13 @@
       "handoffPath": "handoffs/m4-force-push-range-diff.md",
       "startedAt": "2026-05-18T02:17:09.208Z",
       "finishedAt": "2026-05-18T03:16:36.727Z",
-      "lastUpdate": "2026-05-18T03:16:36.727Z",
+      "lastUpdate": "2026-05-18T03:16:37.608Z",
       "note": null,
       "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "unit-test-verified"
     },
     {
       "name": "m4-multi-account",
@@ -58,17 +58,18 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T03:16:44.480Z",
       "finishedAt": null,
-      "lastUpdate": null,
+      "lastUpdate": "2026-05-18T03:16:44.480Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m4-ghe-readiness",
@@ -152,6 +153,10 @@
     {
       "at": "2026-05-18T02:17:08.587Z",
       "message": "m4-merge-surface: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T03:16:37.608Z",
+      "message": "m4-force-push-range-diff: verification self-reported (unit-test-verified)"
     }
   ]
 }
