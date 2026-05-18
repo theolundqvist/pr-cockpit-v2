@@ -226,14 +226,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T16:04:29.880Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T16:04:21.011Z",
+      "lastUpdate": "2026-05-18T16:04:29.880Z",
       "note": "respawned by self-planner (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -1294,6 +1294,10 @@
     {
       "at": "2026-05-18T16:03:29.535Z",
       "message": "verify-m5-editor-power-worktree-write: spawn failed after 3 transient sub-attempts: Error: m5-editor-power-worktree-write: branch must be orch/pr-cockpit/m5-editor-power-worktree-write, got `orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93…"
+    },
+    {
+      "at": "2026-05-18T16:04:22.036Z",
+      "message": "verify-m5-editor-power-worktree-write: respawned by self-planner (was error)"
     }
   ]
 }
