@@ -146,7 +146,7 @@
     {
       "name": "m4-merge-multiaccount",
       "type": "subplanner",
-      "branch": "orch/pr-cockpit/m4-merge-multiaccount",
+      "branch": "`orch/pr-cockpit/m4-merge-multiaccount` (= verifier tip `a95f504`, equivalent to `orch/m4-merge-multiaccount/m4-finalize`; the verifier's `verify/m4-finalize/` logs + REPORT are the final commit)",
       "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "dependsOn": [
         "verify-m3-diff-worktree-notifs"
@@ -154,12 +154,12 @@
       "agentId": "bc-daf7332b-055f-44bd-87dd-1dd5073e5578",
       "runId": "run-f05efceb-5e5c-4ccd-a97d-9a2fdad678f3",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m4-merge-multiaccount.md",
       "startedAt": "2026-05-18T02:13:28.249Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T02:13:31.033Z",
+      "finishedAt": "2026-05-18T06:43:10.089Z",
+      "lastUpdate": "2026-05-18T06:43:10.090Z",
       "note": "respawned by self-planner (was cancelled; attempts=1)",
       "attempts": 2,
       "slackTs": null,
