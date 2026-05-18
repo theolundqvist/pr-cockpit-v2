@@ -207,36 +207,37 @@
       "handoffPath": "handoffs/m5-editor-power-worktree-write.md",
       "startedAt": "2026-05-18T08:03:44.274Z",
       "finishedAt": "2026-05-18T16:03:18.343Z",
-      "lastUpdate": "2026-05-18T16:03:18.343Z",
+      "lastUpdate": "2026-05-18T16:03:19.450Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null
+      "verification": "live-ui-verified"
     },
     {
       "name": "verify-m5-editor-power-worktree-write",
       "type": "verifier",
       "branch": "orch/pr-cockpit/verify-m5-editor-power-worktree-write",
-      "startingRef": "orch/pr-cockpit/m5-editor-power-worktree-write",
+      "startingRef": "`orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93246 chore(verify): m5 verification matrix + report` on top, but `db1f235 chore(m5): finalize smoke docs and stability polish` is the pure deliverable tip if you want non-verifier history)",
       "dependsOn": [
         "m5-editor-power-worktree-write"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "error",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": null,
       "finishedAt": null,
-      "lastUpdate": null,
-      "note": null,
+      "lastUpdate": "2026-05-18T16:03:28.451Z",
+      "note": "spawn failed after 3 transient sub-attempts: Error: m5-editor-power-worktree-write: branch must be orch/pr-cockpit/m5-editor-power-worktree-write, got `orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93…",
       "slackTs": null,
       "prNumber": null,
-      "failureMode": null,
-      "verification": null
+      "failureMode": "unknown",
+      "verification": null,
+      "attempts": 1
     },
     {
       "name": "m6-stacks-relay-polish",
@@ -1281,6 +1282,14 @@
     {
       "at": "2026-05-18T15:37:09.826Z",
       "message": "m5-editor-power-worktree-write: tool_call idle 328680ms; last=2026-05-18T15:31:41.146Z"
+    },
+    {
+      "at": "2026-05-18T16:03:19.449Z",
+      "message": "verify-m5-editor-power-worktree-write: startingRef reconciled orch/pr-cockpit/m5-editor-power-worktree-write -> `orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93246 chore(verify): m5 verification matrix + report` on top, but `db1f235 chore(m5): finalize smoke docs and stability polish` is the pure deliverable tip if you want non-verifier history) (target m5-editor-power-worktree-write handed off on actual branch)"
+    },
+    {
+      "at": "2026-05-18T16:03:19.450Z",
+      "message": "m5-editor-power-worktree-write: verification self-reported (live-ui-verified)"
     }
   ]
 }
