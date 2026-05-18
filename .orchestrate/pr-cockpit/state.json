@@ -1311,6 +1311,14 @@
     {
       "at": "2026-05-18T16:38:20.489Z",
       "message": "verify-m5-editor-power-worktree-write: tool_call idle 332641ms; last=2026-05-18T16:32:47.848Z"
+    },
+    {
+      "at": "2026-05-18T17:15:46.672Z",
+      "message": "m6-stacks-relay-polish: SSE idle 342849ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T17:15:46.674Z",
+      "message": "m6-stacks-relay-polish: tool_call idle 342851ms; last=2026-05-18T17:10:03.823Z"
     }
   ]
 }
