@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { InboxItem, WorktreeView } from '$lib/ipc/bindings';
+  import AccountBadge from '$lib/components/account/AccountBadge.svelte';
   import { checkLabel, syntheticLabels } from '$lib/components/inbox-row';
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
   import WorktreeBadge from '$lib/components/worktree/WorktreeBadge.svelte';
@@ -8,8 +9,10 @@
   export let item: InboxItem;
   export let worktree: WorktreeView | null = null;
   export let selected = false;
+  export let showAccountBadge = false;
   export let onOpen: () => void = () => {};
   export let onPreload: () => void = () => {};
+  export let onSelectAccount: (accountId: string) => void = () => {};
 </script>
 
 <li class="Box-row p-0">
@@ -36,6 +39,14 @@
           <span>{item.repo_owner}/{item.repo_name}</span>
           <span>@{item.author_login}</span>
           <span>{formatRelative(item.updated_at)}</span>
+          {#if showAccountBadge}
+            <AccountBadge
+              login={item.account_login}
+              host={item.account_host}
+              interactive={true}
+              onSelect={() => onSelectAccount(item.account_id)}
+            />
+          {/if}
         </div>
         <div class="d-flex flex-wrap gap-1">
           {#if item.draft}

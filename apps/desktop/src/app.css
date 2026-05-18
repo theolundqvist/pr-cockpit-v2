@@ -39,7 +39,7 @@ body > div {
 
 .cockpit-main {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   min-width: 0;
 }
 
@@ -49,6 +49,10 @@ body > div {
 
 .cockpit-pane {
   overflow: auto;
+}
+
+.cockpit-statusbar {
+  background: var(--bgColor-default, #fff);
 }
 
 .skeleton-row {

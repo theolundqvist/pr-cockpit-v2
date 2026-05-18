@@ -22,9 +22,12 @@ import {
 } from '$lib/ipc/client';
 
 const ACTIVE_ACCOUNT_STORAGE_KEY = 'cockpit.active-account-id';
+const INBOX_FILTER_STORAGE_KEY = 'cockpit.inbox-account-filter';
+const ALL_ACCOUNTS_STORAGE_VALUE = '__all_accounts__';
 
 export const accountsStore = writable<AuthAccount[]>([]);
 export const activeAccountIdStore = writable<string | null>(null);
+export const inboxAccountFilterStore = writable<string | null>(null);
 export const inboxStore = writable<InboxItem[]>([]);
 export const repoSubscriptionsStore = writable<RepoSubscriptionItem[]>([]);
 export const statusStore = writable<SystemStatusResponse | null>(null);
@@ -55,12 +58,41 @@ function persistActiveAccountId(accountId: string | null): void {
   localStorage.setItem(ACTIVE_ACCOUNT_STORAGE_KEY, accountId);
 }
 
+function pickStoredInboxFilter(accounts: AuthAccount[]): string | null | undefined {
+  if (typeof localStorage === 'undefined') {
+    return undefined;
+  }
+  const stored = localStorage.getItem(INBOX_FILTER_STORAGE_KEY);
+  if (stored === null) {
+    return undefined;
+  }
+  if (stored === ALL_ACCOUNTS_STORAGE_VALUE) {
+    return null;
+  }
+  return accounts.some((account) => toAccountId(account) === stored) ? stored : undefined;
+}
+
+function persistInboxFilter(accountIdFilter: string | null): void {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+  if (accountIdFilter === null) {
+    localStorage.setItem(INBOX_FILTER_STORAGE_KEY, ALL_ACCOUNTS_STORAGE_VALUE);
+    return;
+  }
+  localStorage.setItem(INBOX_FILTER_STORAGE_KEY, accountIdFilter);
+}
+
 export async function initializeCockpit(seed: InitInboxResponse): Promise<void> {
   accountsStore.set(seed.accounts.accounts);
   const storedAccountId = pickStoredAccountId(seed.accounts.accounts);
   const activeAccountId = storedAccountId ?? seed.active_account_id;
+  const storedFilter = pickStoredInboxFilter(seed.accounts.accounts);
+  const inboxAccountFilter = storedFilter ?? activeAccountId;
   activeAccountIdStore.set(activeAccountId);
+  inboxAccountFilterStore.set(inboxAccountFilter);
   persistActiveAccountId(activeAccountId);
+  persistInboxFilter(inboxAccountFilter);
   inboxStore.set(seed.inbox);
   repoSubscriptionsStore.set(seed.subscriptions);
   statusStore.set(seed.status);
@@ -81,7 +113,11 @@ export async function initializeCockpit(seed: InitInboxResponse): Promise<void> 
     return;
   }
   if (storedAccountId && storedAccountId !== seed.active_account_id) {
-    await refreshAccountData(storedAccountId);
+    await refreshAccountData(inboxAccountFilter);
+    return;
+  }
+  if (storedFilter !== undefined && storedFilter !== seed.active_account_id) {
+    await refreshAccountData(inboxAccountFilter);
   }
 }
 
@@ -100,11 +136,21 @@ export async function refreshAccounts(): Promise<void> {
       : fallback;
   activeAccountIdStore.set(nextActive);
   persistActiveAccountId(nextActive);
+  const currentFilter = get(inboxAccountFilterStore);
+  if (
+    currentFilter &&
+    !response.accounts.some((account) => toAccountId(account) === currentFilter)
+  ) {
+    inboxAccountFilterStore.set(nextActive);
+    persistInboxFilter(nextActive);
+  }
 }
 
-export async function refreshAccountData(accountId?: string): Promise<void> {
-  const selected = accountId ?? get(activeAccountIdStore);
-  if (!selected) {
+export async function refreshAccountData(accountIdFilter?: string | null): Promise<void> {
+  const selectedActive = get(activeAccountIdStore);
+  const selectedFilter =
+    accountIdFilter === undefined ? get(inboxAccountFilterStore) : accountIdFilter;
+  if (!selectedActive) {
     inboxStore.set([]);
     repoSubscriptionsStore.set([]);
     statusStore.set(null);
@@ -112,10 +158,10 @@ export async function refreshAccountData(accountId?: string): Promise<void> {
     return;
   }
   const [inboxRows, subscriptions, status, worktrees] = await Promise.all([
-    listInbox(selected),
-    listRepoSubscriptions(selected),
-    getSystemStatus(selected),
-    listWorktrees(selected)
+    listInbox(selectedFilter),
+    listRepoSubscriptions(selectedActive),
+    getSystemStatus(selectedFilter),
+    listWorktrees(selectedActive)
   ]);
   inboxStore.set(inboxRows);
   repoSubscriptionsStore.set(subscriptions);
@@ -123,7 +169,13 @@ export async function refreshAccountData(accountId?: string): Promise<void> {
   worktreesStore.set(worktrees);
 }
 
-export async function selectAccountById(accountId: string): Promise<void> {
+export async function selectAccountById(accountId: string | null): Promise<void> {
+  if (!accountId) {
+    inboxAccountFilterStore.set(null);
+    persistInboxFilter(null);
+    await refreshAccountData(null);
+    return;
+  }
   const accounts = get(accountsStore);
   const account = accounts.find((candidate) => toAccountId(candidate) === accountId);
   if (!account) {
@@ -138,6 +190,8 @@ export async function selectAccountById(accountId: string): Promise<void> {
       is_active: toAccountId(candidate) === accountId
     }))
   );
+  inboxAccountFilterStore.set(accountId);
+  persistInboxFilter(accountId);
   await refreshAccountData(accountId);
 }
 

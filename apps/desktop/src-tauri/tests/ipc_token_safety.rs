@@ -115,7 +115,7 @@ async fn ipc_flow_tracing_does_not_leak_stubbed_tokens() -> Result<()> {
         db.as_ref(),
         &sync_state,
         SystemStatusInput {
-            account_id: account.id.clone(),
+            account_id_filter: Some(account.id.clone()),
         },
     )
     .await

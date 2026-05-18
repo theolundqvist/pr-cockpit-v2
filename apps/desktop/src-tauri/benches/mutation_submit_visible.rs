@@ -99,6 +99,7 @@ fn mutation_submit_visible(c: &mut Criterion) {
                             "pr_id": PR_ID,
                             "user_id": USER_ID,
                         }),
+                        posting_account_id: None,
                     };
                     let submitted = online_engine
                         .submit(&account_id, payload)
@@ -136,6 +137,7 @@ fn mutation_submit_visible(c: &mut Criterion) {
                             "pr_id": PR_ID,
                             "user_id": USER_ID,
                         }),
+                        posting_account_id: None,
                     };
                     let submitted = offline_engine
                         .submit(&account_id, payload)

@@ -50,10 +50,22 @@ pub enum Priority {
     Background,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RateLimitBudgetSnapshot {
+    pub account_id: String,
+    pub resource: String,
+    pub remaining: i64,
+    pub used: Option<i64>,
+    pub limit_total: i64,
+    pub reset_at_epoch: i64,
+}
+
 pub trait CacheInvalidationEmitter: Send + Sync {
     fn emit_pr_changed(&self, _pr_id: &str) {}
     fn emit_inbox_changed(&self, _account_id: &str) {}
     fn emit_rate_limit_changed(&self, _account_id: &str) {}
+    fn emit_rate_limit_pressure(&self, _account_id: &str, _snapshot: &[RateLimitBudgetSnapshot]) {}
+    fn emit_rate_limit_bypass(&self, _account_id: &str, _snapshot: &[RateLimitBudgetSnapshot]) {}
     fn emit_notifications_changed(&self, _account_id: &str) {}
     fn emit_sync_reconciled(&self, _account_id: &str) {}
 }
@@ -214,7 +226,7 @@ impl RateLimitBudgeter {
     pub fn start_with_emitter(db: Arc<Db>, emitter: Arc<dyn CacheInvalidationEmitter>) -> Self {
         let (command_tx, mut command_rx) = mpsc::channel::<BudgetCommand>(128);
         tokio::spawn(async move {
-            let mut buckets = HashMap::<ApiResource, BudgetState>::new();
+            let mut buckets = HashMap::<(String, ApiResource), BudgetState>::new();
             while let Some(command) = command_rx.recv().await {
                 match command {
                     BudgetCommand::Record {
@@ -223,10 +235,11 @@ impl RateLimitBudgeter {
                         snapshot,
                     } => {
                         buckets.insert(
-                            resource,
+                            (account_id.clone(), resource),
                             BudgetState {
                                 remaining: snapshot.remaining,
                                 used: snapshot.used,
+                                limit_total: snapshot.limit_total,
                                 reset_at_epoch: snapshot.reset_at_epoch,
                             },
                         );
@@ -235,6 +248,7 @@ impl RateLimitBudgeter {
                                 account_id: account_id.clone(),
                                 resource: resource.as_str().to_string(),
                                 remaining: snapshot.remaining,
+                                used: snapshot.used,
                                 limit_total: snapshot.limit_total,
                                 reset_at: snapshot.reset_at_epoch,
                                 updated_at: now_epoch_seconds().unwrap_or_default(),
@@ -242,42 +256,34 @@ impl RateLimitBudgeter {
                             .await;
                         emitter.emit_rate_limit_changed(&account_id);
                     }
-                    BudgetCommand::Allow { priority, reply_tx } => {
+                    BudgetCommand::Allow {
+                        account_id,
+                        priority,
+                        reply_tx,
+                    } => {
+                        let throttled = account_is_throttled(&buckets, &account_id);
                         let allow = match priority {
-                            Priority::Foreground => true,
+                            Priority::Foreground => {
+                                if throttled {
+                                    let event_snapshot = to_event_snapshot(&buckets);
+                                    emitter.emit_rate_limit_bypass(&account_id, &event_snapshot);
+                                }
+                                true
+                            }
                             Priority::Background => {
-                                let now_epoch = now_epoch_seconds().unwrap_or_default();
-                                let graphql_remaining =
-                                    buckets
-                                        .get(&ApiResource::Graphql)
-                                        .map_or(i64::MAX, |state| {
-                                            if now_epoch >= state.reset_at_epoch {
-                                                i64::MAX
-                                            } else {
-                                                state.remaining
-                                            }
-                                        });
-                                let core_remaining =
-                                    buckets.get(&ApiResource::Core).map_or(i64::MAX, |state| {
-                                        if now_epoch >= state.reset_at_epoch {
-                                            i64::MAX
-                                        } else {
-                                            state.remaining
-                                        }
-                                    });
-                                let _graphql_used = buckets
-                                    .get(&ApiResource::Graphql)
-                                    .and_then(|state| state.used)
-                                    .unwrap_or_default();
-                                let _core_used = buckets
-                                    .get(&ApiResource::Core)
-                                    .and_then(|state| state.used)
-                                    .unwrap_or_default();
-                                graphql_remaining >= THROTTLE_GRAPHQL_REMAINING
-                                    && core_remaining >= THROTTLE_CORE_REMAINING
+                                if throttled {
+                                    let event_snapshot = to_event_snapshot(&buckets);
+                                    emitter.emit_rate_limit_pressure(&account_id, &event_snapshot);
+                                    false
+                                } else {
+                                    true
+                                }
                             }
                         };
                         let _ = reply_tx.send(allow);
+                    }
+                    BudgetCommand::Snapshot { reply_tx } => {
+                        let _ = reply_tx.send(snapshot_from_buckets(&buckets));
                     }
                 }
             }
@@ -301,10 +307,23 @@ impl RateLimitBudgeter {
             .context("rate-limit budgeter channel closed")
     }
 
-    pub async fn allow(&self, priority: Priority) -> Result<bool> {
+    pub async fn allow(&self, account_id: &str, priority: Priority) -> Result<bool> {
         let (reply_tx, reply_rx) = oneshot::channel();
         self.command_tx
-            .send(BudgetCommand::Allow { priority, reply_tx })
+            .send(BudgetCommand::Allow {
+                account_id: account_id.to_string(),
+                priority,
+                reply_tx,
+            })
+            .await
+            .context("rate-limit budgeter channel closed")?;
+        reply_rx.await.context("rate-limit budgeter dropped reply")
+    }
+
+    pub async fn snapshot(&self) -> Result<Vec<(String, ApiResource, BudgetState)>> {
+        let (reply_tx, reply_rx) = oneshot::channel();
+        self.command_tx
+            .send(BudgetCommand::Snapshot { reply_tx })
             .await
             .context("rate-limit budgeter channel closed")?;
         reply_rx.await.context("rate-limit budgeter dropped reply")
@@ -312,10 +331,11 @@ impl RateLimitBudgeter {
 }
 
 #[derive(Debug, Clone)]
-struct BudgetState {
-    remaining: i64,
-    used: Option<i64>,
-    reset_at_epoch: i64,
+pub struct BudgetState {
+    pub remaining: i64,
+    pub used: Option<i64>,
+    pub limit_total: i64,
+    pub reset_at_epoch: i64,
 }
 
 enum BudgetCommand {
@@ -325,8 +345,12 @@ enum BudgetCommand {
         snapshot: crate::api::RateLimitSnapshot,
     },
     Allow {
+        account_id: String,
         priority: Priority,
         reply_tx: oneshot::Sender<bool>,
+    },
+    Snapshot {
+        reply_tx: oneshot::Sender<Vec<(String, ApiResource, BudgetState)>>,
     },
 }
 
@@ -367,6 +391,7 @@ impl SyncHandle {
 pub async fn start(
     actions: Arc<dyn TierActions>,
     rate_limit_budgeter: RateLimitBudgeter,
+    account_id: String,
 ) -> Result<SyncHandle> {
     let (focus_tx, focus_rx) = watch::channel(FocusState::Focused);
     let (foreground_tx, mut foreground_rx) = mpsc::channel::<Tier>(64);
@@ -380,6 +405,7 @@ pub async fn start(
         let mut shutdown_rx = shutdown_tx.subscribe();
         let refetch_tx = refetch_tx.clone();
         let rate_limit_budgeter = rate_limit_budgeter.clone();
+        let account_id = account_id.clone();
         join_handles.push(tokio::spawn(async move {
             let mut unfocused_since: Option<tokio::time::Instant> = None;
             loop {
@@ -399,7 +425,10 @@ pub async fn start(
                 };
                 tokio::select! {
                     _ = tokio::time::sleep(cadence) => {
-                        let allow = rate_limit_budgeter.allow(Priority::Background).await.unwrap_or(true);
+                        let allow = rate_limit_budgeter
+                            .allow(&account_id, Priority::Background)
+                            .await
+                            .unwrap_or(true);
                         if !allow {
                             continue;
                         }
@@ -437,6 +466,7 @@ pub async fn start(
 
     let actions_for_refetch = Arc::clone(&actions);
     let rate_limit_budgeter = rate_limit_budgeter.clone();
+    let account_id_for_refetch = account_id;
     let mut shutdown_rx = shutdown_tx.subscribe();
     join_handles.push(tokio::spawn(async move {
         loop {
@@ -451,7 +481,11 @@ pub async fn start(
                             dedup.push(target);
                         }
                     }
-                    while !rate_limit_budgeter.allow(Priority::Background).await.unwrap_or(true) {
+                    while !rate_limit_budgeter
+                        .allow(&account_id_for_refetch, Priority::Background)
+                        .await
+                        .unwrap_or(true)
+                    {
                         tokio::time::sleep(Duration::from_secs(5)).await;
                     }
                     let _ = actions_for_refetch.run_refetch(dedup, Priority::Background).await;
@@ -948,4 +982,56 @@ fn now_epoch_seconds() -> Result<i64> {
         .duration_since(std::time::UNIX_EPOCH)
         .context("system clock before unix epoch")?;
     i64::try_from(elapsed.as_secs()).context("unix timestamp exceeds i64")
+}
+
+fn snapshot_from_buckets(
+    buckets: &HashMap<(String, ApiResource), BudgetState>,
+) -> Vec<(String, ApiResource, BudgetState)> {
+    let mut entries = buckets
+        .iter()
+        .map(|((account_id, resource), state)| (account_id.clone(), *resource, state.clone()))
+        .collect::<Vec<_>>();
+    entries.sort_by(|left, right| {
+        left.0
+            .cmp(&right.0)
+            .then_with(|| left.1.as_str().cmp(right.1.as_str()))
+    });
+    entries
+}
+
+fn to_event_snapshot(
+    buckets: &HashMap<(String, ApiResource), BudgetState>,
+) -> Vec<RateLimitBudgetSnapshot> {
+    snapshot_from_buckets(buckets)
+        .into_iter()
+        .map(|(account_id, resource, state)| RateLimitBudgetSnapshot {
+            account_id,
+            resource: resource.as_str().to_string(),
+            remaining: state.remaining,
+            used: state.used,
+            limit_total: state.limit_total,
+            reset_at_epoch: state.reset_at_epoch,
+        })
+        .collect()
+}
+
+fn account_is_throttled(
+    buckets: &HashMap<(String, ApiResource), BudgetState>,
+    account_id: &str,
+) -> bool {
+    let now_epoch = now_epoch_seconds().unwrap_or_default();
+    let remaining_for = |resource: ApiResource| {
+        buckets
+            .get(&(account_id.to_string(), resource))
+            .map_or(i64::MAX, |state| {
+                if now_epoch >= state.reset_at_epoch {
+                    i64::MAX
+                } else {
+                    state.remaining
+                }
+            })
+    };
+    let graphql_remaining = remaining_for(ApiResource::Graphql);
+    let core_remaining = remaining_for(ApiResource::Core);
+    graphql_remaining < THROTTLE_GRAPHQL_REMAINING || core_remaining < THROTTLE_CORE_REMAINING
 }

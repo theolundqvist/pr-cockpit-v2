@@ -59,6 +59,44 @@ Decision:
 
 Reason: M3 needs deterministic local-notification behavior that aligns with post-reconcile state, avoids duplicate OS spam, and keeps renderer architecture/token-safety boundaries unchanged.
 
+### 2026-05-18: M4 multi-account budgeting/inbox/composer/meter contracts
+
+Decision:
+
+- `RateLimitBudgeter` state is keyed by `(account_id, ApiResource)` and
+  `allow(account_id, priority)` is the gate shape. This keeps throttling
+  account-scoped while preserving PLAN §2.2 foreground bypass semantics
+  (`Priority::Foreground` always proceeds).
+- Budget observability emits account-scoped events:
+  - `rate_limit_pressure:<account>` when background work is throttled,
+  - `rate_limit_bypass:<account>` when foreground work bypasses a low-budget
+    bucket.
+  Both payloads carry only account ids plus budget snapshots
+  (`account_id/resource/remaining/used/limit_total/reset_at_epoch`).
+- Inbox reads are multi-account aware by default (`list_inbox(None)`), with
+  `account_login` and `account_host` denormalized per row from SQL view data so
+  renderer badges do not require extra IPC calls.
+- Composer posting identity is an explicit contract:
+  UI selection threads through `SubmitPayload.posting_account_id`; mutation
+  engine validates the account exists and routes GitHub calls using that
+  account's token instead of the active-session account when provided.
+- Status bar rate-limit UI is standardized:
+  GraphQL + REST rows with Primer progress thresholds
+  (green > 50%, yellow > 20%, red <= 20%), stacked per account in "All
+  accounts" mode, plus short-lived pressure/bypass chips for operator context.
+- Host badge color policy is fixed for aggregated inbox rows:
+  `github.com` = blue, non-dotcom/GHE hosts = purple.
+
+Token-safety audit:
+
+- No token bytes were added to `rate_limit_buckets`, `account_rate_limits`, IPC
+  payloads, or Tauri events. New multi-account contracts carry account identity
+  and budget counters only; token material remains keychain-only.
+
+Reason: M4 multi-account UX requires account-scoped read/write paths so one
+account's low budget does not degrade another account, while preserving M2
+isolation (renderer stays IPC-only) and token fail-closed constraints.
+
 ## M2 contract decisions (promoted for M3+)
 
 These are the non-obvious M2 contracts that downstream milestones should treat

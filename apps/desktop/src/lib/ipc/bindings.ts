@@ -98,6 +98,8 @@ export const events = {
 	notificationsAccountIdChanged: makeEvent<NotificationsChangedEventPayload>("notifications:account:<id> changed"),
 	prIdChanged: makeEvent<PrChangedEventPayload>("pr:<id> changed"),
 	rateLimitAccountIdChanged: makeEvent<RateLimitChangedEventPayload>("rate_limit:account:<id> changed"),
+	rateLimitBypassAccount: makeEvent<RateLimitBypassEventPayload>("rate_limit_bypass:<account>"),
+	rateLimitPressureAccount: makeEvent<RateLimitPressureEventPayload>("rate_limit_pressure:<account>"),
 	syncAccountIdReconciled: makeEvent<SyncReconciledEventPayload>("sync:<account_id> reconciled"),
 	worktreeIdChanged: makeEvent<WorktreeChangedEventPayload>("worktree:<id> changed"),
 	worktreeDiscoveryCompleted: makeEvent<WorktreeDiscoveryCompletedEventPayload>("worktree:discovery completed"),
@@ -201,6 +203,8 @@ export type InboxChangedEventPayload = {
 
 export type InboxItem = {
 	account_id: string,
+	account_login: string,
+	account_host: string,
 	pr_id: string,
 	repo_id: string,
 	repo_owner: string,
@@ -221,7 +225,7 @@ export type InboxItem = {
 };
 
 export type InboxListInput = {
-	account_id: string,
+	account_id_filter: string | null,
 };
 
 export type InitInboxResponse = {
@@ -522,13 +526,33 @@ export type RateLimitBucket = {
 	account_id: string,
 	resource: string,
 	remaining: number,
+	used: number | null,
 	limit_total: number,
 	reset_at: number,
 	updated_at: number,
 };
 
+export type RateLimitBudgetSnapshot = {
+	account_id: string,
+	resource: string,
+	remaining: number,
+	used: number | null,
+	limit_total: number,
+	reset_at_epoch: number,
+};
+
+export type RateLimitBypassEventPayload = {
+	account_id: string,
+	snapshot: RateLimitBudgetSnapshot[],
+};
+
 export type RateLimitChangedEventPayload = {
 	account_id: string,
+};
+
+export type RateLimitPressureEventPayload = {
+	account_id: string,
+	snapshot: RateLimitBudgetSnapshot[],
 };
 
 export type RediscoverSummary = {
@@ -633,7 +657,7 @@ export type SyncTierSnapshot = {
 };
 
 export type SystemStatusInput = {
-	account_id: string,
+	account_id_filter: string | null,
 };
 
 export type SystemStatusResponse = {

@@ -52,6 +52,7 @@ async fn review_comment_happy_path_line_multiline_and_reply_match_snapshot() -> 
                     "local_id": "local-review-comment-line",
                     "local_thread_id": "local-review-thread-line"
                 }),
+                posting_account_id: None,
             },
         )
         .await?;
@@ -84,6 +85,7 @@ async fn review_comment_happy_path_line_multiline_and_reply_match_snapshot() -> 
                     "local_id": "local-review-comment-range",
                     "local_thread_id": "local-review-thread-range"
                 }),
+                posting_account_id: None,
             },
         )
         .await?;
@@ -114,6 +116,7 @@ async fn review_comment_happy_path_line_multiline_and_reply_match_snapshot() -> 
                     "in_reply_to_id": "comment-existing",
                     "local_id": "local-review-comment-reply"
                 }),
+                posting_account_id: None,
             },
         )
         .await?;
@@ -220,6 +223,7 @@ async fn review_comment_422_rolls_back_and_marks_failed_mutation() -> Result<()>
                     "local_id": "local-review-comment-fail",
                     "local_thread_id": "local-review-thread-fail"
                 }),
+                posting_account_id: None,
             },
         )
         .await?;

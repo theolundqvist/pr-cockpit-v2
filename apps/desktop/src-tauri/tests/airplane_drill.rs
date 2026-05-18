@@ -371,6 +371,7 @@ fn submit_payload(
         target_id: pr_id.to_string(),
         idempotency_key: format!("airplane-{}-{idempotency_suffix}", kind.as_str()),
         input_json: serde_json::Value::Object(input),
+        posting_account_id: None,
     }
 }
 

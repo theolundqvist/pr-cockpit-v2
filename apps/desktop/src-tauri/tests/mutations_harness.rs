@@ -620,6 +620,7 @@ pub fn payload_for_kind(kind: MutationKind, suffix: &str) -> SubmitPayload {
         target_id: PR_ID.to_string(),
         idempotency_key: format!("idem-{}-{suffix}", kind.as_str()),
         input_json: serde_json::Value::Object(base),
+        posting_account_id: None,
     }
 }
 

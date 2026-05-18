@@ -5,6 +5,8 @@ import type { InboxItem, WorktreeView } from '$lib/ipc/bindings';
 
 const row: InboxItem = {
   account_id: 'github.com:fixture-user',
+  account_login: 'fixture-user',
+  account_host: 'github.com',
   pr_id: 'pr_1',
   repo_id: 'repo_1',
   repo_owner: 'fixture-org',

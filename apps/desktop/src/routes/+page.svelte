@@ -8,14 +8,17 @@
   import { prDetailPreload } from '$lib/data/pr-detail';
   import {
     activeAccountIdStore,
+    inboxAccountFilterStore,
     inboxStore,
     refreshAccountData,
+    selectAccountById,
     worktreesStore
   } from '$lib/state/cockpit';
 
   let selectedIndex = 0;
 
   $: rows = $inboxStore;
+  $: showAccountBadge = $inboxAccountFilterStore === null;
   $: worktreesByPr = indexWorktreesByPr($worktreesStore);
   $: if (selectedIndex > Math.max(0, rows.length - 1)) {
     selectedIndex = Math.max(0, rows.length - 1);
@@ -23,23 +26,26 @@
 
   onMount(async () => {
     if ($activeAccountIdStore && rows.length === 0) {
-      await refreshAccountData($activeAccountIdStore);
+      await refreshAccountData();
     }
   });
 
-  async function preloadRow(prId: string): Promise<void> {
-    if (!$activeAccountIdStore) {
+  async function preloadRow(prId: string, accountId: string): Promise<void> {
+    if (!accountId) {
       return;
     }
-    await prDetailPreload($activeAccountIdStore, prId);
+    await prDetailPreload(accountId, prId);
   }
 
   async function openSelected(index: number): Promise<void> {
     const row = rows[index];
-    if (!row || !$activeAccountIdStore) {
+    if (!row) {
       return;
     }
-    await preloadRow(row.pr_id);
+    if ($activeAccountIdStore !== row.account_id) {
+      await selectAccountById(row.account_id);
+    }
+    await preloadRow(row.pr_id, row.account_id);
     await goto(`/pr/${row.pr_id}`);
   }
 
@@ -105,7 +111,7 @@
           </div>
           <p class="color-fg-muted mb-2">No pull requests synced yet.</p>
           <p class="f6 color-fg-subtle mb-3">Connect subscriptions or wait for sync.</p>
-          <button class="btn" type="button" on:click={() => $activeAccountIdStore && refreshAccountData($activeAccountIdStore)}>
+          <button class="btn" type="button" on:click={() => refreshAccountData()}>
             Refresh inbox
           </button>
         </div>
@@ -116,8 +122,10 @@
               item={row}
               worktree={worktreesByPr.get(row.pr_id) ?? null}
               selected={index === selectedIndex}
-              onPreload={() => preloadRow(row.pr_id)}
+              showAccountBadge={showAccountBadge}
+              onPreload={() => preloadRow(row.pr_id, row.account_id)}
               onOpen={() => openSelected(index)}
+              onSelectAccount={(accountId) => void selectAccountById(accountId)}
             />
           {/each}
         </ul>

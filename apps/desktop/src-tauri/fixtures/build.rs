@@ -280,6 +280,7 @@ async fn seed_fixture(db: &Db) -> Result<()> {
         account_id: ACCOUNT_ID.to_string(),
         resource: "graphql".to_string(),
         remaining: 4_800,
+        used: Some(200),
         limit_total: 5_000,
         reset_at: base_ts + 3_600,
         updated_at: base_ts + 200,

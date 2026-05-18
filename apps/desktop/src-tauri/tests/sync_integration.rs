@@ -93,11 +93,17 @@ async fn tiered_scheduler_honors_focus_pause_and_foreground_bypass() -> Result<(
         .await?;
     tokio::task::yield_now().await;
     assert!(
-        !harness.budgeter.allow(Priority::Background).await?,
+        !harness
+            .budgeter
+            .allow(&harness.account_id, Priority::Background)
+            .await?,
         "background lane should be throttled under budget thresholds"
     );
     assert!(
-        harness.budgeter.allow(Priority::Foreground).await?,
+        harness
+            .budgeter
+            .allow(&harness.account_id, Priority::Foreground)
+            .await?,
         "foreground lane should bypass back-pressure"
     );
     Ok(())
@@ -134,8 +140,16 @@ async fn rate_limit_budgeter_throttles_background_only() -> Result<()> {
         )
         .await?;
 
-    assert!(!budgeter.allow(Priority::Background).await?);
-    assert!(budgeter.allow(Priority::Foreground).await?);
+    assert!(
+        !budgeter
+            .allow(&harness.account_id, Priority::Background)
+            .await?
+    );
+    assert!(
+        budgeter
+            .allow(&harness.account_id, Priority::Foreground)
+            .await?
+    );
 
     budgeter
         .record(
@@ -161,8 +175,16 @@ async fn rate_limit_budgeter_throttles_background_only() -> Result<()> {
             },
         )
         .await?;
-    assert!(!budgeter.allow(Priority::Background).await?);
-    assert!(budgeter.allow(Priority::Foreground).await?);
+    assert!(
+        !budgeter
+            .allow(&harness.account_id, Priority::Background)
+            .await?
+    );
+    assert!(
+        budgeter
+            .allow(&harness.account_id, Priority::Foreground)
+            .await?
+    );
 
     budgeter
         .record(
@@ -176,7 +198,11 @@ async fn rate_limit_budgeter_throttles_background_only() -> Result<()> {
             },
         )
         .await?;
-    assert!(budgeter.allow(Priority::Background).await?);
+    assert!(
+        budgeter
+            .allow(&harness.account_id, Priority::Background)
+            .await?
+    );
 
     let graphql_bucket = harness
         .db
@@ -292,6 +318,7 @@ async fn etag_304_round_trip_avoids_counter_decrement_and_db_writes() -> Result<
                     account_id: harness.account_id.clone(),
                     resource: "core".to_string(),
                     remaining: snapshot.remaining,
+                    used: snapshot.used,
                     limit_total: snapshot.limit_total,
                     reset_at: snapshot.reset_at_epoch,
                     updated_at: 1,

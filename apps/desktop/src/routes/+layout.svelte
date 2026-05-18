@@ -5,12 +5,15 @@
   import { get } from 'svelte/store';
 
   import { listenEvent, listenEventPayload, listNotificationEvents, toAccountId } from '$lib/ipc/client';
-  import type { NotificationEventPayload } from '$lib/ipc/bindings';
+  import type { NotificationEventPayload, RateLimitChangedEventPayload } from '$lib/ipc/bindings';
+  import AccountSwitcher from '$lib/components/account/AccountSwitcher.svelte';
+  import RateLimitMeter from '$lib/components/status/RateLimitMeter.svelte';
   import WorktreeRoots from '$lib/components/worktree/WorktreeRoots.svelte';
   import {
     activeAccountIdStore,
     accountsStore,
     focusModeStore,
+    inboxAccountFilterStore,
     initializeCockpit,
     refreshAccountData,
     repoSubscriptionsStore,
@@ -27,7 +30,6 @@
   let unlistenNotification: (() => void) | null = null;
   let notificationIndicatorCount = 0;
 
-  $: activeRateLimit = $statusStore?.rate_limits[0] ?? null;
   $: selectedAccount = $accountsStore.find((account) => toAccountId(account) === $activeAccountIdStore) ?? null;
 
   onMount(async () => {
@@ -49,15 +51,14 @@
   async function subscribeRateLimit(): Promise<void> {
     unlistenRateLimit?.();
     unlistenWorktreeDiscovery?.();
-    const activeId = get(activeAccountIdStore);
-    if (!activeId) {
-      return;
-    }
-    unlistenRateLimit = await listenEvent(`rate_limit:account:${activeId} changed`, async () => {
-      await refreshAccountData(activeId);
-    });
+    unlistenRateLimit = await listenEventPayload<RateLimitChangedEventPayload>(
+      'rate_limit:account:<id> changed',
+      async () => {
+        await refreshAccountData();
+      }
+    );
     unlistenWorktreeDiscovery = await listenEvent('worktree:discovery completed', async () => {
-      await refreshAccountData(activeId);
+      await refreshAccountData();
     });
   }
 
@@ -85,8 +86,7 @@
     );
   }
 
-  async function onAccountChange(event: Event): Promise<void> {
-    const nextAccountId = (event.currentTarget as HTMLSelectElement).value;
+  async function onAccountSelect(nextAccountId: string | null): Promise<void> {
     await selectAccountById(nextAccountId);
     await subscribeRateLimit();
     await refreshNotificationIndicator();
@@ -105,19 +105,18 @@
     </div>
 
     <div class="p-3 border-bottom color-border-muted">
-      <label class="f6 text-bold mb-1 d-block" for="account-switcher">Account</label>
-      <select
-        id="account-switcher"
-        class="form-select width-full"
-        value={$activeAccountIdStore ?? ''}
-        on:change={onAccountChange}
-      >
-        {#each $accountsStore as account}
-          <option value={toAccountId(account)}>
-            {account.login} · {account.host}
-          </option>
-        {/each}
-      </select>
+      <div class="f6 text-bold mb-1 d-block">Account</div>
+      <AccountSwitcher
+        accounts={$accountsStore}
+        activeAccountId={$activeAccountIdStore}
+        selectedAccountFilter={$inboxAccountFilterStore}
+        onSelect={onAccountSelect}
+      />
+      {#if selectedAccount}
+        <p class="f6 color-fg-muted mt-2 mb-0" data-testid="posting-identity-indicator">
+          Posting as @{selectedAccount.login}
+        </p>
+      {/if}
     </div>
 
     <div class="p-3 flex-auto overflow-auto">
@@ -153,22 +152,6 @@
 
     <WorktreeRoots />
 
-    <div class="p-3 border-top color-border-muted">
-      <div class="f6 text-bold mb-1">Rate limit</div>
-      {#if activeRateLimit}
-        <div class="Progress mb-1" aria-label="Rate limit budget">
-          <span
-            class="Progress-item color-bg-success-emphasis"
-            style={`width: ${(activeRateLimit.remaining / Math.max(1, activeRateLimit.limit_total)) * 100}%`}
-          ></span>
-        </div>
-        <div class="f6 color-fg-muted">
-          {activeRateLimit.remaining}/{activeRateLimit.limit_total} {activeRateLimit.resource}
-        </div>
-      {:else}
-        <div class="f6 color-fg-muted">No budget data</div>
-      {/if}
-    </div>
   </aside>
 
   <section class="cockpit-main">
@@ -201,5 +184,13 @@
         </div>
       {/if}
     </main>
+    <footer class="cockpit-statusbar border-top color-border-muted px-3 py-2">
+      <RateLimitMeter
+        rateLimits={$statusStore?.rate_limits ?? []}
+        accounts={$accountsStore}
+        activeAccountId={$activeAccountIdStore}
+        selectedAccountFilter={$inboxAccountFilterStore}
+      />
+    </footer>
   </section>
 </div>

@@ -10,6 +10,7 @@ pub struct SubmitPayload {
     pub target_id: String,
     pub idempotency_key: String,
     pub input_json: serde_json::Value,
+    pub posting_account_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]

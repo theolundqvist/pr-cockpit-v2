@@ -150,6 +150,23 @@ impl MutationEngine {
         account_id: &str,
         payload: SubmitPayload,
     ) -> Result<SubmittedMutation> {
+        let submit_account_id = payload
+            .posting_account_id
+            .as_deref()
+            .unwrap_or(account_id)
+            .to_string();
+        if let Some(posting_account_id) = payload.posting_account_id.as_deref() {
+            let account_exists = self
+                .db
+                .auth_account_by_id(posting_account_id)
+                .await?
+                .is_some();
+            if !account_exists {
+                return Err(anyhow!(
+                    "posting account `{posting_account_id}` is not configured"
+                ));
+            }
+        }
         if let Some(existing) = self
             .lookup_by_idempotency_key(&payload.idempotency_key)
             .await?
@@ -176,7 +193,7 @@ impl MutationEngine {
             )
         })?;
 
-        let mutation_id = new_mutation_id(account_id, &payload.idempotency_key);
+        let mutation_id = new_mutation_id(&submit_account_id, &payload.idempotency_key);
         let optimism = handler.optimism();
         let is_offline = self.is_offline();
         let mut predicted = if optimism == OptimismLevel::None {
@@ -191,7 +208,7 @@ impl MutationEngine {
                 db: &self.db,
                 github: &self.github,
                 blob_store: self.db.blob_store(),
-                account_id,
+                account_id: &submit_account_id,
                 mutation_id: mutation_id.as_str(),
                 idempotency_key: payload.idempotency_key.as_str(),
                 input_json: &payload.input_json,
@@ -215,7 +232,7 @@ impl MutationEngine {
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'pending', 0, ?10, ?10, NULL, ?11, ?12, 0)",
         )
         .bind(&mutation_id)
-        .bind(account_id)
+        .bind(&submit_account_id)
         .bind(payload.kind.as_str())
         .bind(&payload.target_type)
         .bind(&payload.target_id)
@@ -244,7 +261,7 @@ impl MutationEngine {
 
         let view = PendingMutationView {
             id: mutation_id.clone(),
-            account_id: account_id.to_string(),
+            account_id: submit_account_id,
             kind: payload.kind,
             optimism,
             target_type: payload.target_type,

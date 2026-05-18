@@ -15,9 +15,11 @@ import {
   type MutationHardConflictEventPayload,
   type MutationKind,
   type NetState,
+  type RateLimitBucket,
   type PendingMutationView,
   type PrDetailSummary,
   type SubmittedMutation,
+  type SystemStatusResponse,
   type CleanupError,
   type WorktreeView,
   type CleanupOutcome,
@@ -66,6 +68,15 @@ const mockNotificationSettings = new Map<
   }
 >();
 const mockNotificationInvocations: Array<{ command: string; payload: unknown }> = [];
+const mockMutationInvocations: Array<{
+  account_id: string;
+  kind: MutationKind;
+  payload: Record<string, unknown>;
+}> = [];
+const mockRateLimitOverrides = new Map<
+  string,
+  Map<string, { remaining: number; limit_total: number; used?: number; reset_at: number }>
+>();
 
 const cautiousKinds = new Set<MutationKind>([
   'submit_review',
@@ -309,9 +320,9 @@ export async function switchAccount(account: AccountLocator): Promise<AuthAccoun
   return { ...matched, is_active: true };
 }
 
-export async function listInbox(accountId: string) {
+export async function listInbox(accountId: string | null) {
   if (isTauriRuntime()) {
-    return unwrap(commands.ipcInboxList({ account_id: accountId }));
+    return unwrap(commands.ipcInboxList({ account_id_filter: accountId }));
   }
   return mockInboxForAccount(accountId);
 }
@@ -323,11 +334,45 @@ export async function listRepoSubscriptions(accountId: string) {
   return MOCK_SUBSCRIPTIONS.filter((subscription) => subscription.account_id === accountId);
 }
 
-export async function getSystemStatus(accountId: string) {
+function applyMockRateLimitOverrides(status: SystemStatusResponse): SystemStatusResponse {
+  const nextRateLimits: RateLimitBucket[] = status.rate_limits.map((bucket) => {
+    const override = mockRateLimitOverrides.get(bucket.account_id)?.get(bucket.resource);
+    if (!override) {
+      return bucket;
+    }
+    return {
+      ...bucket,
+      remaining: override.remaining,
+      used: override.used ?? Math.max(0, override.limit_total - override.remaining),
+      limit_total: override.limit_total,
+      reset_at: override.reset_at
+    };
+  });
+  return { ...status, rate_limits: nextRateLimits };
+}
+
+function setMockRateLimit(
+  accountId: string,
+  resource: string,
+  remaining: number,
+  limitTotal: number,
+  resetAt: number = nowEpoch() + 3600
+): void {
+  const byResource = mockRateLimitOverrides.get(accountId) ?? new Map();
+  byResource.set(resource, {
+    remaining,
+    limit_total: limitTotal,
+    used: Math.max(0, limitTotal - remaining),
+    reset_at: resetAt
+  });
+  mockRateLimitOverrides.set(accountId, byResource);
+}
+
+export async function getSystemStatus(accountId: string | null) {
   if (isTauriRuntime()) {
-    return unwrap(commands.ipcSystemStatus({ account_id: accountId }));
+    return unwrap(commands.ipcSystemStatus({ account_id_filter: accountId }));
   }
-  return mockStatus(accountId);
+  return applyMockRateLimitOverrides(mockStatus(accountId));
 }
 
 export async function getPrSummary(
@@ -648,6 +693,11 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
   }
 
   const parsed = JSON.parse(payloadJson) as Record<string, unknown>;
+  mockMutationInvocations.push({
+    account_id: accountId,
+    kind,
+    payload: parsed
+  });
   const mutationId = `mock-mutation-${++mockMutationSeq}`;
   const createdAt = nowEpoch();
   const optimism = optimismForKind(kind);
@@ -678,6 +728,36 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
     optimism_level: optimism,
     projected_changes: [kind, ...Object.keys(parsed).slice(0, 2)]
   };
+}
+
+function toRateLimitEventSnapshot() {
+  const status = applyMockRateLimitOverrides(mockStatus(null));
+  return status.rate_limits.map((bucket) => ({
+    account_id: bucket.account_id,
+    resource: bucket.resource,
+    remaining: bucket.remaining,
+    used: bucket.used ?? Math.max(0, bucket.limit_total - bucket.remaining),
+    limit_total: bucket.limit_total,
+    reset_at_epoch: bucket.reset_at
+  }));
+}
+
+export async function emitMockRateLimitPressure(accountId: string): Promise<void> {
+  const payload = {
+    account_id: accountId,
+    snapshot: toRateLimitEventSnapshot()
+  };
+  await emitMockEvent(`rate_limit_pressure:${accountId}`, payload);
+  await emitMockEvent('rate_limit_pressure:<account>', payload);
+}
+
+export async function emitMockRateLimitBypass(accountId: string): Promise<void> {
+  const payload = {
+    account_id: accountId,
+    snapshot: toRateLimitEventSnapshot()
+  };
+  await emitMockEvent(`rate_limit_bypass:${accountId}`, payload);
+  await emitMockEvent('rate_limit_bypass:<account>', payload);
 }
 
 export async function submitReviewComment(
@@ -881,6 +961,23 @@ declare global {
         }
       ) => Promise<NotificationEventPayload | null>;
     };
+    __M4_MULTI_ACCOUNT_DEBUG__?: {
+      mutationInvocations: () => Array<{
+        account_id: string;
+        kind: MutationKind;
+        payload: Record<string, unknown>;
+      }>;
+      clearMutationInvocations: () => void;
+      setRateLimit: (
+        accountId: string,
+        resource: string,
+        remaining: number,
+        limitTotal: number,
+        resetAt?: number
+      ) => void;
+      emitRateLimitPressure: (accountId: string) => Promise<void>;
+      emitRateLimitBypass: (accountId: string) => Promise<void>;
+    };
   }
 }
 
@@ -903,5 +1000,19 @@ if (typeof window !== 'undefined' && !window.__NOTIF_DEBUG__) {
       mockNotificationInvocations.splice(0, mockNotificationInvocations.length);
     },
     simulateEvent: (accountId, payload) => notifDebugSimulateEvent(accountId, payload)
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M4_MULTI_ACCOUNT_DEBUG__) {
+  window.__M4_MULTI_ACCOUNT_DEBUG__ = {
+    mutationInvocations: () => [...mockMutationInvocations],
+    clearMutationInvocations: () => {
+      mockMutationInvocations.splice(0, mockMutationInvocations.length);
+    },
+    setRateLimit: (accountId, resource, remaining, limitTotal, resetAt) => {
+      setMockRateLimit(accountId, resource, remaining, limitTotal, resetAt);
+    },
+    emitRateLimitPressure: (accountId) => emitMockRateLimitPressure(accountId),
+    emitRateLimitBypass: (accountId) => emitMockRateLimitBypass(accountId)
   };
 }

@@ -31,7 +31,9 @@ use crate::notify::{
     self, dedup, rules, DebugNotificationInput, NotificationEngine, NotificationEventPayload,
 };
 use crate::render::{self, diff::BinaryDetection, RenderCtx};
-use crate::sync::{CacheInvalidationEmitter, SyncSystemSnapshot, SyncTierStateStore};
+use crate::sync::{
+    CacheInvalidationEmitter, RateLimitBudgetSnapshot, SyncSystemSnapshot, SyncTierStateStore,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct IpcError {
@@ -79,12 +81,14 @@ pub struct AccountSwitchInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct InboxListInput {
-    pub account_id: String,
+    pub account_id_filter: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct InboxItem {
     pub account_id: String,
+    pub account_login: String,
+    pub account_host: String,
     pub pr_id: String,
     pub repo_id: String,
     pub repo_owner: String,
@@ -326,7 +330,7 @@ pub struct NotificationItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct SystemStatusInput {
-    pub account_id: String,
+    pub account_id_filter: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
@@ -334,6 +338,7 @@ pub struct RateLimitBucket {
     pub account_id: String,
     pub resource: String,
     pub remaining: i64,
+    pub used: Option<i64>,
     pub limit_total: i64,
     pub reset_at: i64,
     pub updated_at: i64,
@@ -524,6 +529,26 @@ impl tauri_specta::Event for RateLimitChangedEventPayload {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RateLimitPressureEventPayload {
+    pub account_id: String,
+    pub snapshot: Vec<RateLimitBudgetSnapshot>,
+}
+
+impl tauri_specta::Event for RateLimitPressureEventPayload {
+    const NAME: &'static str = "rate_limit_pressure:<account>";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct RateLimitBypassEventPayload {
+    pub account_id: String,
+    pub snapshot: Vec<RateLimitBudgetSnapshot>,
+}
+
+impl tauri_specta::Event for RateLimitBypassEventPayload {
+    const NAME: &'static str = "rate_limit_bypass:<account>";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
 pub struct NotificationsChangedEventPayload {
     pub account_id: String,
 }
@@ -622,6 +647,8 @@ fn account_id_from_locator(locator: &AccountLocator) -> String {
 fn map_inbox_row(row: InboxRow) -> InboxItem {
     InboxItem {
         account_id: row.account_id,
+        account_login: row.account_login,
+        account_host: row.account_host,
         pr_id: row.pr_id,
         repo_id: row.repo_id,
         repo_owner: row.repo_owner,
@@ -919,6 +946,7 @@ fn map_rate_limit_bucket(row: RateLimitBucketRow) -> RateLimitBucket {
         account_id: row.account_id,
         resource: row.resource,
         remaining: row.remaining,
+        used: row.used,
         limit_total: row.limit_total,
         reset_at: row.reset_at,
         updated_at: row.updated_at,
@@ -935,6 +963,14 @@ pub fn inbox_changed_event_name(account_id: &str) -> String {
 
 pub fn rate_limit_changed_event_name(account_id: &str) -> String {
     format!("rate_limit:account:{account_id} changed")
+}
+
+pub fn rate_limit_pressure_event_name(account_id: &str) -> String {
+    format!("rate_limit_pressure:{account_id}")
+}
+
+pub fn rate_limit_bypass_event_name(account_id: &str) -> String {
+    format!("rate_limit_bypass:{account_id}")
 }
 
 pub fn notifications_changed_event_name(account_id: &str) -> String {
@@ -1173,6 +1209,34 @@ impl<R: tauri::Runtime> CacheInvalidationEmitter for TauriCacheInvalidationEmitt
         );
     }
 
+    fn emit_rate_limit_pressure(&self, account_id: &str, snapshot: &[RateLimitBudgetSnapshot]) {
+        let payload = RateLimitPressureEventPayload {
+            account_id: account_id.to_string(),
+            snapshot: snapshot.to_vec(),
+        };
+        let _ = self
+            .app
+            .emit(&rate_limit_pressure_event_name(account_id), payload.clone());
+        let _ = self.app.emit(
+            <RateLimitPressureEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    fn emit_rate_limit_bypass(&self, account_id: &str, snapshot: &[RateLimitBudgetSnapshot]) {
+        let payload = RateLimitBypassEventPayload {
+            account_id: account_id.to_string(),
+            snapshot: snapshot.to_vec(),
+        };
+        let _ = self
+            .app
+            .emit(&rate_limit_bypass_event_name(account_id), payload.clone());
+        let _ = self.app.emit(
+            <RateLimitBypassEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
     fn emit_notifications_changed(&self, account_id: &str) {
         let payload = NotificationsChangedEventPayload {
             account_id: account_id.to_string(),
@@ -1236,7 +1300,7 @@ pub async fn ipc_inbox_list_impl(
     input: InboxListInput,
 ) -> Result<Vec<InboxItem>, IpcError> {
     let rows = db
-        .list_inbox(&input.account_id)
+        .list_inbox_all_accounts(input.account_id_filter.as_deref())
         .await
         .map_err(IpcError::db)?;
     Ok(rows.into_iter().map(map_inbox_row).collect())
@@ -1485,7 +1549,7 @@ pub async fn ipc_system_status_impl(
     input: SystemStatusInput,
 ) -> Result<SystemStatusResponse, IpcError> {
     let rate_limits = db
-        .rate_limit_buckets_for_account(&input.account_id)
+        .rate_limit_buckets(input.account_id_filter.as_deref())
         .await
         .map_err(IpcError::db)?
         .into_iter()
@@ -1579,7 +1643,7 @@ pub async fn ipc_init_inbox_impl(
         let inbox = ipc_inbox_list_impl(
             db,
             InboxListInput {
-                account_id: account_id.clone(),
+                account_id_filter: Some(account_id.clone()),
             },
         )
         .await?;
@@ -1588,7 +1652,7 @@ pub async fn ipc_init_inbox_impl(
                 db,
                 sync,
                 SystemStatusInput {
-                    account_id: account_id.clone(),
+                    account_id_filter: Some(account_id.clone()),
                 },
             )
             .await?,
@@ -1659,11 +1723,15 @@ pub async fn submit_mutation_impl(
     kind: MutationKind,
     payload_json: String,
 ) -> Result<SubmittedMutation, IpcError> {
-    let payload_value: serde_json::Value =
+    let mut payload_value: serde_json::Value =
         serde_json::from_str(&payload_json).map_err(|error| IpcError {
             code: "InvalidMutationPayload".to_string(),
             message: error.to_string(),
         })?;
+    let posting_account_id = payload_value
+        .as_object_mut()
+        .and_then(|payload| payload.remove("posting_account_id"))
+        .and_then(|value| value.as_str().map(ToString::to_string));
     engine
         .submit(
             &account_id,
@@ -1673,6 +1741,7 @@ pub async fn submit_mutation_impl(
                 target_id: derive_target_id(&payload_value),
                 idempotency_key: derive_idempotency_key(kind, &payload_value),
                 input_json: payload_value,
+                posting_account_id,
             },
         )
         .await
@@ -2349,6 +2418,8 @@ pub fn specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             PrChangedEventPayload,
             InboxChangedEventPayload,
             RateLimitChangedEventPayload,
+            RateLimitPressureEventPayload,
+            RateLimitBypassEventPayload,
             NotificationsChangedEventPayload,
             SyncReconciledEventPayload,
             NetworkChangedEventPayload,

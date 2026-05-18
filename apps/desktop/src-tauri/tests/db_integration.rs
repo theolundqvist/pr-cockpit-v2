@@ -62,6 +62,7 @@ async fn migrations_apply_cleanly_to_empty_file() -> Result<()> {
         "pr_detail_summary",
         "unread_counts",
         "file_tree_summary",
+        "account_rate_limits",
     ];
     for view in required_views {
         let count: i64 = sqlx::query_scalar(
@@ -82,9 +83,11 @@ async fn read_models_match_hand_rolled_selects_on_fixture() -> Result<()> {
 
     assert_query_sets_equal(
         db.pool(),
-        "SELECT account_id, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state, draft, head_sha, base_sha, mergeable_state, merge_state_status, updated_at, author_login, unread_notification_count, latest_notification_at FROM pr_inbox_rows WHERE account_id = ?1",
+        "SELECT account_id, account_login, account_host, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state, draft, head_sha, base_sha, mergeable_state, merge_state_status, updated_at, author_login, unread_notification_count, latest_notification_at FROM pr_inbox_rows WHERE account_id = ?1",
         "SELECT
             pr.account_id,
+            acc.login AS account_login,
+            acc.host AS account_host,
             pr.id AS pr_id,
             pr.repo_id,
             r.owner AS repo_owner,
@@ -103,6 +106,7 @@ async fn read_models_match_hand_rolled_selects_on_fixture() -> Result<()> {
             (SELECT MAX(updated_at) FROM notifications n WHERE n.account_id = pr.account_id AND n.pr_id = pr.id AND n.unread = 1) AS latest_notification_at
          FROM pull_requests pr
          JOIN repos r ON r.id = pr.repo_id
+         JOIN accounts acc ON acc.id = pr.account_id
          LEFT JOIN users u ON u.id = pr.author_id
          WHERE pr.state = 'open' AND pr.account_id = ?1",
         ACCOUNT_ID,

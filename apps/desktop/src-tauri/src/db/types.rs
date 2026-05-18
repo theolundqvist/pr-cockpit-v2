@@ -29,6 +29,8 @@ impl BlobKind {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InboxRow {
     pub account_id: String,
+    pub account_login: String,
+    pub account_host: String,
     pub pr_id: String,
     pub repo_id: String,
     pub repo_owner: String,
@@ -718,6 +720,7 @@ pub struct RateLimitBucketUpdate {
     pub account_id: String,
     pub resource: String,
     pub remaining: i64,
+    pub used: Option<i64>,
     pub limit_total: i64,
     pub reset_at: i64,
     pub updated_at: i64,
@@ -728,6 +731,7 @@ pub struct RateLimitBucketRow {
     pub account_id: String,
     pub resource: String,
     pub remaining: i64,
+    pub used: Option<i64>,
     pub limit_total: i64,
     pub reset_at: i64,
     pub updated_at: i64,

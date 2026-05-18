@@ -80,7 +80,7 @@ impl Db {
 
     pub async fn list_inbox(&self, account_id: &str) -> Result<Vec<InboxRow>> {
         let rows = sqlx::query(
-            "SELECT account_id, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state,
+            "SELECT account_id, account_login, account_host, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state,
                     draft, head_sha, base_sha, mergeable_state, merge_state_status, updated_at,
                     author_login, unread_notification_count, latest_notification_at, pending_overlay
              FROM pr_inbox_rows
@@ -94,6 +94,51 @@ impl Db {
             .map(|row| {
                 Ok(InboxRow {
                     account_id: row.try_get("account_id")?,
+                    account_login: row.try_get("account_login")?,
+                    account_host: row.try_get("account_host")?,
+                    pr_id: row.try_get("pr_id")?,
+                    repo_id: row.try_get("repo_id")?,
+                    repo_owner: row.try_get("repo_owner")?,
+                    repo_name: row.try_get("repo_name")?,
+                    pr_number: row.try_get("pr_number")?,
+                    title: row.try_get("title")?,
+                    state: row.try_get("state")?,
+                    draft: row.try_get("draft")?,
+                    head_sha: row.try_get("head_sha")?,
+                    base_sha: row.try_get("base_sha")?,
+                    mergeable_state: row.try_get("mergeable_state")?,
+                    merge_state_status: row.try_get("merge_state_status")?,
+                    updated_at: row.try_get("updated_at")?,
+                    author_login: row.try_get("author_login")?,
+                    unread_notification_count: row.try_get("unread_notification_count")?,
+                    latest_notification_at: row.try_get("latest_notification_at")?,
+                    pending_overlay: parse_pending_overlay(row.try_get("pending_overlay")?)?,
+                })
+            })
+            .collect()
+    }
+
+    pub async fn list_inbox_all_accounts(
+        &self,
+        account_id_filter: Option<&str>,
+    ) -> Result<Vec<InboxRow>> {
+        let rows = sqlx::query(
+            "SELECT account_id, account_login, account_host, pr_id, repo_id, repo_owner, repo_name, pr_number, title, state,
+                    draft, head_sha, base_sha, mergeable_state, merge_state_status, updated_at,
+                    author_login, unread_notification_count, latest_notification_at, pending_overlay
+             FROM pr_inbox_rows
+             WHERE (?1 IS NULL OR account_id = ?1)
+             ORDER BY updated_at DESC, pr_id DESC",
+        )
+        .bind(account_id_filter)
+        .fetch_all(&self.pool)
+        .await?;
+        rows.into_iter()
+            .map(|row| {
+                Ok(InboxRow {
+                    account_id: row.try_get("account_id")?,
+                    account_login: row.try_get("account_login")?,
+                    account_host: row.try_get("account_host")?,
                     pr_id: row.try_get("pr_id")?,
                     repo_id: row.try_get("repo_id")?,
                     repo_owner: row.try_get("repo_owner")?,
@@ -705,12 +750,28 @@ impl Db {
         account_id: &str,
     ) -> Result<Vec<RateLimitBucketRow>> {
         let rows = sqlx::query_as::<_, RateLimitBucketRow>(
-            "SELECT account_id, resource, remaining, limit_total, reset_at, updated_at
-             FROM rate_limit_buckets
+            "SELECT account_id, resource, remaining, used, limit_total, reset_at, updated_at
+             FROM account_rate_limits
              WHERE account_id = ?1
              ORDER BY resource ASC",
         )
         .bind(account_id)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(rows)
+    }
+
+    pub async fn rate_limit_buckets(
+        &self,
+        account_id_filter: Option<&str>,
+    ) -> Result<Vec<RateLimitBucketRow>> {
+        let rows = sqlx::query_as::<_, RateLimitBucketRow>(
+            "SELECT account_id, resource, remaining, used, limit_total, reset_at, updated_at
+             FROM account_rate_limits
+             WHERE (?1 IS NULL OR account_id = ?1)
+             ORDER BY account_id ASC, resource ASC",
+        )
+        .bind(account_id_filter)
         .fetch_all(&self.pool)
         .await?;
         Ok(rows)
@@ -2334,10 +2395,11 @@ impl Db {
     pub async fn update_rate_limit_bucket(&self, bucket: &RateLimitBucketUpdate) -> Result<()> {
         let mut tx = self.pool.begin().await?;
         sqlx::query(
-            "INSERT INTO rate_limit_buckets(account_id, resource, remaining, limit_total, reset_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            "INSERT INTO rate_limit_buckets(account_id, resource, remaining, used, limit_total, reset_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
              ON CONFLICT(account_id, resource) DO UPDATE SET
                remaining = excluded.remaining,
+               used = excluded.used,
                limit_total = excluded.limit_total,
                reset_at = excluded.reset_at,
                updated_at = excluded.updated_at",
@@ -2345,6 +2407,7 @@ impl Db {
         .bind(&bucket.account_id)
         .bind(&bucket.resource)
         .bind(bucket.remaining)
+        .bind(bucket.used)
         .bind(bucket.limit_total)
         .bind(bucket.reset_at)
         .bind(bucket.updated_at)
@@ -2360,8 +2423,8 @@ impl Db {
         resource: &str,
     ) -> Result<Option<RateLimitBucketRow>> {
         let row = sqlx::query_as::<_, RateLimitBucketRow>(
-            "SELECT account_id, resource, remaining, limit_total, reset_at, updated_at
-             FROM rate_limit_buckets
+            "SELECT account_id, resource, remaining, used, limit_total, reset_at, updated_at
+             FROM account_rate_limits
              WHERE account_id = ?1 AND resource = ?2",
         )
         .bind(account_id)

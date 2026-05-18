@@ -2,7 +2,8 @@
   import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
   import type { MutationKind, SubmittedMutation } from '$lib/ipc/bindings';
-  import { deleteDraft, listDrafts, saveDraft } from '$lib/ipc/client';
+  import { deleteDraft, listDrafts, saveDraft, toAccountId } from '$lib/ipc/client';
+  import { activeAccountIdStore, accountsStore } from '$lib/state/cockpit';
   import {
     insertSuggestionBlock,
     renderComposerPreview,
@@ -36,6 +37,18 @@ export let textareaAriaLabel = 'Comment body';
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
   let submission: SubmittedMutation | null = null;
   let hydratedInitialBody = false;
+  let postingAccountId: string | null = accountId;
+  let postingIdentityTouched = false;
+
+  $: postingCandidates = $accountsStore.map((account) => ({
+    id: toAccountId(account),
+    login: account.login,
+    host: account.host
+  }));
+  $: if (!postingIdentityTouched) {
+    postingAccountId = $activeAccountIdStore ?? accountId;
+  }
+  $: resolvedPostingAccountId = postingAccountId ?? accountId;
 
   onMount(async () => {
     const drafts = await listDrafts({
@@ -110,6 +123,9 @@ export let textareaAriaLabel = 'Comment body';
       body,
       target_id: targetId
     };
+    if (resolvedPostingAccountId) {
+      payload.posting_account_id = resolvedPostingAccountId;
+    }
     if (!('pr_id' in payload) && targetId.startsWith('pr_')) {
       payload.pr_id = targetId;
     }
@@ -143,6 +159,12 @@ export let textareaAriaLabel = 'Comment body';
       textareaElement.setSelectionRange(next.nextCaret, next.nextCaret);
     });
   }
+
+  function onPostingIdentityChange(event: Event): void {
+    postingIdentityTouched = true;
+    const value = (event.currentTarget as HTMLSelectElement).value;
+    postingAccountId = value.length > 0 ? value : accountId;
+  }
 </script>
 
 <div class="Box composer">
@@ -169,6 +191,20 @@ export let textareaAriaLabel = 'Comment body';
   </div>
   <div class="Box-body">
     {#if tab === 'write'}
+      <div class="mb-2">
+        <label class="f6 text-bold d-block mb-1" for="composer-posting-identity">Posting identity</label>
+        <select
+          id="composer-posting-identity"
+          class="form-select width-full"
+          value={resolvedPostingAccountId}
+          on:change={onPostingIdentityChange}
+          data-testid="composer-posting-identity-select"
+        >
+          {#each postingCandidates as candidate}
+            <option value={candidate.id}>@{candidate.login} · {candidate.host}</option>
+          {/each}
+        </select>
+      </div>
       <div class="mb-2 d-flex flex-items-center flex-wrap gap-1">
         <button class="btn btn-sm" type="button" data-testid="composer-insert-suggestion" on:click={onInsertSuggestion}>
           [+ Suggestion]

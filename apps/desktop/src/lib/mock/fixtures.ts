@@ -40,12 +40,14 @@ const secondaryAccount = {
 
 const accountId = (host: string, login: string): string => `${host}:${login}`;
 
-function buildInbox(account_id: string): InboxItem[] {
+function buildInbox(account_id: string, account_login: string, account_host: string): InboxItem[] {
   const rows: InboxItem[] = [];
   for (let idx = 1; idx <= 200; idx += 1) {
     const repoN = (idx % 3) + 1;
     rows.push({
       account_id,
+      account_login,
+      account_host,
       pr_id: `pr_${idx}`,
       repo_id: `repo_${repoN}`,
       repo_owner: 'fixture-org',
@@ -157,10 +159,14 @@ export const MOCK_ACCOUNTS: AccountsListResponse = {
 
 const INBOX_BY_ACCOUNT: Record<string, InboxItem[]> = {
   [accountId(primaryAccount.host, primaryAccount.login)]: buildInbox(
-    accountId(primaryAccount.host, primaryAccount.login)
+    accountId(primaryAccount.host, primaryAccount.login),
+    primaryAccount.login,
+    primaryAccount.host
   ),
   [accountId(secondaryAccount.host, secondaryAccount.login)]: buildInbox(
-    accountId(secondaryAccount.host, secondaryAccount.login)
+    accountId(secondaryAccount.host, secondaryAccount.login),
+    secondaryAccount.login,
+    secondaryAccount.host
   )
 };
 
@@ -175,8 +181,18 @@ export const MOCK_INIT_INBOX: InitInboxResponse = {
         account_id: accountId(primaryAccount.host, primaryAccount.login),
         resource: 'graphql',
         remaining: 4800,
+        used: 200,
         limit_total: 5000,
         reset_at: BASE_TS + 3600,
+        updated_at: BASE_TS + 200
+      },
+      {
+        account_id: accountId(primaryAccount.host, primaryAccount.login),
+        resource: 'core',
+        remaining: 4500,
+        used: 500,
+        limit_total: 5000,
+        reset_at: BASE_TS + 2400,
         updated_at: BASE_TS + 200
       }
     ],
@@ -200,7 +216,14 @@ export const MOCK_INIT_INBOX: InitInboxResponse = {
   }
 };
 
-export function mockInboxForAccount(activeAccountId: string): InboxItem[] {
+export function mockInboxForAccount(activeAccountId: string | null): InboxItem[] {
+  if (!activeAccountId) {
+    return Object.values(INBOX_BY_ACCOUNT)
+      .flatMap((rows) => rows)
+      .sort(
+        (left, right) => right.updated_at - left.updated_at || left.pr_id.localeCompare(right.pr_id)
+      );
+  }
   return INBOX_BY_ACCOUNT[activeAccountId] ?? [];
 }
 
@@ -474,18 +497,36 @@ export function mockPatch(): PrPatchResponse {
   };
 }
 
-export function mockStatus(activeAccountId: string): SystemStatusResponse {
+export function mockStatus(activeAccountIdFilter: string | null): SystemStatusResponse {
+  const accountIds =
+    activeAccountIdFilter === null
+      ? [
+          accountId(primaryAccount.host, primaryAccount.login),
+          accountId(secondaryAccount.host, secondaryAccount.login)
+        ]
+      : [activeAccountIdFilter];
+  const rateLimits = accountIds.flatMap((account_id, index) => [
+    {
+      account_id,
+      resource: 'graphql',
+      remaining: index === 0 ? 4800 : 1400,
+      used: index === 0 ? 200 : 3600,
+      limit_total: 5000,
+      reset_at: BASE_TS + 3600,
+      updated_at: BASE_TS + 200
+    },
+    {
+      account_id,
+      resource: 'core',
+      remaining: index === 0 ? 4200 : 900,
+      used: index === 0 ? 800 : 4100,
+      limit_total: 5000,
+      reset_at: BASE_TS + 2400,
+      updated_at: BASE_TS + 200
+    }
+  ]);
   return {
-    rate_limits: [
-      {
-        account_id: activeAccountId,
-        resource: 'graphql',
-        remaining: 4800,
-        limit_total: 5000,
-        reset_at: BASE_TS + 3600,
-        updated_at: BASE_TS + 200
-      }
-    ],
+    rate_limits: rateLimits,
     sync: {
       focus_state: 'focused',
       tiers: [
