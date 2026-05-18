@@ -257,11 +257,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-05-18T16:55:02.270Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "verify-m6-stacks-relay-polish",
