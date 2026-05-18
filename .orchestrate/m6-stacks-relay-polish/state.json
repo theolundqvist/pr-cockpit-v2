@@ -135,12 +135,12 @@
       "handoffPath": "handoffs/m6-tag-v1.md",
       "startedAt": "2026-05-18T22:32:59.076Z",
       "finishedAt": "2026-05-18T22:34:53.115Z",
-      "lastUpdate": "2026-05-18T22:34:53.115Z",
+      "lastUpdate": "2026-05-18T22:34:54.110Z",
       "note": null,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
+      "verification": "not-verified",
       "attempts": 1
     }
   ],
@@ -200,6 +200,10 @@
     {
       "at": "2026-05-18T21:49:18.346Z",
       "message": "m6-verify: tool_call idle 326238ms; last=2026-05-18T21:43:52.108Z"
+    },
+    {
+      "at": "2026-05-18T22:34:54.110Z",
+      "message": "m6-tag-v1: verification self-reported (not-verified)"
     }
   ]
 }
