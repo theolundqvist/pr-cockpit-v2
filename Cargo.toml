@@ -2,6 +2,9 @@
 members = ["apps/desktop/src-tauri"]
 resolver = "2"
 
+[workspace.package]
+license = "MIT"
+
 [workspace.dependencies]
 ammonia = "4.1.2"
 anyhow = "1.0.100"
