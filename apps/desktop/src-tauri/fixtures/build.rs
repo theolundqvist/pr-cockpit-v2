@@ -170,6 +170,47 @@ async fn seed_fixture(db: &Db) -> Result<()> {
             head_repo_id: Some(repo_id),
             mergeable_state: Some("clean".to_string()),
             merge_state_status: Some("behind".to_string()),
+            merge_commit_allowed: Some(true),
+            squash_merge_allowed: Some(true),
+            rebase_merge_allowed: Some(true),
+            delete_branch_on_merge_default: Some(true),
+            viewer_can_merge: Some(true),
+            viewer_can_enable_auto_merge: Some(true),
+            viewer_can_disable_auto_merge: Some(true),
+            viewer_can_update_branch: Some(true),
+            viewer_can_delete_head_ref: Some(true),
+            auto_merge_enabled: Some(false),
+            auto_merge_method: None,
+            auto_merge_commit_headline: None,
+            auto_merge_commit_body: None,
+            auto_merge_enabled_by_login: None,
+            auto_merge_enabled_at: None,
+            merge_queue_entry_id: if is_active {
+                Some("mqe_fixture_active".to_string())
+            } else {
+                None
+            },
+            merge_queue_entry_position: if is_active { Some(1) } else { None },
+            merge_queue_entry_state: if is_active {
+                Some("QUEUED".to_string())
+            } else {
+                None
+            },
+            merge_queue_entry_estimated_ms: if is_active { Some(600_000) } else { None },
+            branch_protection_summary_json: Some(
+                serde_json::json!({
+                    "requires_approving_reviews": true,
+                    "required_approving_review_count": 1,
+                    "requires_status_checks": true,
+                    "required_status_check_contexts": ["ci-linux"],
+                    "requires_strict_status_checks": true,
+                    "restricts_pushes": false,
+                    "restricts_review_dismissals": false,
+                })
+                .to_string(),
+            ),
+            repo_has_merge_queue: Some(true),
+            head_ref_state: Some("ACTIVE".to_string()),
             additions: if is_active { 5_200 } else { 30 + idx },
             deletions: if is_active { 250 } else { 5 + idx },
             changed_files: if is_active { 30 } else { 3 + (idx % 5) },

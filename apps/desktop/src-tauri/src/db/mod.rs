@@ -182,6 +182,28 @@ impl Db {
                 summary.head_sha,
                 summary.mergeable_state,
                 summary.merge_state_status,
+                summary.merge_commit_allowed,
+                summary.squash_merge_allowed,
+                summary.rebase_merge_allowed,
+                summary.delete_branch_on_merge_default,
+                summary.viewer_can_merge,
+                summary.viewer_can_enable_auto_merge,
+                summary.viewer_can_disable_auto_merge,
+                summary.viewer_can_update_branch,
+                summary.viewer_can_delete_head_ref,
+                summary.auto_merge_enabled,
+                summary.auto_merge_method,
+                summary.auto_merge_commit_headline,
+                summary.auto_merge_commit_body,
+                summary.auto_merge_enabled_by_login,
+                summary.auto_merge_enabled_at,
+                summary.merge_queue_entry_id,
+                summary.merge_queue_entry_position,
+                summary.merge_queue_entry_state,
+                summary.merge_queue_entry_estimated_ms,
+                summary.branch_protection_summary_json,
+                summary.repo_has_merge_queue,
+                summary.head_ref_state,
                 summary.additions,
                 summary.deletions,
                 summary.changed_files,
@@ -217,6 +239,28 @@ impl Db {
                 head_sha: row.try_get("head_sha")?,
                 mergeable_state: row.try_get("mergeable_state")?,
                 merge_state_status: row.try_get("merge_state_status")?,
+                merge_commit_allowed: row.try_get("merge_commit_allowed")?,
+                squash_merge_allowed: row.try_get("squash_merge_allowed")?,
+                rebase_merge_allowed: row.try_get("rebase_merge_allowed")?,
+                delete_branch_on_merge_default: row.try_get("delete_branch_on_merge_default")?,
+                viewer_can_merge: row.try_get("viewer_can_merge")?,
+                viewer_can_enable_auto_merge: row.try_get("viewer_can_enable_auto_merge")?,
+                viewer_can_disable_auto_merge: row.try_get("viewer_can_disable_auto_merge")?,
+                viewer_can_update_branch: row.try_get("viewer_can_update_branch")?,
+                viewer_can_delete_head_ref: row.try_get("viewer_can_delete_head_ref")?,
+                auto_merge_enabled: row.try_get("auto_merge_enabled")?,
+                auto_merge_method: row.try_get("auto_merge_method")?,
+                auto_merge_commit_headline: row.try_get("auto_merge_commit_headline")?,
+                auto_merge_commit_body: row.try_get("auto_merge_commit_body")?,
+                auto_merge_enabled_by_login: row.try_get("auto_merge_enabled_by_login")?,
+                auto_merge_enabled_at: row.try_get("auto_merge_enabled_at")?,
+                merge_queue_entry_id: row.try_get("merge_queue_entry_id")?,
+                merge_queue_entry_position: row.try_get("merge_queue_entry_position")?,
+                merge_queue_entry_state: row.try_get("merge_queue_entry_state")?,
+                merge_queue_entry_estimated_ms: row.try_get("merge_queue_entry_estimated_ms")?,
+                branch_protection_summary_json: row.try_get("branch_protection_summary_json")?,
+                repo_has_merge_queue: row.try_get("repo_has_merge_queue")?,
+                head_ref_state: row.try_get("head_ref_state")?,
                 additions: row.try_get("additions")?,
                 deletions: row.try_get("deletions")?,
                 changed_files: row.try_get("changed_files")?,
@@ -1245,12 +1289,19 @@ impl Db {
         sqlx::query(
             "INSERT INTO pull_requests(
                id, account_id, repo_id, number, state, draft, title, body, author_id, base_ref, base_sha, head_ref, head_sha,
-               head_repo_id, mergeable_state, merge_state_status, additions, deletions, changed_files, comments_count, reviews_count,
-               commits_count, is_read, html_url, created_at, updated_at, closed_at, merged_at
+               head_repo_id, mergeable_state, merge_state_status, merge_commit_allowed, squash_merge_allowed,
+               rebase_merge_allowed, delete_branch_on_merge_default, viewer_can_merge, viewer_can_enable_auto_merge,
+               viewer_can_disable_auto_merge, viewer_can_update_branch, viewer_can_delete_head_ref, auto_merge_enabled,
+               auto_merge_method, auto_merge_commit_headline, auto_merge_commit_body, auto_merge_enabled_by_login,
+               auto_merge_enabled_at, merge_queue_entry_id, merge_queue_entry_position, merge_queue_entry_state,
+               merge_queue_entry_estimated_ms, branch_protection_summary_json, repo_has_merge_queue, head_ref_state,
+               additions, deletions, changed_files, comments_count, reviews_count, commits_count, is_read, html_url,
+               created_at, updated_at, closed_at, merged_at
              )
              VALUES (
                ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13,
-               ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28
+               ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30,
+               ?31, ?32, ?33, ?34, ?35, ?36, ?37, ?38, ?39, ?40, ?41, ?42, ?43, ?44, ?45, ?46, ?47, ?48, ?49, ?50
              )
              ON CONFLICT(id) DO UPDATE SET
                account_id = excluded.account_id,
@@ -1268,6 +1319,28 @@ impl Db {
                head_repo_id = excluded.head_repo_id,
                mergeable_state = excluded.mergeable_state,
                merge_state_status = excluded.merge_state_status,
+               merge_commit_allowed = excluded.merge_commit_allowed,
+               squash_merge_allowed = excluded.squash_merge_allowed,
+               rebase_merge_allowed = excluded.rebase_merge_allowed,
+               delete_branch_on_merge_default = excluded.delete_branch_on_merge_default,
+               viewer_can_merge = excluded.viewer_can_merge,
+               viewer_can_enable_auto_merge = excluded.viewer_can_enable_auto_merge,
+               viewer_can_disable_auto_merge = excluded.viewer_can_disable_auto_merge,
+               viewer_can_update_branch = excluded.viewer_can_update_branch,
+               viewer_can_delete_head_ref = excluded.viewer_can_delete_head_ref,
+               auto_merge_enabled = excluded.auto_merge_enabled,
+               auto_merge_method = excluded.auto_merge_method,
+               auto_merge_commit_headline = excluded.auto_merge_commit_headline,
+               auto_merge_commit_body = excluded.auto_merge_commit_body,
+               auto_merge_enabled_by_login = excluded.auto_merge_enabled_by_login,
+               auto_merge_enabled_at = excluded.auto_merge_enabled_at,
+               merge_queue_entry_id = excluded.merge_queue_entry_id,
+               merge_queue_entry_position = excluded.merge_queue_entry_position,
+               merge_queue_entry_state = excluded.merge_queue_entry_state,
+               merge_queue_entry_estimated_ms = excluded.merge_queue_entry_estimated_ms,
+               branch_protection_summary_json = excluded.branch_protection_summary_json,
+               repo_has_merge_queue = excluded.repo_has_merge_queue,
+               head_ref_state = excluded.head_ref_state,
                additions = excluded.additions,
                deletions = excluded.deletions,
                changed_files = excluded.changed_files,
@@ -1296,6 +1369,28 @@ impl Db {
         .bind(&pr.head_repo_id)
         .bind(&pr.mergeable_state)
         .bind(&pr.merge_state_status)
+        .bind(pr.merge_commit_allowed.map(bool_to_i64))
+        .bind(pr.squash_merge_allowed.map(bool_to_i64))
+        .bind(pr.rebase_merge_allowed.map(bool_to_i64))
+        .bind(pr.delete_branch_on_merge_default.map(bool_to_i64))
+        .bind(pr.viewer_can_merge.map(bool_to_i64))
+        .bind(pr.viewer_can_enable_auto_merge.map(bool_to_i64))
+        .bind(pr.viewer_can_disable_auto_merge.map(bool_to_i64))
+        .bind(pr.viewer_can_update_branch.map(bool_to_i64))
+        .bind(pr.viewer_can_delete_head_ref.map(bool_to_i64))
+        .bind(pr.auto_merge_enabled.map(bool_to_i64))
+        .bind(&pr.auto_merge_method)
+        .bind(&pr.auto_merge_commit_headline)
+        .bind(&pr.auto_merge_commit_body)
+        .bind(&pr.auto_merge_enabled_by_login)
+        .bind(pr.auto_merge_enabled_at)
+        .bind(&pr.merge_queue_entry_id)
+        .bind(pr.merge_queue_entry_position)
+        .bind(&pr.merge_queue_entry_state)
+        .bind(pr.merge_queue_entry_estimated_ms)
+        .bind(&pr.branch_protection_summary_json)
+        .bind(pr.repo_has_merge_queue.map(bool_to_i64))
+        .bind(&pr.head_ref_state)
         .bind(pr.additions)
         .bind(pr.deletions)
         .bind(pr.changed_files)

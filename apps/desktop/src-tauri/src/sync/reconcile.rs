@@ -42,6 +42,20 @@ pub struct PrDetailNode {
     pub mergeable: Option<String>,
     #[serde(rename = "mergeStateStatus")]
     pub merge_state_status: Option<String>,
+    #[serde(rename = "viewerCanMerge")]
+    pub viewer_can_merge: Option<bool>,
+    #[serde(rename = "viewerCanEnableAutoMerge")]
+    pub viewer_can_enable_auto_merge: Option<bool>,
+    #[serde(rename = "viewerCanDisableAutoMerge")]
+    pub viewer_can_disable_auto_merge: Option<bool>,
+    #[serde(rename = "viewerCanUpdateBranch")]
+    pub viewer_can_update_branch: Option<bool>,
+    #[serde(rename = "viewerCanDeleteHeadRef")]
+    pub viewer_can_delete_head_ref: Option<bool>,
+    #[serde(rename = "autoMergeRequest")]
+    pub auto_merge_request: Option<AutoMergeRequestNode>,
+    #[serde(rename = "mergeQueueEntry")]
+    pub merge_queue_entry: Option<MergeQueueEntryNode>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
     #[serde(rename = "updatedAt")]
@@ -63,8 +77,11 @@ pub struct PrDetailNode {
     pub base_ref_oid: String,
     #[serde(rename = "headRefName")]
     pub head_ref_name: String,
+    #[serde(rename = "headRef")]
+    pub head_ref: Option<HeadRefNode>,
     #[serde(rename = "headRefOid")]
     pub head_ref_oid: String,
+    pub repository: Option<PullRequestRepositoryNode>,
     #[serde(rename = "headRepository")]
     pub head_repository: Option<HeadRepositoryNode>,
     pub labels: LabelsConnection,
@@ -76,6 +93,80 @@ pub struct PrDetailNode {
     pub reviews: ReviewsConnection,
     #[serde(rename = "timelineItems")]
     pub timeline_items: TimelineConnection,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AutoMergeRequestNode {
+    #[serde(rename = "mergeMethod")]
+    pub merge_method: Option<String>,
+    #[serde(rename = "commitHeadline")]
+    pub commit_headline: Option<String>,
+    #[serde(rename = "commitBody")]
+    pub commit_body: Option<String>,
+    #[serde(rename = "enabledAt")]
+    pub enabled_at: Option<String>,
+    #[serde(rename = "enabledBy")]
+    pub enabled_by: Option<GraphqlUser>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MergeQueueEntryNode {
+    pub id: Option<String>,
+    pub position: Option<i64>,
+    pub state: Option<String>,
+    #[serde(rename = "estimatedTimeToMerge")]
+    pub estimated_time_to_merge: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HeadRefNode {
+    pub id: Option<String>,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PullRequestRepositoryNode {
+    #[serde(rename = "mergeCommitAllowed")]
+    pub merge_commit_allowed: Option<bool>,
+    #[serde(rename = "squashMergeAllowed")]
+    pub squash_merge_allowed: Option<bool>,
+    #[serde(rename = "rebaseMergeAllowed")]
+    pub rebase_merge_allowed: Option<bool>,
+    #[serde(rename = "deleteBranchOnMerge")]
+    pub delete_branch_on_merge: Option<bool>,
+    #[serde(rename = "mergeQueue")]
+    pub merge_queue: Option<MergeQueueNode>,
+    #[serde(rename = "defaultBranchRef")]
+    pub default_branch_ref: Option<DefaultBranchRefNode>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct MergeQueueNode {
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DefaultBranchRefNode {
+    #[serde(rename = "branchProtectionRule")]
+    pub branch_protection_rule: Option<BranchProtectionRuleNode>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BranchProtectionRuleNode {
+    #[serde(rename = "requiresApprovingReviews")]
+    pub requires_approving_reviews: Option<bool>,
+    #[serde(rename = "requiredApprovingReviewCount")]
+    pub required_approving_review_count: Option<i64>,
+    #[serde(rename = "requiresStatusChecks")]
+    pub requires_status_checks: Option<bool>,
+    #[serde(rename = "requiredStatusCheckContexts")]
+    pub required_status_check_contexts: Option<Vec<String>>,
+    #[serde(rename = "requiresStrictStatusChecks")]
+    pub requires_strict_status_checks: Option<bool>,
+    #[serde(rename = "restrictsPushes")]
+    pub restricts_pushes: Option<bool>,
+    #[serde(rename = "restrictsReviewDismissals")]
+    pub restricts_review_dismissals: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -442,11 +533,101 @@ pub async fn reconcile_pr_detail(
         author_id,
         base_ref: pr.base_ref_name.clone(),
         base_sha: pr.base_ref_oid.clone(),
-        head_ref: pr.head_ref_name.clone(),
+        head_ref: pr
+            .head_ref
+            .as_ref()
+            .and_then(|head_ref| head_ref.name.clone())
+            .unwrap_or_else(|| pr.head_ref_name.clone()),
         head_sha: pr.head_ref_oid.clone(),
         head_repo_id: pr.head_repository.as_ref().map(|repo| repo.id.clone()),
         mergeable_state: pr.mergeable.clone(),
         merge_state_status: pr.merge_state_status.clone(),
+        merge_commit_allowed: pr
+            .repository
+            .as_ref()
+            .and_then(|repo| repo.merge_commit_allowed),
+        squash_merge_allowed: pr
+            .repository
+            .as_ref()
+            .and_then(|repo| repo.squash_merge_allowed),
+        rebase_merge_allowed: pr
+            .repository
+            .as_ref()
+            .and_then(|repo| repo.rebase_merge_allowed),
+        delete_branch_on_merge_default: pr
+            .repository
+            .as_ref()
+            .and_then(|repo| repo.delete_branch_on_merge),
+        viewer_can_merge: pr.viewer_can_merge,
+        viewer_can_enable_auto_merge: pr.viewer_can_enable_auto_merge,
+        viewer_can_disable_auto_merge: pr.viewer_can_disable_auto_merge,
+        viewer_can_update_branch: pr.viewer_can_update_branch,
+        viewer_can_delete_head_ref: pr.viewer_can_delete_head_ref,
+        auto_merge_enabled: Some(pr.auto_merge_request.is_some()),
+        auto_merge_method: pr
+            .auto_merge_request
+            .as_ref()
+            .and_then(|request| request.merge_method.clone()),
+        auto_merge_commit_headline: pr
+            .auto_merge_request
+            .as_ref()
+            .and_then(|request| request.commit_headline.clone()),
+        auto_merge_commit_body: pr
+            .auto_merge_request
+            .as_ref()
+            .and_then(|request| request.commit_body.clone()),
+        auto_merge_enabled_by_login: pr
+            .auto_merge_request
+            .as_ref()
+            .and_then(|request| request.enabled_by.as_ref())
+            .and_then(|user| user.login.clone()),
+        auto_merge_enabled_at: pr
+            .auto_merge_request
+            .as_ref()
+            .and_then(|request| request.enabled_at.as_deref().map(parse_timestamp)),
+        merge_queue_entry_id: pr
+            .merge_queue_entry
+            .as_ref()
+            .and_then(|entry| entry.id.clone()),
+        merge_queue_entry_position: pr
+            .merge_queue_entry
+            .as_ref()
+            .and_then(|entry| entry.position),
+        merge_queue_entry_state: pr
+            .merge_queue_entry
+            .as_ref()
+            .and_then(|entry| entry.state.clone()),
+        merge_queue_entry_estimated_ms: pr
+            .merge_queue_entry
+            .as_ref()
+            .and_then(|entry| entry.estimated_time_to_merge)
+            .map(|seconds| seconds.saturating_mul(1000)),
+        branch_protection_summary_json: pr
+            .repository
+            .as_ref()
+            .and_then(|repo| repo.default_branch_ref.as_ref())
+            .and_then(|branch| branch.branch_protection_rule.as_ref())
+            .map(|rule| {
+                serde_json::json!({
+                    "requires_approving_reviews": rule.requires_approving_reviews.unwrap_or(false),
+                    "required_approving_review_count": rule.required_approving_review_count.unwrap_or(0),
+                    "requires_status_checks": rule.requires_status_checks.unwrap_or(false),
+                    "required_status_check_contexts": rule.required_status_check_contexts.clone().unwrap_or_default(),
+                    "requires_strict_status_checks": rule.requires_strict_status_checks.unwrap_or(false),
+                    "restricts_pushes": rule.restricts_pushes.unwrap_or(false),
+                    "restricts_review_dismissals": rule.restricts_review_dismissals.unwrap_or(false),
+                })
+                .to_string()
+            }),
+        repo_has_merge_queue: pr
+            .repository
+            .as_ref()
+            .map(|repo| repo.merge_queue.as_ref().and_then(|queue| queue.id.clone()).is_some()),
+        head_ref_state: Some(if pr.head_ref.is_some() {
+            "ACTIVE".to_string()
+        } else {
+            "DELETED".to_string()
+        }),
         additions: pr.additions,
         deletions: pr.deletions,
         changed_files: pr.changed_files,
@@ -861,6 +1042,28 @@ pub async fn reconcile_inbox_refresh(
             head_repo_id: None,
             mergeable_state: node.mergeable.clone(),
             merge_state_status: check_state,
+            merge_commit_allowed: None,
+            squash_merge_allowed: None,
+            rebase_merge_allowed: None,
+            delete_branch_on_merge_default: None,
+            viewer_can_merge: None,
+            viewer_can_enable_auto_merge: None,
+            viewer_can_disable_auto_merge: None,
+            viewer_can_update_branch: None,
+            viewer_can_delete_head_ref: None,
+            auto_merge_enabled: None,
+            auto_merge_method: None,
+            auto_merge_commit_headline: None,
+            auto_merge_commit_body: None,
+            auto_merge_enabled_by_login: None,
+            auto_merge_enabled_at: None,
+            merge_queue_entry_id: None,
+            merge_queue_entry_position: None,
+            merge_queue_entry_state: None,
+            merge_queue_entry_estimated_ms: None,
+            branch_protection_summary_json: None,
+            repo_has_merge_queue: None,
+            head_ref_state: None,
             additions: 0,
             deletions: 0,
             changed_files: 0,

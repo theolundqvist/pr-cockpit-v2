@@ -529,6 +529,74 @@ async fn apply_pr_patch(ctx: &ApplyCtx<'_>, title_only: bool) -> Result<ServerRe
         mergeable_state: optional_str(ctx.input_json, "mergeable_state").map(ToString::to_string),
         merge_state_status: optional_str(ctx.input_json, "merge_state_status")
             .map(ToString::to_string),
+        merge_commit_allowed: ctx
+            .input_json
+            .get("merge_commit_allowed")
+            .and_then(serde_json::Value::as_bool),
+        squash_merge_allowed: ctx
+            .input_json
+            .get("squash_merge_allowed")
+            .and_then(serde_json::Value::as_bool),
+        rebase_merge_allowed: ctx
+            .input_json
+            .get("rebase_merge_allowed")
+            .and_then(serde_json::Value::as_bool),
+        delete_branch_on_merge_default: ctx
+            .input_json
+            .get("delete_branch_on_merge_default")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_merge: ctx
+            .input_json
+            .get("viewer_can_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_enable_auto_merge: ctx
+            .input_json
+            .get("viewer_can_enable_auto_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_disable_auto_merge: ctx
+            .input_json
+            .get("viewer_can_disable_auto_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_update_branch: ctx
+            .input_json
+            .get("viewer_can_update_branch")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_delete_head_ref: ctx
+            .input_json
+            .get("viewer_can_delete_head_ref")
+            .and_then(serde_json::Value::as_bool),
+        auto_merge_enabled: ctx
+            .input_json
+            .get("auto_merge_enabled")
+            .and_then(serde_json::Value::as_bool),
+        auto_merge_method: optional_str(ctx.input_json, "auto_merge_method")
+            .map(ToString::to_string),
+        auto_merge_commit_headline: optional_str(ctx.input_json, "auto_merge_commit_headline")
+            .map(ToString::to_string),
+        auto_merge_commit_body: optional_str(ctx.input_json, "auto_merge_commit_body")
+            .map(ToString::to_string),
+        auto_merge_enabled_by_login: optional_str(ctx.input_json, "auto_merge_enabled_by_login")
+            .map(ToString::to_string),
+        auto_merge_enabled_at: optional_i64(ctx.input_json, "auto_merge_enabled_at"),
+        merge_queue_entry_id: optional_str(ctx.input_json, "merge_queue_entry_id")
+            .map(ToString::to_string),
+        merge_queue_entry_position: optional_i64(ctx.input_json, "merge_queue_entry_position"),
+        merge_queue_entry_state: optional_str(ctx.input_json, "merge_queue_entry_state")
+            .map(ToString::to_string),
+        merge_queue_entry_estimated_ms: optional_i64(
+            ctx.input_json,
+            "merge_queue_entry_estimated_ms",
+        ),
+        branch_protection_summary_json: optional_str(
+            ctx.input_json,
+            "branch_protection_summary_json",
+        )
+        .map(ToString::to_string),
+        repo_has_merge_queue: ctx
+            .input_json
+            .get("repo_has_merge_queue")
+            .and_then(serde_json::Value::as_bool),
+        head_ref_state: optional_str(ctx.input_json, "head_ref_state").map(ToString::to_string),
         additions: optional_i64(ctx.input_json, "additions").unwrap_or(0),
         deletions: optional_i64(ctx.input_json, "deletions").unwrap_or(0),
         changed_files: optional_i64(ctx.input_json, "changed_files").unwrap_or(0),
@@ -549,7 +617,7 @@ async fn apply_pr_patch(ctx: &ApplyCtx<'_>, title_only: bool) -> Result<ServerRe
             .map(crate::sync::reconcile::parse_timestamp),
     };
     Ok(ServerResponse {
-        upserts: vec![ServerNode::PullRequest(record)],
+        upserts: vec![ServerNode::PullRequest(Box::new(record))],
         markdown_overlays: Vec::new(),
         id_mappings: Vec::new(),
         refetch_pr_ids: vec![pr_id.to_string()],
@@ -666,6 +734,74 @@ async fn apply_draft_toggle(ctx: &ApplyCtx<'_>, draft: bool) -> Result<ServerRes
         mergeable_state: optional_str(ctx.input_json, "mergeable_state").map(ToString::to_string),
         merge_state_status: optional_str(ctx.input_json, "merge_state_status")
             .map(ToString::to_string),
+        merge_commit_allowed: ctx
+            .input_json
+            .get("merge_commit_allowed")
+            .and_then(serde_json::Value::as_bool),
+        squash_merge_allowed: ctx
+            .input_json
+            .get("squash_merge_allowed")
+            .and_then(serde_json::Value::as_bool),
+        rebase_merge_allowed: ctx
+            .input_json
+            .get("rebase_merge_allowed")
+            .and_then(serde_json::Value::as_bool),
+        delete_branch_on_merge_default: ctx
+            .input_json
+            .get("delete_branch_on_merge_default")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_merge: ctx
+            .input_json
+            .get("viewer_can_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_enable_auto_merge: ctx
+            .input_json
+            .get("viewer_can_enable_auto_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_disable_auto_merge: ctx
+            .input_json
+            .get("viewer_can_disable_auto_merge")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_update_branch: ctx
+            .input_json
+            .get("viewer_can_update_branch")
+            .and_then(serde_json::Value::as_bool),
+        viewer_can_delete_head_ref: ctx
+            .input_json
+            .get("viewer_can_delete_head_ref")
+            .and_then(serde_json::Value::as_bool),
+        auto_merge_enabled: ctx
+            .input_json
+            .get("auto_merge_enabled")
+            .and_then(serde_json::Value::as_bool),
+        auto_merge_method: optional_str(ctx.input_json, "auto_merge_method")
+            .map(ToString::to_string),
+        auto_merge_commit_headline: optional_str(ctx.input_json, "auto_merge_commit_headline")
+            .map(ToString::to_string),
+        auto_merge_commit_body: optional_str(ctx.input_json, "auto_merge_commit_body")
+            .map(ToString::to_string),
+        auto_merge_enabled_by_login: optional_str(ctx.input_json, "auto_merge_enabled_by_login")
+            .map(ToString::to_string),
+        auto_merge_enabled_at: optional_i64(ctx.input_json, "auto_merge_enabled_at"),
+        merge_queue_entry_id: optional_str(ctx.input_json, "merge_queue_entry_id")
+            .map(ToString::to_string),
+        merge_queue_entry_position: optional_i64(ctx.input_json, "merge_queue_entry_position"),
+        merge_queue_entry_state: optional_str(ctx.input_json, "merge_queue_entry_state")
+            .map(ToString::to_string),
+        merge_queue_entry_estimated_ms: optional_i64(
+            ctx.input_json,
+            "merge_queue_entry_estimated_ms",
+        ),
+        branch_protection_summary_json: optional_str(
+            ctx.input_json,
+            "branch_protection_summary_json",
+        )
+        .map(ToString::to_string),
+        repo_has_merge_queue: ctx
+            .input_json
+            .get("repo_has_merge_queue")
+            .and_then(serde_json::Value::as_bool),
+        head_ref_state: optional_str(ctx.input_json, "head_ref_state").map(ToString::to_string),
         additions: optional_i64(ctx.input_json, "additions").unwrap_or(0),
         deletions: optional_i64(ctx.input_json, "deletions").unwrap_or(0),
         changed_files: optional_i64(ctx.input_json, "changed_files").unwrap_or(0),
@@ -680,7 +816,7 @@ async fn apply_draft_toggle(ctx: &ApplyCtx<'_>, draft: bool) -> Result<ServerRes
         merged_at: optional_i64(ctx.input_json, "merged_at"),
     };
     Ok(ServerResponse {
-        upserts: vec![ServerNode::PullRequest(record)],
+        upserts: vec![ServerNode::PullRequest(Box::new(record))],
         markdown_overlays: Vec::new(),
         id_mappings: Vec::new(),
         refetch_pr_ids: vec![pr_id.to_string()],

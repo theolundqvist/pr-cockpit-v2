@@ -68,6 +68,14 @@ pub trait CacheInvalidationEmitter: Send + Sync {
     fn emit_rate_limit_bypass(&self, _account_id: &str, _snapshot: &[RateLimitBudgetSnapshot]) {}
     fn emit_notifications_changed(&self, _account_id: &str) {}
     fn emit_sync_reconciled(&self, _account_id: &str) {}
+    fn emit_mergeable_backoff_tick(
+        &self,
+        _account_id: &str,
+        _pr_id: &str,
+        _attempt: i64,
+        _next_sleep_seconds: i64,
+    ) {
+    }
 }
 
 #[derive(Default)]
@@ -821,6 +829,15 @@ impl RealActions {
         let key = format!("{}/{}/{}", target.owner, target.repo, target.number);
         let this = self.clone();
         tokio::spawn(async move {
+            let account_id = this.inner.account_id.clone();
+            let pr_id = this
+                .inner
+                .db
+                .resolve_pr_id(&account_id, &target.owner, &target.repo, target.number)
+                .await
+                .ok()
+                .flatten()
+                .unwrap_or_else(|| format!("{}#{}", target.repo, target.number));
             {
                 let mut inflight = this.inner.mergeable_inflight.lock().await;
                 if inflight.contains(&key) {
@@ -828,11 +845,22 @@ impl RealActions {
                 }
                 inflight.insert(key.clone());
             }
-            let _ = run_mergeable_backoff(this.inner.clock.as_ref(), || {
-                let this = this.clone();
-                let target = target.clone();
-                async move { this.refresh_pr_detail_target(&target).await }
-            })
+            let _ = run_mergeable_backoff(
+                this.inner.clock.as_ref(),
+                || {
+                    let this = this.clone();
+                    let target = target.clone();
+                    async move { this.refresh_pr_detail_target(&target).await }
+                },
+                |attempt, next_sleep| {
+                    this.inner.emitter.emit_mergeable_backoff_tick(
+                        &account_id,
+                        &pr_id,
+                        attempt,
+                        i64::try_from(next_sleep.as_secs()).unwrap_or(i64::MAX),
+                    );
+                },
+            )
             .await;
             let mut inflight = this.inner.mergeable_inflight.lock().await;
             inflight.remove(&key);
@@ -892,10 +920,15 @@ impl TierActions for RealActions {
     }
 }
 
-pub async fn run_mergeable_backoff<F, Fut>(clock: &dyn Clock, mut poll: F) -> Result<()>
+pub async fn run_mergeable_backoff<F, Fut, G>(
+    clock: &dyn Clock,
+    mut poll: F,
+    mut on_tick: G,
+) -> Result<()>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<bool>> + Send,
+    G: FnMut(i64, Duration),
 {
     let schedule = [
         Duration::from_secs(2),
@@ -904,21 +937,26 @@ where
         Duration::from_secs(45),
         Duration::from_secs(120),
     ];
+    let mut attempt = 1_i64;
     for duration in schedule {
+        on_tick(attempt, duration);
         clock.sleep(duration).await;
         let still_unknown = poll().await?;
         if !still_unknown {
             return Ok(());
         }
+        attempt += 1;
     }
 
     loop {
         let duration = Duration::from_secs(300);
+        on_tick(attempt, duration);
         clock.sleep(duration).await;
         let still_unknown = poll().await?;
         if !still_unknown {
             return Ok(());
         }
+        attempt += 1;
     }
 }
 
@@ -1034,4 +1072,73 @@ fn account_is_throttled(
     let graphql_remaining = remaining_for(ApiResource::Graphql);
     let core_remaining = remaining_for(ApiResource::Core);
     graphql_remaining < THROTTLE_GRAPHQL_REMAINING || core_remaining < THROTTLE_CORE_REMAINING
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{run_mergeable_backoff, Clock};
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::sync::{Arc, Mutex as StdMutex};
+    use std::time::Duration;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockClock {
+        sleeps: Mutex<Vec<Duration>>,
+    }
+
+    impl Clock for MockClock {
+        fn sleep<'a>(
+            &'a self,
+            duration: Duration,
+        ) -> Pin<Box<dyn Future<Output = ()> + Send + 'a>> {
+            Box::pin(async move {
+                self.sleeps.lock().await.push(duration);
+            })
+        }
+    }
+
+    #[tokio::test]
+    async fn mergeable_backoff_emits_tick_schedule() {
+        let clock = Arc::new(MockClock::default());
+        let ticks = Arc::new(StdMutex::new(Vec::<(i64, i64)>::new()));
+        let polls = Arc::new(Mutex::new(0_i64));
+
+        run_mergeable_backoff(
+            clock.as_ref(),
+            || {
+                let polls = Arc::clone(&polls);
+                async move {
+                    let mut value = polls.lock().await;
+                    *value += 1;
+                    Ok(*value < 6)
+                }
+            },
+            |attempt, duration| {
+                ticks.lock().expect("tick lock poisoned").push((
+                    attempt,
+                    i64::try_from(duration.as_secs()).unwrap_or(i64::MAX),
+                ));
+            },
+        )
+        .await
+        .expect("backoff should succeed");
+
+        let mut observed_ticks = ticks.lock().expect("tick lock poisoned").clone();
+        observed_ticks.sort_by_key(|entry| entry.0);
+        assert_eq!(
+            observed_ticks,
+            vec![(1, 2), (2, 5), (3, 15), (4, 45), (5, 120), (6, 300)]
+        );
+
+        let observed_sleeps: Vec<i64> = clock
+            .sleeps
+            .lock()
+            .await
+            .iter()
+            .map(|duration| i64::try_from(duration.as_secs()).unwrap_or(i64::MAX))
+            .collect();
+        assert_eq!(observed_sleeps, vec![2, 5, 15, 45, 120, 300]);
+}
 }

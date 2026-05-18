@@ -5,6 +5,7 @@
   import DiffViewer from '$lib/components/DiffViewer.svelte';
   import HardConflictModal from '$lib/components/HardConflictModal.svelte';
   import InlineMutationErrorBanner from '$lib/components/InlineMutationErrorBanner.svelte';
+  import MergeBox from '$lib/components/merge/MergeBox.svelte';
   import PendingAffordance from '$lib/components/PendingAffordance.svelte';
   import ServerAdjustedChip from '$lib/components/ServerAdjustedChip.svelte';
   import SyncErrorsTray from '$lib/components/SyncErrorsTray.svelte';
@@ -29,7 +30,8 @@
     MutationKind,
     NetState,
     PendingOverlay,
-    PendingMutationView
+    PendingMutationView,
+    SubmittedMutation
   } from '$lib/ipc/bindings';
   import { reduceConversationTimeline } from '$lib/timeline/reducer';
   import { formatRelative } from '$lib/utils/time';
@@ -101,6 +103,10 @@
   $: repoPrOptions = $inboxStore
     .filter((row) => row.repo_id === bundle.summary.repo_id)
     .map((row) => ({ id: row.pr_id, number: row.pr_number, title: row.title }));
+  $: activeInboxRow =
+    $inboxStore.find(
+      (row) => row.pr_id === data.prId && row.account_id === data.activeAccountId
+    ) ?? null;
 
   onMount(async () => {
     await Promise.all([initSubscription(data.prId, data.activeAccountId), refreshPending()]);
@@ -173,12 +179,16 @@
     unlisten = listeners;
   }
 
-  async function submit(kind: MutationKind, payload: Record<string, unknown>): Promise<void> {
+  async function submit(
+    kind: MutationKind,
+    payload: Record<string, unknown>
+  ): Promise<SubmittedMutation | void> {
     if (offline && requiresConnection(kind)) {
       return;
     }
-    await submitMutation(data.activeAccountId, kind, JSON.stringify(payload));
+    const submitted = await submitMutation(data.activeAccountId, kind, JSON.stringify(payload));
     await refreshPending();
+    return submitted;
   }
 
   function submitWithConfirmation(
@@ -542,7 +552,7 @@
         </div>
 
         <div class="Box mt-2">
-          <div class="Box-header">Merge box</div>
+          <div class="Box-header">Pull request actions</div>
           <div class="Box-body d-flex flex-wrap gap-1">
             <button
               class="btn btn-sm"
@@ -558,48 +568,6 @@
                 submit('mark_ready_for_review', { pr_id: data.prId, target_id: data.prId })}
             >
               Mark ready
-            </button>
-            <button
-              class="btn btn-sm"
-              type="button"
-              on:click={() =>
-                submit('enable_auto_merge', { pr_id: data.prId, target_id: data.prId })}
-              disabled={offline}
-              title={offline ? 'requires connection' : ''}
-            >
-              Enable auto-merge
-            </button>
-            <button
-              class="btn btn-sm"
-              type="button"
-              on:click={() =>
-                submit('disable_auto_merge', { pr_id: data.prId, target_id: data.prId })}
-              disabled={offline}
-              title={offline ? 'requires connection' : ''}
-            >
-              Disable auto-merge
-            </button>
-            <button
-              class="btn btn-sm"
-              type="button"
-              on:click={() => submit('update_branch', { pr_id: data.prId, target_id: data.prId })}
-            >
-              Update branch
-            </button>
-            <button
-              class="btn btn-sm btn-primary"
-              type="button"
-              on:click={() =>
-                submitWithConfirmation(
-                  'merge',
-                  { pr_id: data.prId, target_id: data.prId },
-                  'Confirm merge',
-                  'Merging requires a live connection. Continue?'
-                )}
-              disabled={offline}
-              title={offline ? 'requires connection' : ''}
-            >
-              Merge
             </button>
             <button
               class="btn btn-sm btn-danger"
@@ -633,6 +601,28 @@
             </button>
           </div>
         </div>
+        <MergeBox
+          summary={bundle.summary}
+          repo={{
+            owner: activeInboxRow?.repo_owner ?? '',
+            name: activeInboxRow?.repo_name ?? '',
+            merge_commit_allowed: bundle.summary.merge_commit_allowed ?? false,
+            squash_merge_allowed: bundle.summary.squash_merge_allowed ?? false,
+            rebase_merge_allowed: bundle.summary.rebase_merge_allowed ?? false,
+            delete_branch_on_merge_default: bundle.summary.delete_branch_on_merge_default ?? false,
+            repo_has_merge_queue: bundle.summary.repo_has_merge_queue ?? false
+          }}
+          viewer={{
+            viewer_can_merge: bundle.summary.viewer_can_merge ?? false,
+            viewer_can_enable_auto_merge: bundle.summary.viewer_can_enable_auto_merge ?? false,
+            viewer_can_disable_auto_merge: bundle.summary.viewer_can_disable_auto_merge ?? false,
+            viewer_can_update_branch: bundle.summary.viewer_can_update_branch ?? false,
+            viewer_can_delete_head_ref: bundle.summary.viewer_can_delete_head_ref ?? false
+          }}
+          accountId={data.activeAccountId}
+          {offline}
+          onSubmit={submit}
+        />
       {:else if activeTab === 'files'}
         <div class="Box mb-2">
           <div class="Box-header">Viewed files</div>

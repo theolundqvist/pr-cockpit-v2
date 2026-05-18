@@ -51,7 +51,19 @@ let mockActiveAccountId = MOCK_INIT_INBOX.active_account_id ?? 'github.com:fixtu
 let mockMutationSeq = 0;
 let mockDraftSeq = 0;
 let mockNetState: NetState = { state: 'online' };
+let mockPrDetail: PrDetailSummary = { ...MOCK_PR_DETAIL };
+let mockAutoSettleMutations = true;
 const mockPendingMutations = new Map<string, PendingMutationView>();
+const mockMutationInputs = new Map<
+  string,
+  { account_id: string; kind: MutationKind; payload: Record<string, unknown> }
+>();
+const mockMutationCalls: Array<{
+  mutation_id: string;
+  account_id: string;
+  kind: MutationKind;
+  payload: Record<string, unknown>;
+}> = [];
 const mockDrafts = new Map<string, Draft>();
 const mockEventListeners = new Map<string, Set<EventCallback<unknown>>>();
 let mockWorktreeRoots = [...MOCK_WORKTREE_ROOTS];
@@ -87,6 +99,10 @@ const cautiousKinds = new Set<MutationKind>([
 ]);
 const noneKinds = new Set<MutationKind>([
   'merge',
+  'delete_head_ref',
+  'enqueue_merge_queue',
+  'dequeue_merge_queue',
+  'reorder_merge_queue',
   'enable_auto_merge',
   'disable_auto_merge',
   'close_pr',
@@ -263,16 +279,111 @@ async function settleMockMutation(mutation: PendingMutationView): Promise<void> 
     return;
   }
   await emitMockEvent('mutation:applied', { mutation_id: mutation.id });
+  const mutationInput = mockMutationInputs.get(mutation.id);
+  if (mutationInput) {
+    applyMockMutationSideEffects(mutationInput.kind, mutationInput.payload);
+  }
   mockPendingMutations.delete(mutation.id);
+  mockMutationInputs.delete(mutation.id);
   await emitMockEvent('mutation:reconciled', { mutation_id: mutation.id });
+  const prId =
+    (mutationInput?.payload.pr_id as string | undefined) ??
+    (mutation.target_type === 'pull_request' ? mutation.target_id : undefined);
+  if (prId) {
+    await emitMockEvent(`pr:${prId} changed`, { pr_id: prId });
+  }
 }
 
 async function drainMockQueue(accountId: string): Promise<void> {
+  if (!mockAutoSettleMutations) {
+    return;
+  }
   const queue = [...mockPendingMutations.values()]
     .filter((entry) => entry.account_id === accountId && entry.status === 'pending')
     .sort((left, right) => left.created_at - right.created_at);
   for (const queued of queue) {
     await settleMockMutation(queued);
+  }
+}
+
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+function applyMockMutationSideEffects(kind: MutationKind, payload: Record<string, unknown>): void {
+  const prId = payload.pr_id as string | undefined;
+  if (!prId || prId !== mockPrDetail.pr_id) {
+    return;
+  }
+  switch (kind) {
+    case 'merge':
+      mockPrDetail = {
+        ...mockPrDetail,
+        state: 'closed',
+        mergeable_state: 'merged',
+        merge_state_status: 'merged'
+      };
+      break;
+    case 'delete_head_ref':
+      mockPrDetail = {
+        ...mockPrDetail,
+        head_ref_state: 'DELETED'
+      };
+      break;
+    case 'enable_auto_merge':
+      mockPrDetail = {
+        ...mockPrDetail,
+        auto_merge_enabled: true,
+        auto_merge_method: optionalString(payload.merge_method) ?? 'SQUASH',
+        auto_merge_commit_headline: optionalString(payload.commit_headline),
+        auto_merge_commit_body: optionalString(payload.commit_body),
+        auto_merge_enabled_by_login: mockPrDetail.auto_merge_enabled_by_login ?? 'fixture-user'
+      };
+      break;
+    case 'disable_auto_merge':
+      mockPrDetail = {
+        ...mockPrDetail,
+        auto_merge_enabled: false,
+        auto_merge_method: null,
+        auto_merge_commit_headline: null,
+        auto_merge_commit_body: null,
+        auto_merge_enabled_by_login: null
+      };
+      break;
+    case 'enqueue_merge_queue':
+      mockPrDetail = {
+        ...mockPrDetail,
+        merge_queue_entry_id: optionalString(payload.merge_queue_entry_id) ?? `mqe-${Date.now()}`,
+        merge_queue_entry_position: 1,
+        merge_queue_entry_state: 'QUEUED',
+        merge_queue_entry_estimated_ms: 600000
+      };
+      break;
+    case 'dequeue_merge_queue':
+      mockPrDetail = {
+        ...mockPrDetail,
+        merge_queue_entry_id: null,
+        merge_queue_entry_position: null,
+        merge_queue_entry_state: null,
+        merge_queue_entry_estimated_ms: null
+      };
+      break;
+    case 'reorder_merge_queue': {
+      const mode = optionalString(payload.mode) ?? 'TOP';
+      mockPrDetail = {
+        ...mockPrDetail,
+        merge_queue_entry_position: mode === 'TOP' ? 1 : 8
+      };
+      break;
+    }
+    case 'update_branch':
+      mockPrDetail = {
+        ...mockPrDetail,
+        merge_state_status: 'clean'
+      };
+      break;
+    default:
+      break;
   }
 }
 
@@ -382,7 +493,7 @@ export async function getPrSummary(
   if (isTauriRuntime()) {
     return unwrap(commands.ipcPrDetailSummary({ account_id: accountId, pr_id: prId }));
   }
-  return prId === 'pr_1' ? MOCK_PR_DETAIL : null;
+  return prId === 'pr_1' ? { ...mockPrDetail } : null;
 }
 
 export async function getPrMetadata(accountId: string, prId: string) {
@@ -717,9 +828,22 @@ export async function submitMutation(accountId: string, kind: MutationKind, payl
     requires_connection_confirmation: mockNetState.state === 'offline' && optimism === 'none'
   };
   mockPendingMutations.set(mutationId, mutation);
+  mockMutationInputs.set(mutationId, {
+    account_id: accountId,
+    kind,
+    payload: parsed
+  });
+  mockMutationCalls.push({
+    mutation_id: mutationId,
+    account_id: accountId,
+    kind,
+    payload: parsed
+  });
   await emitMockEvent('mutation:submitted', { mutation });
-  if (mockNetState.state === 'online') {
-    await settleMockMutation(mutation);
+  if (mockNetState.state === 'online' && mockAutoSettleMutations) {
+    queueMicrotask(() => {
+      void settleMockMutation(mutation);
+    });
   }
   return {
     mutation_id: mutationId,
@@ -807,7 +931,7 @@ export async function retryMutation(mutationId: string): Promise<void> {
   mutation.status = 'pending';
   mutation.last_error = null;
   mockPendingMutations.set(mutationId, mutation);
-  if (mockNetState.state === 'offline') {
+  if (mockNetState.state === 'offline' || !mockAutoSettleMutations) {
     return;
   }
   await settleMockMutation(mutation);
@@ -822,6 +946,7 @@ export async function discardMutation(mutationId: string): Promise<void> {
     return;
   }
   mockPendingMutations.delete(mutationId);
+  mockMutationInputs.delete(mutationId);
   await emitMockEvent('mutation:rolled-back', { mutation_id: mutationId });
 }
 
@@ -978,6 +1103,26 @@ declare global {
       emitRateLimitPressure: (accountId: string) => Promise<void>;
       emitRateLimitBypass: (accountId: string) => Promise<void>;
     };
+    __M4_DEBUG__?: {
+      setPrDetail: (partial: Partial<PrDetailSummary>) => void;
+      resetPrDetail: () => void;
+      setAutoSettleMutations: (enabled: boolean) => void;
+      settleMutation: (mutationId: string) => Promise<void>;
+      emitMergeableBackoffTick: (
+        accountId: string,
+        prId: string,
+        attempt: number,
+        nextSleepSeconds: number
+      ) => Promise<void>;
+      emitPrChanged: (prId: string) => Promise<void>;
+      mutationCalls: () => Array<{
+        mutation_id: string;
+        account_id: string;
+        kind: MutationKind;
+        payload: Record<string, unknown>;
+      }>;
+      clearMutationCalls: () => void;
+    };
   }
 }
 
@@ -1014,5 +1159,41 @@ if (typeof window !== 'undefined' && !window.__M4_MULTI_ACCOUNT_DEBUG__) {
     },
     emitRateLimitPressure: (accountId) => emitMockRateLimitPressure(accountId),
     emitRateLimitBypass: (accountId) => emitMockRateLimitBypass(accountId)
+  };
+}
+
+if (typeof window !== 'undefined' && !window.__M4_DEBUG__) {
+  window.__M4_DEBUG__ = {
+    setPrDetail: (partial) => {
+      mockPrDetail = { ...mockPrDetail, ...partial };
+    },
+    resetPrDetail: () => {
+      mockPrDetail = { ...MOCK_PR_DETAIL };
+    },
+    setAutoSettleMutations: (enabled) => {
+      mockAutoSettleMutations = enabled;
+    },
+    settleMutation: async (mutationId) => {
+      const mutation = mockPendingMutations.get(mutationId);
+      if (!mutation) {
+        return;
+      }
+      await settleMockMutation(mutation);
+    },
+    emitMergeableBackoffTick: async (accountId, prId, attempt, nextSleepSeconds) => {
+      await emitMockEvent(`mergeable_backoff:${accountId}:${prId} tick`, {
+        account_id: accountId,
+        pr_id: prId,
+        attempt,
+        next_sleep_seconds: nextSleepSeconds
+      });
+    },
+    emitPrChanged: async (prId) => {
+      await emitMockEvent(`pr:${prId} changed`, { pr_id: prId });
+    },
+    mutationCalls: () => [...mockMutationCalls],
+    clearMutationCalls: () => {
+      mockMutationCalls.splice(0, mockMutationCalls.length);
+    }
   };
 }

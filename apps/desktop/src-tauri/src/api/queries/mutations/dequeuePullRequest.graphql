@@ -1,0 +1,10 @@
+mutation DequeuePullRequest($id: ID!) {
+  dequeuePullRequest(input: { id: $id }) {
+    mergeQueueEntry {
+      id
+      position
+      state
+      estimatedTimeToMerge
+    }
+  }
+}
