@@ -106,18 +106,18 @@
       "agentId": "bc-b542b80b-600b-4cc8-9721-c68185f3099b",
       "runId": "run-49ee65b2-ddb4-45f8-9bb9-16b9cfb448db",
       "parentAgentId": "bc-dd32973e-47c8-43fa-9b39-815194042d0d",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m4-finalize.md",
       "startedAt": "2026-05-18T05:07:24.369Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T05:07:27.166Z",
+      "finishedAt": "2026-05-18T05:52:17.173Z",
+      "lastUpdate": "2026-05-18T05:52:17.173Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m4-verify",
@@ -175,6 +175,14 @@
     {
       "at": "2026-05-18T05:19:28.253Z",
       "message": "m4-finalize: tool_call idle 339698ms; last=2026-05-18T05:13:48.555Z"
+    },
+    {
+      "at": "2026-05-18T05:32:54.344Z",
+      "message": "m4-finalize: SSE idle 357798ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T05:32:54.345Z",
+      "message": "m4-finalize: tool_call idle 357799ms; last=2026-05-18T05:26:56.546Z"
     }
   ]
 }
