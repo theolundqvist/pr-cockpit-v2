@@ -31,21 +31,21 @@
       "dependsOn": [
         "m4-merge-surface"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "agentId": "bc-9278b634-ea70-4728-a37d-5335bbaf30d4",
+      "runId": "run-73da0b3d-760c-42b3-bdfa-b61732414c5b",
+      "parentAgentId": "bc-dd32973e-47c8-43fa-9b39-815194042d0d",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m4-force-push-range-diff.md",
       "startedAt": "2026-05-18T02:17:09.208Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T02:17:09.208Z",
+      "finishedAt": "2026-05-18T03:16:36.727Z",
+      "lastUpdate": "2026-05-18T03:16:36.727Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m4-multi-account",
