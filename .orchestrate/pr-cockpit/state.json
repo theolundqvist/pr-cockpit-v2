@@ -274,14 +274,14 @@
       "agentId": null,
       "runId": null,
       "parentAgentId": null,
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T22:39:05.197Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T22:38:51.226Z",
+      "lastUpdate": "2026-05-18T22:39:05.197Z",
       "note": "respawned by self-planner (was error; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -1504,6 +1504,10 @@
     {
       "at": "2026-05-18T22:37:15.778Z",
       "message": "verify-m6-stacks-relay-polish: spawn failed after 3 transient sub-attempts: Error: m6-stacks-relay-polish: branch must be orch/pr-cockpit/m6-stacks-relay-polish, got `orch/m6-stacks-relay-polish/m6-tag-v1` (deliverable; commit `5c77a19` on top of verifier-signed-off `5b14043`…"
+    },
+    {
+      "at": "2026-05-18T22:38:52.105Z",
+      "message": "verify-m6-stacks-relay-polish: respawned by self-planner (was error)"
     }
   ]
 }
