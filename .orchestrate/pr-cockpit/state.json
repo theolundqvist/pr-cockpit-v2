@@ -147,21 +147,21 @@
       "name": "m4-merge-multiaccount",
       "type": "subplanner",
       "branch": "orch/pr-cockpit/m4-merge-multiaccount",
-      "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
       "dependsOn": [
         "verify-m3-diff-worktree-notifs"
       ],
       "agentId": null,
       "runId": null,
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "pending",
+      "status": "running",
       "resultStatus": null,
       "handoffPath": null,
-      "startedAt": null,
+      "startedAt": "2026-05-18T02:13:28.249Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T02:13:20.289Z",
+      "lastUpdate": "2026-05-18T02:13:28.249Z",
       "note": "respawned by self-planner (was cancelled; attempts=1)",
-      "attempts": 1,
+      "attempts": 2,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
@@ -831,6 +831,10 @@
     {
       "at": "2026-05-18T02:13:12.136Z",
       "message": "m4-merge-multiaccount: cancelled by operator"
+    },
+    {
+      "at": "2026-05-18T02:13:21.361Z",
+      "message": "m4-merge-multiaccount: respawned by self-planner (was cancelled); resuming from orch/pr-cockpit/m4-merge-multiaccount"
     }
   ]
 }
