@@ -194,7 +194,7 @@
     {
       "name": "m5-editor-power-worktree-write",
       "type": "subplanner",
-      "branch": "orch/pr-cockpit/m5-editor-power-worktree-write",
+      "branch": "`orch/m5-editor-power-worktree-write/m5-finalize` (canonical M5 head; the verifier added `4f93246 chore(verify): m5 verification matrix + report` on top, but `db1f235 chore(m5): finalize smoke docs and stability polish` is the pure deliverable tip if you want non-verifier history)",
       "startingRef": "orch/pr-cockpit/m4-merge-multiaccount",
       "dependsOn": [
         "verify-m4-merge-multiaccount"
@@ -202,12 +202,12 @@
       "agentId": "bc-fcc36435-3b73-4da2-a0a2-32447276d442",
       "runId": "run-9839ee2e-541f-47ea-bcf9-b9d5a2eecc44",
       "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
-      "status": "running",
-      "resultStatus": null,
-      "handoffPath": null,
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m5-editor-power-worktree-write.md",
       "startedAt": "2026-05-18T08:03:44.274Z",
-      "finishedAt": null,
-      "lastUpdate": "2026-05-18T08:03:48.145Z",
+      "finishedAt": "2026-05-18T16:03:18.343Z",
+      "lastUpdate": "2026-05-18T16:03:18.343Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
