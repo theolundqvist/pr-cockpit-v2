@@ -137,11 +137,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-05-18T00:12:52.209Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "m4-merge-multiaccount",
