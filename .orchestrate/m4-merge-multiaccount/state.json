@@ -1,0 +1,142 @@
+{
+  "rootSlug": "m4-merge-multiaccount",
+  "tasks": [
+    {
+      "name": "m4-merge-surface",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-merge-surface",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-force-push-range-diff",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-force-push-range-diff",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-merge-surface"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-multi-account",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-multi-account",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-force-push-range-diff"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-ghe-readiness",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-ghe-readiness",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-multi-account"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-finalize",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-finalize",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-ghe-readiness"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-verify",
+      "type": "verifier",
+      "branch": "orch/m4-merge-multiaccount/m4-verify",
+      "startingRef": "orch/m4-merge-multiaccount/m4-finalize",
+      "dependsOn": [
+        "m4-finalize"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": []
+}
