@@ -209,11 +209,11 @@
       "finishedAt": null,
       "lastUpdate": "2026-05-18T07:19:13.508Z",
       "note": null,
+      "attempts": 1,
       "slackTs": null,
       "prNumber": null,
       "failureMode": null,
-      "verification": null,
-      "attempts": 1
+      "verification": null
     },
     {
       "name": "verify-m5-editor-power-worktree-write",
