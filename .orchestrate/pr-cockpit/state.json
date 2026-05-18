@@ -1093,6 +1093,14 @@
     {
       "at": "2026-05-18T09:20:34.216Z",
       "message": "m5-editor-power-worktree-write: tool_call idle 328217ms; last=2026-05-18T09:15:05.999Z"
+    },
+    {
+      "at": "2026-05-18T09:38:18.135Z",
+      "message": "m5-editor-power-worktree-write: SSE idle 347984ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T09:38:18.136Z",
+      "message": "m5-editor-power-worktree-write: tool_call idle 347985ms; last=2026-05-18T09:32:30.151Z"
     }
   ]
 }
