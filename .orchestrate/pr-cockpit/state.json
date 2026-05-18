@@ -175,15 +175,15 @@
       "dependsOn": [
         "m4-merge-multiaccount"
       ],
-      "agentId": null,
-      "runId": null,
-      "parentAgentId": null,
+      "agentId": "bc-fc39074f-1761-4408-b6ce-8b9793258f5e",
+      "runId": "run-71d21ada-8908-46c9-9a05-c466f45bb031",
+      "parentAgentId": "bc-37db84e8-6beb-4535-ae3d-1ec364fe278b",
       "status": "running",
       "resultStatus": null,
       "handoffPath": null,
       "startedAt": "2026-05-18T06:44:42.172Z",
       "finishedAt": null,
-      "lastUpdate": "2026-05-18T06:44:42.172Z",
+      "lastUpdate": "2026-05-18T06:44:45.080Z",
       "note": "respawned by self-planner (was error; attempts=1)",
       "attempts": 2,
       "slackTs": null,
@@ -996,6 +996,14 @@
     {
       "at": "2026-05-18T06:44:32.442Z",
       "message": "verify-m4-merge-multiaccount: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-18T06:52:46.085Z",
+      "message": "verify-m4-merge-multiaccount: SSE idle 349459ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-18T06:52:46.086Z",
+      "message": "verify-m4-merge-multiaccount: tool_call idle 349460ms; last=2026-05-18T06:46:56.626Z"
     }
   ]
 }
