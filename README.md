@@ -13,14 +13,41 @@ Read in this order:
 3. `synthesis.md` — the source synthesis the plan derives from.
 4. `DECISIONS.md` — non-obvious calls, dated.
 
-Status: **M4 merge surface + force-push range-diff + multi-account complete**.
-Milestones M5 → M6 continue per the brief and `PLAN.md`.
+Status: **M5 editor power + worktree write + check annotations complete**.
+Milestone M6 continues per the brief and `PLAN.md`.
 
 ## Feature highlights
 
 - Local-first PR cockpit backed by SQLite denormalized read models.
 - Optimistic mutation pipeline with replay-safe queueing and inverse-patch rollback.
 - Composer with textarea + Preview parity via the shared comrak renderer path.
+- Suggestion apply is shipped for both single and batched flows: single suggestion
+  uses the GitHub mutation path, and batched apply is gated on clean worktree
+  checks with local commit + push sequencing (proofs:
+  `apps/desktop/playwright/m5-suggestion-apply.spec.ts`,
+  `apps/desktop/src-tauri/tests/worktree_write.rs`,
+  `apps/desktop/src-tauri/tests/mutations_harness.rs`).
+- Saved replies are shipped as per-account presets with settings CRUD, composer
+  insertion, and quick-switch palette integration (proofs:
+  `apps/desktop/playwright/m5-saved-replies-paste-image.spec.ts`,
+  `apps/desktop/src-tauri/tests/saved_replies.rs`).
+- Command palette + keyboard layer are fully shipped across inbox and PR detail,
+  including PR-number jump, account switching, apply/resolve/view commands, and
+  open-in-github flows (proofs:
+  `apps/desktop/playwright/m5-command-palette.spec.ts`,
+  `apps/desktop/playwright/m5-a11y.spec.ts`,
+  `tools/perf-bench/command-palette.mjs`).
+- Paste-image upload is shipped from clipboard to GitHub user-content URL with
+  placeholder replacement while preserving composer/Preview parity (proofs:
+  `apps/desktop/playwright/m5-saved-replies-paste-image.spec.ts`,
+  `apps/desktop/src/lib/components/Composer.paste-image.test.ts`,
+  `apps/desktop/src-tauri/tests/image_uploads.rs`).
+- Check annotations are shipped inline on diff lines with failed-job log tail
+  streaming and rerun-check/run-suite actions (proofs:
+  `apps/desktop/playwright/m5-check-annotations.spec.ts`,
+  `apps/desktop/src-tauri/tests/check_annotations_sync.rs`,
+  `apps/desktop/src-tauri/tests/check_log_stream.rs`,
+  `apps/desktop/src-tauri/tests/rerun_check_run.rs`).
 - Diff polish is fully shipped: multi-line inline review comments, suggestion
   block insertion/preview, head-SHA-scoped viewed files, and image/binary/rename
   rendering in the diff surface (proofs:
@@ -88,7 +115,7 @@ For headless checks without a desktop display server, run:
 pnpm --filter desktop test:smoke
 ```
 
-## CI quality gates (M4)
+## CI quality gates (M5)
 
 The required local/CI gate matrix is:
 

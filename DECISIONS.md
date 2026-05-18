@@ -1,5 +1,54 @@
 # Decisions
 
+## M5 contract decisions (promoted for M6+)
+
+These M5 contracts are consolidated from the four M5 worker handoffs and are
+the starting contract for M6 unless explicitly superseded:
+
+1. **Suggestion apply split is fixed by operation risk.**
+   Single-suggestion apply is server-side (`apply_suggestion` mutation path) with
+   no local worktree dependency; batched apply always runs through explicit
+   worktree-write steps (open → assert clean/head/branch → patch → commit →
+   force-with-lease push) and is blocked on dirty worktrees unless
+   `force_with_stash` is explicit.
+2. **Worktree-write safety is fail-closed and rollback-safe.**
+   Dirty-state refusal, branch/head assertions, force-with-lease rejection, and
+   local rollback on push reject are all hard requirements; no silent overwrite
+   of user changes is allowed.
+3. **Check annotations are GitHub-authored anchors with inline diff rendering.**
+   Anchors come from check-run REST annotation payloads verbatim and are not
+   locally re-anchored; failed-check log tail streams Actions logs with bounded
+   memory; rerun supports both run-level and suite-level paths.
+4. **Saved replies and paste-image uploads are account-scoped and safe by default.**
+   Replies are CRUD + insertion presets per account; paste-image uploads enforce
+   GitHub user-content URL validation and dedup by `(account_id, sha256)`.
+5. **Command palette + keyboard layer are first-class navigation/mutation surfaces.**
+   One shared registry powers `Ctrl+K` and keybindings (`g i`, `g p`, `g s`,
+   `Ctrl+Shift+R`, `v`, `Ctrl+Shift+O`, etc.) with input-focus suppression for
+   plain keys and live route-aware command visibility.
+6. **M5 perf/a11y gates are release blockers.**
+   Palette open/result budgets (`<75 ms`, `<150 ms`) are enforced in `pnpm bench`
+   alongside PLAN §10 budgets, corpus weighted drift remains `<= 1.5%`, and M5
+   keyboard-only/a11y Playwright coverage is mandatory.
+
+M5 acceptance-criteria coverage mapping:
+
+- Suggestion apply (single + batched clean-worktree) → see
+  `2026-05-18: M5 suggestion-apply endpoint, worktree-write safety contract, and event schema`.
+- Saved replies + composer + quick-switch palette → see
+  `2026-05-18: M5 saved replies and paste-image upload contracts` and
+  `2026-05-18: M5 command palette + keyboard layer contracts`.
+- Command palette + full keyboard layer → see
+  `2026-05-18: M5 command palette + keyboard layer contracts`.
+- Paste-image upload and preview parity → see
+  `2026-05-18: M5 saved replies and paste-image upload contracts`.
+- Check annotations + log tail + rerun checks → see
+  `2026-05-18: M5 check annotations, log-tail streaming, rerun checks, and panel placement`.
+- Perf budgets + corpus + a11y keyboard usability → see
+  `2026-05-18: M5 command palette + keyboard layer contracts`,
+  `2026-05-17: M3 markdown corpus gate tightened to 1.5% with explicit top-drift accounting`,
+  and `2026-05-17: M3 contract decisions (promoted for M4+)` item 8.
+
 ## M4 contract decisions (promoted for M5+)
 
 These M4 contracts are stable inputs for M5+ unless explicitly superseded:

@@ -215,14 +215,9 @@ test('palette commands trigger suggestion, thread, file, github, and saved-reply
 
 test('keyboard-only PR cycle', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => {
-    window.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'g', bubbles: true, cancelable: true })
-    );
-    window.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'p', bubbles: true, cancelable: true })
-    );
-  });
+  await page.keyboard.press('g');
+  await page.keyboard.press('p');
+  await expect(page.getByTestId('command-palette-root')).toHaveClass(/is-open/);
   await expect(page.getByTestId('command-palette-modal')).toBeVisible();
   await page.getByTestId('command-palette-search').fill('1');
   await page.keyboard.press('Enter');
