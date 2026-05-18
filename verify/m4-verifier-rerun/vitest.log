@@ -1,0 +1,18 @@
+
+> pr-cockpit@0.1.0 test /workspace
+> pnpm --filter desktop test
+
+
+> desktop@0.1.0 test /workspace/apps/desktop
+> vitest run
+
+
+ RUN  v4.1.6 /workspace/apps/desktop
+
+
+ Test Files  9 passed (9)
+      Tests  11 passed (11)
+   Start at  06:57:38
+   Duration  6.10s (transform 3.16s, setup 5.26s, import 228ms, tests 996ms, environment 8.79s)
+
+vitest_exit=0

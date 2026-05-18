@@ -1,0 +1,312 @@
+
+> pr-cockpit@0.1.0 bench /workspace
+> node ./tools/perf-bench/run-all.mjs
+
+
+> desktop@0.1.0 build /workspace/apps/desktop
+> vite build
+
+vite v8.0.13 building ssr environment for production...
+[2Ktransforming...✓ 191 modules transformed.
+[lightningcss minify] Unknown at rule: @custom-media
+2009 |  :root{--breakpoint-large: 63.25rem;--breakpoint-medium: 48rem;--breakpoint-small: 34rem;--breakpoint-xlarge: 80rem;--...
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+     |               ^
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+[lightningcss minify] Unknown at rule: @custom-media
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+     |               ^
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+[lightningcss minify] Unknown at rule: @custom-media
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+     |               ^
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+     |               ^
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+     |               ^
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+[lightningcss minify] Unknown at rule: @custom-media
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+     |               ^
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+2018 |  :root{--h00-size-mobile: 2.5rem;--h0-size-mobile: 2rem;--h1-size-mobile: 1.625rem;--h2-size-mobile: 1.375rem;--h3-siz...
+rendering chunks...
+vite v8.0.13 building client environment for production...
+[2Ktransforming...[plugin rolldown:vite-resolve] Module "module" has been externalized for browser compatibility, imported by "/workspace/node_modules/web-tree-sitter/web-tree-sitter.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin rolldown:vite-resolve] Module "fs/promises" has been externalized for browser compatibility, imported by "/workspace/node_modules/web-tree-sitter/web-tree-sitter.js". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
+      [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../../node_modules/web-tree-sitter/web-tree-sitter.js:2343:31 [38;5;246m][0m
+      [38;5;246m│[0m
+ [38;5;246m2343 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mA[0m[38;5;249mS[0m[38;5;249mM[0m[38;5;249m_[0m[38;5;249mC[0m[38;5;249mO[0m[38;5;249mN[0m[38;5;249mS[0m[38;5;249mT[0m[38;5;249mS[0m[38;5;249m[[0m[38;5;249ms[0m[38;5;249mt[0m[38;5;249ma[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249m][0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0meval[38;5;249m([0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249m)[0m[38;5;249m;[0m
+ [38;5;240m     │[0m                               ──┬─  
+ [38;5;240m     │[0m                                 ╰─── Use of direct `eval` here.
+ [38;5;240m     │[0m 
+ [38;5;240m     │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
+[38;5;246m──────╯[0m
+
+[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
+      [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m ../../node_modules/web-tree-sitter/web-tree-sitter.js:2366:33 [38;5;246m][0m
+      [38;5;246m│[0m
+ [38;5;246m2366 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mm[0m[38;5;249mo[0m[38;5;249md[0m[38;5;249mu[0m[38;5;249ml[0m[38;5;249me[0m[38;5;249mE[0m[38;5;249mx[0m[38;5;249mp[0m[38;5;249mo[0m[38;5;249mr[0m[38;5;249mt[0m[38;5;249ms[0m[38;5;249m[[0m[38;5;249mn[0m[38;5;249ma[0m[38;5;249mm[0m[38;5;249me[0m[38;5;249m][0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0meval[38;5;249m([0m[38;5;249mf[0m[38;5;249mu[0m[38;5;249mn[0m[38;5;249mc[0m[38;5;249m)[0m[38;5;249m;[0m
+ [38;5;240m     │[0m                                 ──┬─  
+ [38;5;240m     │[0m                                   ╰─── Use of direct `eval` here.
+ [38;5;240m     │[0m 
+ [38;5;240m     │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
+[38;5;246m──────╯[0m
+
+✓ 213 modules transformed.
+[lightningcss minify] Unknown at rule: @custom-media
+2009 |  :root{--breakpoint-large: 63.25rem;--breakpoint-medium: 48rem;--breakpoint-small: 34rem;--breakpoint-xlarge: 80rem;--...
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+     |               ^
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+[lightningcss minify] Unknown at rule: @custom-media
+2010 |  :root{--control-large-paddingBlock: 0.625rem;--control-medium-paddingBlock: 0.375rem;--control-xlarge-paddingBlock: 0...
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+     |               ^
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+[lightningcss minify] Unknown at rule: @custom-media
+2011 |  @custom-media --viewportRange-landscape (orientation: landscape);
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+     |               ^
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2012 |  @custom-media --viewportRange-narrow (max-width: calc(48rem - 0.02px));
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+     |               ^
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+[lightningcss minify] Unknown at rule: @custom-media
+2013 |  @custom-media --viewportRange-narrowLandscape ((max-width: calc(63.25rem - 0.02px)) and (max-height: calc(34rem - 0.0...
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+     |               ^
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+[lightningcss minify] Unknown at rule: @custom-media
+2014 |  @custom-media --viewportRange-portrait (orientation: portrait);
+2015 |  @custom-media --viewportRange-regular (min-width: 48rem);
+2016 |  @custom-media --viewportRange-wide (min-width: 87.5rem);
+     |               ^
+2017 |  :root{--fontStack-monospace: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;--fon...
+2018 |  :root{--h00-size-mobile: 2.5rem;--h0-size-mobile: 2rem;--h1-size-mobile: 1.625rem;--h2-size-mobile: 1.375rem;--h3-siz...
+rendering chunks...
+computing gzip size...
+.svelte-kit/output/client/_app/version.json                                                0.02 kB │ gzip:   0.04 kB
+.svelte-kit/output/client/.vite/manifest.json                                              4.85 kB │ gzip:   0.79 kB
+.svelte-kit/output/client/_app/immutable/workers/highlight-C32va5db.js                    79.72 kB
+.svelte-kit/output/client/_app/immutable/workers/assets/web-tree-sitter-CfJ9hzQ2.wasm    196.76 kB │ gzip:  79.59 kB
+.svelte-kit/output/client/_app/immutable/assets/5.7Bq0ZhAj.css                             0.19 kB │ gzip:   0.16 kB
+.svelte-kit/output/client/_app/immutable/assets/2.BG8OpOVH.css                             0.29 kB │ gzip:   0.16 kB
+.svelte-kit/output/client/_app/immutable/assets/3.DNacuyAl.css                             0.39 kB │ gzip:   0.26 kB
+.svelte-kit/output/client/_app/immutable/assets/4.B0JonEm4.css                             0.59 kB │ gzip:   0.27 kB
+.svelte-kit/output/client/_app/immutable/assets/0.BQH_gsmt.css                         1,030.96 kB │ gzip: 160.36 kB
+.svelte-kit/output/client/_app/immutable/chunks/BhkTRVMw.js                                0.02 kB │ gzip:   0.04 kB
+.svelte-kit/output/client/_app/immutable/chunks/v_jBEYI6.js                                0.06 kB │ gzip:   0.08 kB
+.svelte-kit/output/client/_app/immutable/entry/start.BT1ivbwY.js                           0.08 kB │ gzip:   0.09 kB
+.svelte-kit/output/client/_app/immutable/chunks/D2TZKGhy.js                                0.24 kB │ gzip:   0.17 kB
+.svelte-kit/output/client/_app/immutable/chunks/b1QuUJec.js                                0.64 kB │ gzip:   0.38 kB
+.svelte-kit/output/client/_app/immutable/nodes/1.DOwtxsrS.js                               1.06 kB │ gzip:   0.50 kB
+.svelte-kit/output/client/_app/immutable/chunks/DxLN9Q9A.js                                1.20 kB │ gzip:   0.68 kB
+.svelte-kit/output/client/_app/immutable/chunks/DyaMLVE9.js                                2.22 kB │ gzip:   0.93 kB
+.svelte-kit/output/client/_app/immutable/chunks/s4a7zgfL.js                                2.64 kB │ gzip:   1.27 kB
+.svelte-kit/output/client/_app/immutable/entry/app.BBv0zQjR.js                             3.41 kB │ gzip:   1.48 kB
+.svelte-kit/output/client/_app/immutable/nodes/4.ZFAACB0T.js                               5.87 kB │ gzip:   2.40 kB
+.svelte-kit/output/client/_app/immutable/nodes/2.D-9C3rGx.js                               7.37 kB │ gzip:   3.30 kB
+.svelte-kit/output/client/_app/immutable/nodes/5.9lcPoDHz.js                              10.85 kB │ gzip:   4.20 kB
+.svelte-kit/output/client/_app/immutable/nodes/0.uKZPXuzB.js                              14.45 kB │ gzip:   5.27 kB
+.svelte-kit/output/client/_app/immutable/chunks/CwOEA9nT.js                               27.39 kB │ gzip:  10.67 kB
+.svelte-kit/output/client/_app/immutable/chunks/BmVVkOrk.js                               31.61 kB │ gzip:   9.88 kB
+.svelte-kit/output/client/_app/immutable/chunks/DRtnYrfr.js                               52.45 kB │ gzip:  20.15 kB
+.svelte-kit/output/client/_app/immutable/nodes/3.Dw3mE4qb.js                              93.19 kB │ gzip:  27.62 kB
+
+✓ built in 666ms
+computing gzip size...
+.svelte-kit/output/server/.vite/manifest.json                                   6.08 kB │ gzip:   0.84 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.7Bq0ZhAj.css              0.19 kB │ gzip:   0.16 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.BG8OpOVH.css              0.29 kB │ gzip:   0.16 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.DNacuyAl.css              0.39 kB │ gzip:   0.26 kB
+.svelte-kit/output/server/_app/immutable/assets/_page.B0JonEm4.css              0.59 kB │ gzip:   0.27 kB
+.svelte-kit/output/server/_app/immutable/assets/_layout.8_LHUtzP.css        1,030.40 kB │ gzip: 160.27 kB
+.svelte-kit/output/server/chunks/index-server2.js                               0.03 kB │ gzip:   0.05 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/range-diff/_page.ts.js          0.10 kB │ gzip:   0.11 kB
+.svelte-kit/output/server/entries/pages/_layout.ts.js                           0.24 kB │ gzip:   0.19 kB
+.svelte-kit/output/server/internal.js                                           0.40 kB │ gzip:   0.20 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/_page.ts.js                     0.63 kB │ gzip:   0.34 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/range-diff/_page.svelte.js      1.14 kB │ gzip:   0.58 kB
+.svelte-kit/output/server/chunks/environment.js                                 1.32 kB │ gzip:   0.56 kB
+.svelte-kit/output/server/chunks/stores.js                                      1.45 kB │ gzip:   0.66 kB
+.svelte-kit/output/server/chunks/time.js                                        1.94 kB │ gzip:   0.77 kB
+.svelte-kit/output/server/chunks/pr-detail.js                                   2.71 kB │ gzip:   0.95 kB
+.svelte-kit/output/server/entries/fallbacks/error.svelte.js                     3.47 kB │ gzip:   1.32 kB
+.svelte-kit/output/server/chunks/cockpit.js                                     5.13 kB │ gzip:   1.33 kB
+.svelte-kit/output/server/entries/pages/_page.svelte.js                         9.07 kB │ gzip:   2.91 kB
+.svelte-kit/output/server/entries/pages/settings/_page.svelte.js                9.96 kB │ gzip:   2.75 kB
+.svelte-kit/output/server/chunks/shared.js                                     10.32 kB │ gzip:   3.34 kB
+.svelte-kit/output/server/chunks/exports.js                                    11.26 kB │ gzip:   3.50 kB
+.svelte-kit/output/server/entries/pages/_layout.svelte.js                      18.37 kB │ gzip:   4.35 kB
+.svelte-kit/output/server/chunks/internal.js                                   20.65 kB │ gzip:   6.43 kB
+.svelte-kit/output/server/chunks/utils.js                                      30.10 kB │ gzip:   8.68 kB
+.svelte-kit/output/server/remote-entry.js                                      46.10 kB │ gzip:   9.44 kB
+.svelte-kit/output/server/chunks/client2.js                                    47.16 kB │ gzip:  11.24 kB
+.svelte-kit/output/server/chunks/client.js                                     47.18 kB │ gzip:  13.85 kB
+.svelte-kit/output/server/chunks/index-server.js                               47.47 kB │ gzip:  13.06 kB
+.svelte-kit/output/server/chunks/utils2.js                                     87.87 kB │ gzip:  22.68 kB
+.svelte-kit/output/server/entries/pages/pr/_id_/_page.svelte.js                89.57 kB │ gzip:  19.21 kB
+.svelte-kit/output/server/index.js                                            122.95 kB │ gzip:  31.10 kB
+
+✓ built in 2.10s
+
+Run npm run preview to preview your production build locally.
+
+> Using @sveltejs/adapter-static
+Overwriting build/index.html with fallback page. Consider using a different name for the fallback.
+  Wrote site to "build"
+  ✔ done
+   Compiling desktop v0.1.0 (/workspace/apps/desktop/src-tauri)
+    Finished `bench` profile [optimized] target(s) in 1m 37s
+     Running benches/comrak_render_throughput.rs (target/release/deps/comrak_render_throughput-c0f10cd0b35d4f80)
+Gnuplot not found, using plotters backend
+Benchmarking comrak_render_throughput/comrak_render_throughput
+Benchmarking comrak_render_throughput/comrak_render_throughput: Warming up for 300.00 ms
+Benchmarking comrak_render_throughput/comrak_render_throughput: Collecting 30 samples in estimated 3.0039 s (109k iterations)
+Benchmarking comrak_render_throughput/comrak_render_throughput: Analyzing
+comrak_render_throughput/comrak_render_throughput
+                        time:   [27.275 µs 27.302 µs 27.331 µs]
+                        thrpt:  [36.588 Kelem/s 36.627 Kelem/s 36.664 Kelem/s]
+                 change:
+                        time:   [−2.8715% −1.2217% −0.1328%] (p = 0.08 > 0.05)
+                        thrpt:  [+0.1330% +1.2368% +2.9564%]
+                        No change in performance detected.
+Found 5 outliers among 30 measurements (16.67%)
+  3 (10.00%) high mild
+  2 (6.67%) high severe
+
+     Running benches/file_open_in_diff_cached.rs (target/release/deps/file_open_in_diff_cached-5d17d4518ef482d6)
+Gnuplot not found, using plotters backend
+Benchmarking file_open_in_diff_cached
+Benchmarking file_open_in_diff_cached: Warming up for 300.00 ms
+Benchmarking file_open_in_diff_cached: Collecting 20 samples in estimated 2.0782 s (2730 iterations)
+Benchmarking file_open_in_diff_cached: Analyzing
+file_open_in_diff_cached
+                        time:   [749.58 µs 767.46 µs 788.39 µs]
+                        change: [+4.6501% +8.3878% +12.251%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) low mild
+
+     Running benches/inbox_first_paint.rs (target/release/deps/inbox_first_paint-05a0d9c2e9d5a12d)
+Gnuplot not found, using plotters backend
+Benchmarking inbox_first_paint
+Benchmarking inbox_first_paint: Warming up for 300.00 ms
+Benchmarking inbox_first_paint: Collecting 20 samples in estimated 2.4827 s (80 iterations)
+Benchmarking inbox_first_paint: Analyzing
+inbox_first_paint       time:   [27.463 ms 27.712 ms 27.994 ms]
+                        change: [+1.9057% +3.3481% +4.8814%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+     Running benches/mutation_submit_visible.rs (target/release/deps/mutation_submit_visible-e97084424dc1cbc1)
+Gnuplot not found, using plotters backend
+Benchmarking mutation_submit_visible_online
+Benchmarking mutation_submit_visible_online: Warming up for 250.00 ms
+Benchmarking mutation_submit_visible_online: Collecting 20 samples in estimated 2.0848 s (3570 iterations)
+Benchmarking mutation_submit_visible_online: Analyzing
+mutation_submit_visible_online
+                        time:   [598.81 µs 628.35 µs 661.92 µs]
+                        change: [+49.705% +74.146% +102.57%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) low severe
+  1 (5.00%) low mild
+
+Benchmarking mutation_submit_visible_offline
+Benchmarking mutation_submit_visible_offline: Warming up for 250.00 ms
+Benchmarking mutation_submit_visible_offline: Collecting 20 samples in estimated 2.0477 s (2520 iterations)
+Benchmarking mutation_submit_visible_offline: Analyzing
+mutation_submit_visible_offline
+                        time:   [581.85 µs 641.46 µs 725.07 µs]
+                        change: [−2.8305% +19.132% +46.797%] (p = 0.12 > 0.05)
+                        No change in performance detected.
+Found 3 outliers among 20 measurements (15.00%)
+  1 (5.00%) low mild
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+
+     Running benches/pr_detail_open.rs (target/release/deps/pr_detail_open-3ba570480dd72944)
+Gnuplot not found, using plotters backend
+Benchmarking pr_detail_open/preloaded
+Benchmarking pr_detail_open/preloaded: Warming up for 300.00 ms
+Benchmarking pr_detail_open/preloaded: Collecting 20 samples in estimated 2.1786 s (2310 iterations)
+Benchmarking pr_detail_open/preloaded: Analyzing
+pr_detail_open/preloaded
+                        time:   [781.36 µs 809.22 µs 836.23 µs]
+                        change: [+43.217% +48.616% +53.489%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+Benchmarking pr_detail_open/cold_cache
+Benchmarking pr_detail_open/cold_cache: Warming up for 300.00 ms
+Benchmarking pr_detail_open/cold_cache: Collecting 20 samples in estimated 2.2792 s (80 iterations)
+Benchmarking pr_detail_open/cold_cache: Analyzing
+pr_detail_open/cold_cache
+                        time:   [27.650 ms 27.919 ms 28.190 ms]
+                        change: [+2.0894% +3.4062% +4.9089%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+
+inbox_first_paint_ms=27.71
+pr_detail_open_preloaded_ms=0.81
+pr_detail_open_cold_ms=27.92
+file_open_in_diff_cached_ms=0.75
+mutation_submit_visible_online_ms=0.61
+mutation_submit_visible_offline_ms=0.62
+mutation_submit_visible_ms=0.62
+comrak_render_throughput_ops_per_sec=36596.46
+inbox_first_paint_ms=23
+inbox_dom_content_loaded_ms=23
+pr_detail_open_preloaded_ms=22
+pr_detail_open_cold_ms=56
+file_open_in_diff_cached_ms=71
+diff_scroll_fps=62.17
+diff_scroll_frame_p95_ms=16.2
+diff_scroll_frame_avg_ms=16.08
+inbox_first_paint_ms: 27.71ms <= 100ms
+pr_detail_open_preloaded_ms: 0.81ms <= 50ms
+pr_detail_open_cold_ms: 27.92ms <= 250ms
+file_open_in_diff_cached_ms: 0.75ms <= 100ms
+mutation_submit_visible_ms: 0.62ms <= 16ms
+mutation_submit_visible_online_ms: 0.61ms <= 16ms
+mutation_submit_visible_offline_ms: 0.62ms <= 16ms
+comrak_render_throughput_ops_per_sec: 36596.46ops/s >= 850ops/s
+inbox_first_paint_ms_frontend: 23.00ms <= 100ms
+pr_detail_open_preloaded_ms_frontend: 22.00ms <= 50ms
+pr_detail_open_cold_ms_frontend: 56.00ms <= 250ms
+file_open_in_diff_cached_ms_frontend: 71.00ms <= 100ms
+diff_scroll_fps: 62.17fps >= 60fps
+diff_scroll_frame_p95_ms: 16.20ms <= 16.7ms
+bench_exit=0

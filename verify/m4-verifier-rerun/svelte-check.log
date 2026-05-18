@@ -1,0 +1,9 @@
+
+> desktop@0.1.0 svelte-check /workspace/apps/desktop
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /workspace/apps/desktop
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings
+svelte_check_exit=0
