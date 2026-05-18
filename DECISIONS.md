@@ -1002,3 +1002,37 @@ Decision:
 - Rename display uses `pr_files.previous_path` (`old_path` fallback) plus `rename_similarity` (stored as REAL, surfaced as integer percentage) and renders `previous_path -> path` in diff headers.
 
 Reason: these rules keep optimistic review comments deterministic, prevent viewed-state drift after force-pushes, avoid exposing filesystem paths outside blob storage, and preserve rename intent in the diff UI without re-anchoring heuristics.
+
+### 2026-05-18: M6 stacked PR schema, detection, operations, Graphite, and IPC contracts
+
+Decision:
+
+- Stack persistence uses three tables plus one read model:
+  - `stacks` stores repo/account-scoped stack metadata (`kind`, warning payload, root/head pointers, detection timestamps) and is indexed by `(repo_id, account_id)`.
+  - `pr_stack_position` stores per-PR placement (`position`, `parent_pr_id`, `blocked_by_json`) and is indexed by `(stack_id, position)`.
+  - `stack_operations` stores long-running rebase/merge execution state (`status`, step cursors, worktree path, conflict files, last_error) and is indexed by `(stack_id, status)`.
+  - `pr_stack_summary` joins inbox/read-model data with stack placement so sidebar rendering can fetch stack topology in a single query.
+- Stack detection contract is graph-first: create directed edges where `pr.base_ref == other_pr.head_ref` inside the same repo/account component; classify as `Linear` only when every node has in/out degree <= 1, otherwise `Dag`. `position` is assigned by topological depth from roots, with longest-path depth used for DAGs.
+- Ambiguous topology is represented, not rejected: cycles and diamonds remain `Dag` with `warning_json` populated (`reason` plus `diamond_pr_ids`) so sync continues without crashing.
+- Rebase strategy is hybrid local git:
+  - sequential `fetch -> checkout -> rebase` in base-to-top order,
+  - shell-out path with `GIT_EDITOR=true` is authoritative for conflict pause + `rebase --continue/--abort`,
+  - conflicts transition to `paused_conflict` and persist `conflict_files_json` from `git status --porcelain=v2`.
+- Merge-stack sequencing is strict and synchronous:
+  - merge current PR via existing merge mutation handler,
+  - await reconcile,
+  - call GraphQL `updatePullRequest(baseRefName: ...)` for the next PR before attempting its merge,
+  - pause as `paused_failure` on any merge/retarget failure to avoid orphaning downstream PRs.
+- Force push contract is opt-in:
+  - `force_push_with_lease` default is `false`,
+  - rebase pauses with actionable failure text when push is required but opt-in is disabled.
+- Graphite integration is explicit opt-in + explicit fallback:
+  - enable only when `gt` is detected on `PATH` and `graphite_enabled` is true,
+  - use `gt restack` / `gt submit` for stack rebase/merge paths,
+  - on non-zero exit, continue with plain-git flow while surfacing a visible warning (`Graphite failed; using plain git`), never silent fallback.
+- IPC event schema for stack operations is durable and typed:
+  - command surface includes `list_stacks`, `start_rebase_stack`, `start_merge_stack`, `resume_stack_op`, `abort_stack_op`, `get_stack_op`,
+  - repo-scope invalidation event is `stacks:<account_id>:<repo_id> changed`,
+  - operation progress/failure event is `stack_op:<op_id>` carrying the latest `StackOperationView` payload for modal streaming and resume/abort UX.
+
+Reason: M6 stacked workflows require deterministic local execution and explicit user control over pauses/conflicts while preserving sync safety and avoiding hidden branch mutation behavior.

@@ -99,6 +99,29 @@ export const commands = {
 	listWorktreeRoots: () => typedError<string[], IpcError>(__TAURI_INVOKE("list_worktree_roots")),
 	rediscoverWorktrees: () => typedError<RediscoverSummary, IpcError>(__TAURI_INVOKE("rediscover_worktrees")),
 	cleanupWorktree: (worktreeId: string, force: boolean) => typedError<CleanupOutcome, CleanupError>(__TAURI_INVOKE("cleanup_worktree", { worktreeId, force })),
+	listStacks: (input: StackListInput) => typedError<StackGraph[], IpcError>(__TAURI_INVOKE("list_stacks", { input })),
+	startRebaseStack: (input: StackActionInput) => typedError<string, IpcError>(__TAURI_INVOKE("start_rebase_stack", { input })),
+	startMergeStack: (input: StackMergeActionInput) => typedError<string, IpcError>(__TAURI_INVOKE("start_merge_stack", { input })),
+	resumeStackOp: (input: StackOperationLookupInput) => typedError<null, IpcError>(__TAURI_INVOKE("resume_stack_op", { input })),
+	abortStackOp: (input: StackOperationLookupInput) => typedError<null, IpcError>(__TAURI_INVOKE("abort_stack_op", { input })),
+	getStackOp: (input: StackOperationLookupInput) => typedError<{
+	id: string,
+	stack_id: string,
+	account_id: string,
+	op_kind: StackOperationKind,
+	status: StackOperationStatus,
+	current_pr_id: string | null,
+	current_step: number | null,
+	total_steps: number | null,
+	worktree_path: string | null,
+	conflict_files: string[],
+	last_error: string | null,
+	started_at: number,
+	updated_at: number,
+	finished_at: number | null,
+} | null, IpcError>(__TAURI_INVOKE("get_stack_op", { input })),
+	getGraphiteStatus: () => typedError<GraphiteIntegrationStatus, IpcError>(__TAURI_INVOKE("get_graphite_status")),
+	setGraphiteEnabled: (enabled: boolean) => typedError<null, IpcError>(__TAURI_INVOKE("set_graphite_enabled", { enabled })),
 	listNotificationRules: (accountId: string) => typedError<NotificationRule[], IpcError>(__TAURI_INVOKE("list_notification_rules", { accountId })),
 	setNotificationRule: (accountId: string, kind: string, enabled: boolean, configJson: string) => typedError<null, IpcError>(__TAURI_INVOKE("set_notification_rule", { accountId, kind, enabled, configJson })),
 	setQuietHours: (accountId: string, json: string | null) => typedError<null, IpcError>(__TAURI_INVOKE("set_quiet_hours", { accountId, json })),
@@ -138,6 +161,8 @@ export const events = {
 	rateLimitAccountIdChanged: makeEvent<RateLimitChangedEventPayload>("rate_limit:account:<id> changed"),
 	rateLimitBypassAccount: makeEvent<RateLimitBypassEventPayload>("rate_limit_bypass:<account>"),
 	rateLimitPressureAccount: makeEvent<RateLimitPressureEventPayload>("rate_limit_pressure:<account>"),
+	stackOpOpId: makeEvent<StackOperationEventPayload>("stack_op:<op_id>"),
+	stacksAccountIdRepoIdChanged: makeEvent<StacksChangedEventPayload>("stacks:<account_id>:<repo_id> changed"),
 	syncAccountIdReconciled: makeEvent<SyncReconciledEventPayload>("sync:<account_id> reconciled"),
 	worktreeIdChanged: makeEvent<WorktreeChangedEventPayload>("worktree:<id> changed"),
 	worktreeDiscoveryCompleted: makeEvent<WorktreeDiscoveryCompletedEventPayload>("worktree:discovery completed"),
@@ -169,6 +194,11 @@ export type AuthAccount = {
 	created_at: number,
 	updated_at: number,
 	is_active: boolean,
+};
+
+export type BlockedByReason = {
+	kind: string,
+	detail: string,
 };
 
 export type CheckAnnotationView = {
@@ -299,6 +329,15 @@ export type FileTreeSummary = {
 	deletions: number,
 };
 
+export type GraphiteIntegrationStatus = {
+	detected_version: GraphiteVersion | null,
+	enabled: boolean,
+};
+
+export type GraphiteVersion = {
+	raw: string,
+};
+
 export type HardConflictDiff = {
 	summary: string,
 	local_body: string | null,
@@ -394,6 +433,8 @@ export type ListDraftsInput = {
 	target_type: string | null,
 	target_id: string | null,
 };
+
+export type MergeMethod = "merge" | "squash" | "rebase";
 
 export type MergeableBackoffTickEventPayload = {
 	account_id: string,
@@ -842,6 +883,100 @@ export type SavedReply = {
 	sort_order: number,
 	created_at: number,
 	updated_at: number,
+};
+
+export type StackActionInput = {
+	account_id: string,
+	stack_id: string,
+};
+
+export type StackEdge = {
+	from_pr_id: string,
+	to_pr_id: string,
+};
+
+export type StackGraph = {
+	stack_id: string,
+	account_id: string,
+	repo_id: string,
+	kind: StackKind,
+	nodes: StackNode[],
+	edges: StackEdge[],
+	warning: StackWarning | null,
+	head_pr_id: string | null,
+	base_branch: string | null,
+	detected_at: number,
+	updated_at: number,
+};
+
+export type StackKind = "linear" | "dag";
+
+export type StackListInput = {
+	account_id: string,
+	repo_id: string,
+};
+
+export type StackMergeActionInput = {
+	account_id: string,
+	stack_id: string,
+	method: MergeMethod,
+};
+
+export type StackNode = {
+	pr_id: string,
+	pr_number: number,
+	title: string,
+	state: string,
+	position: number,
+	parent_pr_id: string | null,
+	blocked_by: BlockedByReason[],
+	review_decision: string | null,
+	check_rollup_state: string | null,
+	merge_state_status: string | null,
+	base_ref: string,
+	head_ref: string,
+	base_sha: string,
+	head_sha: string,
+};
+
+export type StackOperationEventPayload = {
+	operation: StackOperationView,
+};
+
+export type StackOperationKind = "rebase" | "merge";
+
+export type StackOperationLookupInput = {
+	op_id: string,
+};
+
+export type StackOperationStatus = "pending" | "running" | "paused_conflict" | "paused_failure" | "succeeded" | "aborted";
+
+export type StackOperationView = {
+	id: string,
+	stack_id: string,
+	account_id: string,
+	op_kind: StackOperationKind,
+	status: StackOperationStatus,
+	current_pr_id: string | null,
+	current_step: number | null,
+	total_steps: number | null,
+	worktree_path: string | null,
+	conflict_files: string[],
+	last_error: string | null,
+	started_at: number,
+	updated_at: number,
+	finished_at: number | null,
+};
+
+export type StackWarning = {
+	reason: string,
+	diamond_pr_ids: string[],
+};
+
+export type StacksChangedEventPayload = {
+	account_id: string,
+	repo_id: string,
+	stacks: StackGraph[],
 };
 
 export type StreamHandle = {

@@ -46,6 +46,8 @@ pub const REORDER_MERGE_QUEUE_ENTRY_MUTATION: &str =
     include_str!("queries/mutations/reorderMergeQueueEntry.graphql");
 pub const RERUN_CHECK_SUITE_MUTATION: &str =
     include_str!("queries/mutations/rerunCheckSuite.graphql");
+pub const UPDATE_PULL_REQUEST_BASE_MUTATION: &str =
+    include_str!("queries/mutations/updatePullRequestBase.graphql");
 pub const PR_DETAIL_QUERY_REVISION: &str = "2026-05-18.m5.v1";
 pub const INBOX_REFRESH_QUERY_REVISION: &str = "2026-05-17.m1.v1";
 

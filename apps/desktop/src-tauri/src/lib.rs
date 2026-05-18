@@ -12,6 +12,7 @@ use crate::mutations::{MutationEngine, NetworkMonitor};
 use crate::notify::{
     dispatcher::TauriNotificationSender, NotificationEngine, NotificationEventEmitter,
 };
+use crate::stacks::ops::install_stack_op_event_emitter;
 use crate::worktree::{
     watcher::WatchBackend, write::install_worktree_write_event_emitter, WorktreeService,
 };
@@ -88,7 +89,11 @@ pub fn run() {
             let worktree_emitter = Arc::new(ipc::TauriWorktreeEventEmitter::new(app.handle().clone()));
             let worktree_write_emitter =
                 Arc::new(ipc::TauriWorktreeWriteEventEmitter::new(app.handle().clone()));
+            let stack_op_emitter = Arc::new(ipc::TauriStackOperationEventEmitter::new(
+                app.handle().clone(),
+            ));
             install_worktree_write_event_emitter(worktree_write_emitter);
+            install_stack_op_event_emitter(stack_op_emitter);
             let network_monitor = NetworkMonitor::start(github.probe_url());
             let mutation_engine = Arc::new(
                 MutationEngine::new(Arc::clone(&db), github.as_ref().clone())
@@ -219,6 +224,7 @@ pub mod mutations;
 pub mod notify;
 pub mod range_diff;
 pub mod render;
+pub mod stacks;
 pub mod storage;
 pub mod sync;
 pub mod worktree;

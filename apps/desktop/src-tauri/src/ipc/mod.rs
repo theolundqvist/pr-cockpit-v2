@@ -36,6 +36,12 @@ use crate::range_diff::{
     WorktreeMapping,
 };
 use crate::render::{self, diff::BinaryDetection, RenderCtx};
+use crate::stacks::graphite::{detect_graphite, GraphiteVersion};
+use crate::stacks::ops::{
+    self as stack_ops, CommandGitOps, MergeMethod, StackOperationEmitter, StackOperationId,
+    StackOperationView,
+};
+use crate::stacks::{self, stacks_changed_event_name as stacks_event_name, StackGraph};
 use crate::sync::{
     CacheInvalidationEmitter, RateLimitBudgetSnapshot, SyncSystemSnapshot, SyncTierStateStore,
 };
@@ -810,6 +816,26 @@ impl tauri_specta::Event for MergeableBackoffTickEventPayload {
     const NAME: &'static str = "mergeable_backoff:<account_id>:<pr_id> tick";
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StacksChangedEventPayload {
+    pub account_id: String,
+    pub repo_id: String,
+    pub stacks: Vec<StackGraph>,
+}
+
+impl tauri_specta::Event for StacksChangedEventPayload {
+    const NAME: &'static str = "stacks:<account_id>:<repo_id> changed";
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StackOperationEventPayload {
+    pub operation: StackOperationView,
+}
+
+impl tauri_specta::Event for StackOperationEventPayload {
+    const NAME: &'static str = "stack_op:<op_id>";
+}
+
 fn normalize_page(input_limit: Option<i64>, input_offset: Option<i64>) -> (i64, i64) {
     let limit = input_limit.unwrap_or(50).clamp(1, 200);
     let offset = input_offset.unwrap_or(0).max(0);
@@ -1261,6 +1287,10 @@ pub fn mergeable_backoff_tick_event_name(account_id: &str, pr_id: &str) -> Strin
     format!("mergeable_backoff:{account_id}:{pr_id} tick")
 }
 
+pub fn stack_op_event_name(op_id: &str) -> String {
+    format!("stack_op:{op_id}")
+}
+
 pub fn mutation_hard_conflict_event_name(mutation_id: &str) -> String {
     format!("mutation:{mutation_id} hard-conflict")
 }
@@ -1466,6 +1496,30 @@ impl<R: tauri::Runtime> WorktreeWriteEventEmitter for TauriWorktreeWriteEventEmi
     }
 }
 
+#[derive(Clone)]
+pub struct TauriStackOperationEventEmitter<R: tauri::Runtime> {
+    app: tauri::AppHandle<R>,
+}
+
+impl<R: tauri::Runtime> TauriStackOperationEventEmitter<R> {
+    pub fn new(app: tauri::AppHandle<R>) -> Self {
+        Self { app }
+    }
+}
+
+impl<R: tauri::Runtime> StackOperationEmitter for TauriStackOperationEventEmitter<R> {
+    fn emit_stack_op(&self, op_id: &str, operation: &StackOperationView) {
+        let payload = StackOperationEventPayload {
+            operation: operation.clone(),
+        };
+        let _ = self.app.emit(&stack_op_event_name(op_id), payload.clone());
+        let _ = self.app.emit(
+            <StackOperationEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+}
+
 pub fn fanout_mutation_event<R: tauri::Runtime>(
     emitter: &TauriCacheInvalidationEmitter<R>,
     event: MutationEvent,
@@ -1581,6 +1635,21 @@ impl<R: tauri::Runtime> CacheInvalidationEmitter for TauriCacheInvalidationEmitt
             .emit(&sync_reconciled_event_name(account_id), payload.clone());
         let _ = self.app.emit(
             <SyncReconciledEventPayload as tauri_specta::Event>::NAME,
+            payload,
+        );
+    }
+
+    fn emit_stacks_changed(&self, account_id: &str, repo_id: &str, stacks: &[StackGraph]) {
+        let payload = StacksChangedEventPayload {
+            account_id: account_id.to_string(),
+            repo_id: repo_id.to_string(),
+            stacks: stacks.to_vec(),
+        };
+        let _ = self
+            .app
+            .emit(&stacks_event_name(account_id, repo_id), payload.clone());
+        let _ = self.app.emit(
+            <StacksChangedEventPayload as tauri_specta::Event>::NAME,
             payload,
         );
     }
@@ -3023,6 +3092,115 @@ pub async fn notif_debug_simulate_event_impl(
         .map_err(IpcError::db)
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StackListInput {
+    pub account_id: String,
+    pub repo_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StackActionInput {
+    pub account_id: String,
+    pub stack_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StackMergeActionInput {
+    pub account_id: String,
+    pub stack_id: String,
+    pub method: MergeMethod,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct StackOperationLookupInput {
+    pub op_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub struct GraphiteIntegrationStatus {
+    pub detected_version: Option<GraphiteVersion>,
+    pub enabled: bool,
+}
+
+pub async fn list_stacks_impl(db: &Db, input: StackListInput) -> Result<Vec<StackGraph>, IpcError> {
+    stacks::list_stacks(db, &input.account_id, &input.repo_id)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn start_rebase_stack_impl(
+    db: &Db,
+    input: StackActionInput,
+) -> Result<StackOperationId, IpcError> {
+    let git = CommandGitOps;
+    stack_ops::rebase_stack(db, &git, &input.account_id, &input.stack_id)
+        .await
+        .map_err(IpcError::mutation)
+}
+
+pub async fn start_merge_stack_impl(
+    db: &Db,
+    github: &GithubClient,
+    mutations: &MutationEngine,
+    input: StackMergeActionInput,
+) -> Result<StackOperationId, IpcError> {
+    let git = CommandGitOps;
+    stack_ops::merge_stack(
+        db,
+        &git,
+        github,
+        mutations,
+        &input.account_id,
+        &input.stack_id,
+        input.method,
+    )
+    .await
+    .map_err(IpcError::mutation)
+}
+
+pub async fn resume_stack_op_impl(
+    db: &Db,
+    input: StackOperationLookupInput,
+) -> Result<(), IpcError> {
+    stack_ops::resume_stack_op(db, &input.op_id)
+        .await
+        .map_err(IpcError::mutation)
+}
+
+pub async fn abort_stack_op_impl(
+    db: &Db,
+    input: StackOperationLookupInput,
+) -> Result<(), IpcError> {
+    stack_ops::abort_stack_op(db, &input.op_id)
+        .await
+        .map_err(IpcError::mutation)
+}
+
+pub async fn get_stack_op_impl(
+    db: &Db,
+    input: StackOperationLookupInput,
+) -> Result<Option<StackOperationView>, IpcError> {
+    stack_ops::get_stack_op(db, &input.op_id)
+        .await
+        .map_err(IpcError::db)
+}
+
+pub async fn get_graphite_status_impl(db: &Db) -> Result<GraphiteIntegrationStatus, IpcError> {
+    let enabled = stack_ops::get_graphite_enabled(db)
+        .await
+        .map_err(IpcError::db)?;
+    Ok(GraphiteIntegrationStatus {
+        detected_version: detect_graphite(),
+        enabled,
+    })
+}
+
+pub async fn set_graphite_enabled_impl(db: &Db, enabled: bool) -> Result<(), IpcError> {
+    stack_ops::set_graphite_enabled(db, enabled)
+        .await
+        .map_err(IpcError::db)
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn ipc_accounts_list(
@@ -3520,6 +3698,79 @@ pub async fn cleanup_worktree(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn list_stacks(
+    db: tauri::State<'_, Arc<Db>>,
+    input: StackListInput,
+) -> Result<Vec<StackGraph>, IpcError> {
+    list_stacks_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn start_rebase_stack(
+    db: tauri::State<'_, Arc<Db>>,
+    input: StackActionInput,
+) -> Result<StackOperationId, IpcError> {
+    start_rebase_stack_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn start_merge_stack(
+    db: tauri::State<'_, Arc<Db>>,
+    github: tauri::State<'_, Arc<GithubClient>>,
+    engine: tauri::State<'_, Arc<MutationEngine>>,
+    input: StackMergeActionInput,
+) -> Result<StackOperationId, IpcError> {
+    start_merge_stack_impl(db.inner(), github.inner(), engine.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn resume_stack_op(
+    db: tauri::State<'_, Arc<Db>>,
+    input: StackOperationLookupInput,
+) -> Result<(), IpcError> {
+    resume_stack_op_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn abort_stack_op(
+    db: tauri::State<'_, Arc<Db>>,
+    input: StackOperationLookupInput,
+) -> Result<(), IpcError> {
+    abort_stack_op_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_stack_op(
+    db: tauri::State<'_, Arc<Db>>,
+    input: StackOperationLookupInput,
+) -> Result<Option<StackOperationView>, IpcError> {
+    get_stack_op_impl(db.inner(), input).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn get_graphite_status(
+    db: tauri::State<'_, Arc<Db>>,
+) -> Result<GraphiteIntegrationStatus, IpcError> {
+    get_graphite_status_impl(db.inner()).await
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn set_graphite_enabled(
+    db: tauri::State<'_, Arc<Db>>,
+    enabled: bool,
+) -> Result<(), IpcError> {
+    set_graphite_enabled_impl(db.inner(), enabled).await
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn list_notification_events(
     db: tauri::State<'_, Arc<Db>>,
     account_id: String,
@@ -3600,6 +3851,14 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             list_worktree_roots,
             rediscover_worktrees,
             cleanup_worktree,
+            list_stacks,
+            start_rebase_stack,
+            start_merge_stack,
+            resume_stack_op,
+            abort_stack_op,
+            get_stack_op,
+            get_graphite_status,
+            set_graphite_enabled,
             list_notification_rules,
             set_notification_rule,
             set_quiet_hours,
@@ -3625,6 +3884,8 @@ pub fn specta_builder() -> tauri_specta::Builder<tauri::Wry> {
             MutationFailedEventPayload,
             MutationRolledBackEventPayload,
             MergeableBackoffTickEventPayload,
+            StacksChangedEventPayload,
+            StackOperationEventPayload,
             WorktreeChangedEventPayload,
             WorktreeDiscoveryCompletedEventPayload,
             NotificationEventPayload
@@ -3697,6 +3958,14 @@ pub fn command_names() -> &'static [&'static str] {
         "list_worktree_roots",
         "rediscover_worktrees",
         "cleanup_worktree",
+        "list_stacks",
+        "start_rebase_stack",
+        "start_merge_stack",
+        "resume_stack_op",
+        "abort_stack_op",
+        "get_stack_op",
+        "get_graphite_status",
+        "set_graphite_enabled",
         "list_notification_rules",
         "set_notification_rule",
         "set_quiet_hours",

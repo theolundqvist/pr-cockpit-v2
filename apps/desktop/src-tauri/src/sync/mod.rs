@@ -19,6 +19,9 @@ use crate::api::{
 };
 use crate::auth::AccountLocator;
 use crate::db::{Db, RateLimitBucketUpdate};
+use crate::stacks::{
+    detect_stacks, list_open_pull_requests, upsert_stack_state_for_scope, StackGraph,
+};
 use crate::sync::reconcile::{
     reconcile_inbox_refresh, reconcile_notifications, reconcile_pr_detail, InboxRefreshData,
     NotificationPayload, PrDetailData, RefetchTarget,
@@ -69,6 +72,7 @@ pub trait CacheInvalidationEmitter: Send + Sync {
     fn emit_rate_limit_bypass(&self, _account_id: &str, _snapshot: &[RateLimitBudgetSnapshot]) {}
     fn emit_notifications_changed(&self, _account_id: &str) {}
     fn emit_sync_reconciled(&self, _account_id: &str) {}
+    fn emit_stacks_changed(&self, _account_id: &str, _repo_id: &str, _stacks: &[StackGraph]) {}
     fn emit_mergeable_backoff_tick(
         &self,
         _account_id: &str,
@@ -649,6 +653,21 @@ impl RealActions {
                 .emitter
                 .emit_inbox_changed(&self.inner.account_id);
             for target in &chunk_targets {
+                if let Err(error) = self
+                    .recompute_stacks_for_repo(&target.owner, &target.repo)
+                    .await
+                {
+                    tracing::warn!(
+                        target: "sync",
+                        account_id = %self.inner.account_id,
+                        repo_owner = %target.owner,
+                        repo_name = %target.repo,
+                        error = %error,
+                        "stack recompute failed after inbox refresh"
+                    );
+                }
+            }
+            for target in &chunk_targets {
                 if let Some(pr_id) = self
                     .inner
                     .db
@@ -769,6 +788,19 @@ impl RealActions {
             self.inner
                 .emitter
                 .emit_inbox_changed(&self.inner.account_id);
+            if let Err(error) = self
+                .recompute_stacks_for_repo(&target.owner, &target.repo)
+                .await
+            {
+                tracing::warn!(
+                    target: "sync",
+                    account_id = %self.inner.account_id,
+                    repo_owner = %target.owner,
+                    repo_name = %target.repo,
+                    error = %error,
+                    "stack recompute failed after pr detail"
+                );
+            }
             if let Some(pr_id) = self
                 .inner
                 .db
@@ -839,6 +871,21 @@ impl RealActions {
                     .emitter
                     .emit_inbox_changed(&self.inner.account_id);
                 for target in &targets {
+                    if let Err(error) = self
+                        .recompute_stacks_for_repo(&target.owner, &target.repo)
+                        .await
+                    {
+                        tracing::warn!(
+                            target: "sync",
+                            account_id = %self.inner.account_id,
+                            repo_owner = %target.owner,
+                            repo_name = %target.repo,
+                            error = %error,
+                            "stack recompute failed after notifications refresh"
+                        );
+                    }
+                }
+                for target in &targets {
                     if let Some(pr_id) = self
                         .inner
                         .db
@@ -898,6 +945,37 @@ impl RealActions {
             let mut inflight = this.inner.mergeable_inflight.lock().await;
             inflight.remove(&key);
         });
+    }
+
+    async fn recompute_stacks_for_repo(&self, owner: &str, repo: &str) -> Result<()> {
+        let repo_id: Option<String> = sqlx::query_scalar(
+            "SELECT id
+             FROM repos
+             WHERE account_id = ?1 AND owner = ?2 AND name = ?3
+             LIMIT 1",
+        )
+        .bind(&self.inner.account_id)
+        .bind(owner)
+        .bind(repo)
+        .fetch_optional(self.inner.db.pool())
+        .await?;
+        let Some(repo_id) = repo_id else {
+            return Ok(());
+        };
+        let prs = list_open_pull_requests(self.inner.db.as_ref(), &self.inner.account_id, &repo_id)
+            .await?;
+        let stacks = detect_stacks(&prs, &repo_id, &self.inner.account_id);
+        upsert_stack_state_for_scope(
+            self.inner.db.as_ref(),
+            &self.inner.account_id,
+            &repo_id,
+            &stacks,
+        )
+        .await?;
+        self.inner
+            .emitter
+            .emit_stacks_changed(&self.inner.account_id, &repo_id, &stacks);
+        Ok(())
     }
 }
 
