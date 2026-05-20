@@ -1,0 +1,8 @@
+mutation EnablePullRequestAutoMerge($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod) {
+  enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId, mergeMethod: $mergeMethod }) {
+    pullRequest {
+      id
+      state
+    }
+  }
+}

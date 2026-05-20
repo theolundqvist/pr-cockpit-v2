@@ -1,0 +1,71 @@
+# revision: 2026-05-17.m1.v1
+query InboxRefresh($ids: [ID!]!) {
+  nodes(ids: $ids) {
+    __typename
+    ... on PullRequest {
+      id
+      number
+      title
+      updatedAt
+      state
+      isDraft
+      mergeable
+      author {
+        __typename
+        ... on User {
+          id
+          login
+          name
+          avatarUrl
+          url
+        }
+      }
+      repository {
+        id
+        owner {
+          login
+        }
+        name
+      }
+      headRefOid
+      baseRefOid
+      labels(first: 20) {
+        nodes {
+          id
+          name
+          color
+          description
+        }
+      }
+      reviewRequests(first: 20) {
+        nodes {
+          requestedReviewer {
+            __typename
+            ... on User {
+              id
+              login
+              name
+              avatarUrl
+              url
+            }
+            ... on Team {
+              id
+              slug
+              name
+            }
+          }
+        }
+      }
+      commits(last: 1) {
+        nodes {
+          commit {
+            statusCheckRollup {
+              state
+            }
+          }
+        }
+      }
+      unreadPlaceholder: viewerDidAuthor
+    }
+  }
+}

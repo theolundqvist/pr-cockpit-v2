@@ -1,0 +1,162 @@
+{
+  "rootSlug": "m4-merge-multiaccount",
+  "tasks": [
+    {
+      "name": "m4-merge-surface",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-merge-surface",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [],
+      "agentId": "bc-7954ee36-3329-4a4d-9fae-e51a8cd94fc2",
+      "runId": "run-fdd1bbc0-9c3f-4044-b858-3499b21e7e8e",
+      "parentAgentId": "bc-dd32973e-47c8-43fa-9b39-815194042d0d",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m4-merge-surface.md",
+      "startedAt": "2026-05-18T01:10:03.127Z",
+      "finishedAt": "2026-05-18T02:17:07.730Z",
+      "lastUpdate": "2026-05-18T02:17:08.587Z",
+      "note": "respawned by self-planner (was error; attempts=1)",
+      "attempts": 2,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "live-ui-verified"
+    },
+    {
+      "name": "m4-force-push-range-diff",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-force-push-range-diff",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-merge-surface"
+      ],
+      "agentId": "bc-9278b634-ea70-4728-a37d-5335bbaf30d4",
+      "runId": "run-73da0b3d-760c-42b3-bdfa-b61732414c5b",
+      "parentAgentId": "bc-dd32973e-47c8-43fa-9b39-815194042d0d",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m4-force-push-range-diff.md",
+      "startedAt": "2026-05-18T02:17:09.208Z",
+      "finishedAt": "2026-05-18T03:16:36.727Z",
+      "lastUpdate": "2026-05-18T03:16:37.608Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m4-multi-account",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-multi-account",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-force-push-range-diff"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "running",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": "2026-05-18T03:16:44.480Z",
+      "finishedAt": null,
+      "lastUpdate": "2026-05-18T03:16:44.480Z",
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null,
+      "attempts": 1
+    },
+    {
+      "name": "m4-ghe-readiness",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-ghe-readiness",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-multi-account"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-finalize",
+      "type": "worker",
+      "branch": "orch/m4-merge-multiaccount/m4-finalize",
+      "startingRef": "orch/pr-cockpit/m3-diff-worktree-notifs",
+      "dependsOn": [
+        "m4-ghe-readiness"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m4-verify",
+      "type": "verifier",
+      "branch": "orch/m4-merge-multiaccount/m4-verify",
+      "startingRef": "orch/m4-merge-multiaccount/m4-finalize",
+      "dependsOn": [
+        "m4-finalize"
+      ],
+      "agentId": null,
+      "runId": null,
+      "parentAgentId": null,
+      "status": "pending",
+      "resultStatus": null,
+      "handoffPath": null,
+      "startedAt": null,
+      "finishedAt": null,
+      "lastUpdate": null,
+      "note": null,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    }
+  ],
+  "attention": [
+    {
+      "at": "2026-05-18T01:08:35.050Z",
+      "message": "m4-merge-surface: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents."
+    },
+    {
+      "at": "2026-05-18T01:09:52.224Z",
+      "message": "m4-merge-surface: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-18T02:17:08.587Z",
+      "message": "m4-merge-surface: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-18T03:16:37.608Z",
+      "message": "m4-force-push-range-diff: verification self-reported (unit-test-verified)"
+    }
+  ]
+}

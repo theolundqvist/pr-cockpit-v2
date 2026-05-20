@@ -1,0 +1,5 @@
+
+> desktop@0.1.0 typecheck /workspace/apps/desktop
+> svelte-kit sync && tsc --noEmit
+
+typecheck_exit=0

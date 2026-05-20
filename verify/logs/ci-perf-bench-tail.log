@@ -1,0 +1,30 @@
+2026-05-17T12:10:59.6689777Z comrak_render_throughput_ops_per_sec: 20336.98ops/s >= 850ops/s
+2026-05-17T12:10:59.6690805Z inbox_first_paint_ms_frontend: 26.00ms <= 100ms
+2026-05-17T12:10:59.6691565Z pr_detail_open_preloaded_ms_frontend: 40.00ms <= 50ms
+2026-05-17T12:10:59.6692089Z pr_detail_open_cold_ms_frontend: 25.00ms <= 250ms
+2026-05-17T12:10:59.6692574Z file_open_in_diff_cached_ms_frontend: 66.00ms <= 100ms
+2026-05-17T12:10:59.6693202Z diff_scroll_fps: 62.06fps >= 60fps
+2026-05-17T12:10:59.6693814Z diff_scroll_frame_p95_ms: 16.40ms <= 16.7ms
+2026-05-17T12:10:59.6695464Z comrak_render_throughput_ops_per_sec: 20336.981735808647ops/s regressed past 10% threshold (27000.00ops/s)
+2026-05-17T12:10:59.6697497Z pr_detail_open_preloaded_ms_frontend: 40ms regressed past 10% threshold (33.00ms)
+2026-05-17T12:10:59.6736360Z node tools/perf-bench/compare-budgets.mjs failed with 1
+2026-05-17T12:10:59.6781158Z  ELIFECYCLE  Command failed with exit code 1.
+2026-05-17T12:10:59.7001995Z ##[error]Process completed with exit code 1.
+2026-05-17T12:10:59.7078919Z Post job cleanup.
+2026-05-17T12:10:59.8506350Z Pruning is unnecessary.
+2026-05-17T12:10:59.8644745Z Post job cleanup.
+2026-05-17T12:10:59.9613945Z [command]/usr/bin/git version
+2026-05-17T12:10:59.9653497Z git version 2.54.0
+2026-05-17T12:10:59.9697670Z Temporarily overriding HOME='/home/runner/work/_temp/f65814db-4042-45ef-abe8-1491aee4a152' before making global git config changes
+2026-05-17T12:10:59.9699306Z Adding repository directory to the temporary git global config as a safe directory
+2026-05-17T12:10:59.9703622Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/pr-cockpit-v2/pr-cockpit-v2
+2026-05-17T12:10:59.9745228Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-05-17T12:10:59.9779491Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-05-17T12:11:00.0024894Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-05-17T12:11:00.0059985Z http.https://github.com/.extraheader
+2026-05-17T12:11:00.0074709Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-05-17T12:11:00.0114511Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-05-17T12:11:00.0412979Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-05-17T12:11:00.0455600Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-05-17T12:11:00.0809779Z Cleaning up orphan processes
+2026-05-17T12:11:00.1209797Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/cache@v4, actions/checkout@v4, actions/setup-node@v4, pnpm/action-setup@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

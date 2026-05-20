@@ -1,0 +1,46 @@
+mutation AddReviewComment(
+  $pullRequestReviewId: ID!
+  $body: String!
+  $path: String!
+  $side: DiffSide!
+  $line: Int!
+  $startSide: DiffSide
+  $startLine: Int
+  $subjectType: PullRequestReviewCommentSubjectType
+) {
+  addPullRequestReviewComment(
+    input: {
+      pullRequestReviewId: $pullRequestReviewId
+      body: $body
+      path: $path
+      side: $side
+      line: $line
+      startSide: $startSide
+      startLine: $startLine
+      subjectType: $subjectType
+    }
+  ) {
+    comment {
+      id
+      body
+      createdAt
+      updatedAt
+      path
+      side
+      line
+      startSide
+      startLine
+      pullRequestReviewThread {
+        id
+        path
+        side
+        line
+        startSide
+        startLine
+        isOutdated
+        isResolved
+        updatedAt
+      }
+    }
+  }
+}

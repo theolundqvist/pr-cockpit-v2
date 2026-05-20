@@ -1,0 +1,34 @@
+{
+  "name": "pr-cockpit",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "packageManager": "pnpm@9.12.3",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "ipc:bindings": "cargo run -p desktop --bin generate-ipc-bindings",
+    "typecheck": "pnpm ipc:bindings && pnpm --filter desktop typecheck",
+    "svelte-check": "pnpm ipc:bindings && pnpm --filter desktop svelte-check",
+    "lint": "pnpm --filter desktop lint",
+    "test": "pnpm --filter desktop test",
+    "bench": "node ./tools/perf-bench/run-all.mjs",
+    "corpus": "node ./tools/markdown-corpus/score.mjs",
+    "online-demo": "node --experimental-strip-types ./tools/online-demo/run.ts",
+    "rust:fmt": "cargo fmt --check",
+    "rust:clippy": "cargo clippy --workspace --all-targets -- -D warnings",
+    "rust:test": "cargo test --workspace",
+    "rust:bench-check": "cargo bench --workspace --no-run",
+    "rust:check": "cargo check --workspace --all-targets",
+    "prepare": "husky || true",
+    "commitlint": "commitlint --from HEAD~1 --to HEAD",
+    "corpus:fetch": "node ./tools/markdown-corpus/fetch.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7"
+  }
+}

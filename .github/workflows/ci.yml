@@ -1,0 +1,219 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ubuntu system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libssl-dev \
+            pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Rust format check
+        run: cargo fmt --check
+
+      - name: Rust lint check
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Rust tests
+        run: cargo test --workspace
+
+      - name: Rust bench compile check
+        run: cargo bench --workspace --no-run
+
+      - name: Rust workspace check
+        run: cargo check --workspace --all-targets
+
+  frontend:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ubuntu system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libssl-dev \
+            pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch wasm grammars
+        run: ./scripts/fetch-grammars.sh
+
+      - name: Generate IPC bindings
+        run: |
+          pnpm ipc:bindings
+          git diff --exit-code -- apps/desktop/src/lib/ipc/bindings.ts
+
+      - name: Frontend typecheck
+        run: pnpm typecheck
+
+      - name: Svelte diagnostics
+        run: pnpm svelte-check
+
+      - name: Frontend lint
+        run: pnpm lint
+
+      - name: Frontend tests
+        run: pnpm test
+
+  perf-bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux perf dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            xvfb \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libssl-dev \
+            pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Cache cargo + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch wasm grammars
+        run: ./scripts/fetch-grammars.sh
+
+      - name: Install Playwright browsers
+        run: pnpm --filter desktop exec playwright install --with-deps webkit
+
+      - name: Run perf harness gate
+        run: xvfb-run -a env PERF_BROWSER=webkit PERF_TARGET=preview pnpm bench
+
+  markdown-corpus:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux markdown corpus dependencies
+        run: |
+          # Keep this package set aligned with rust/perf jobs.
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libsoup-3.0-dev \
+            libssl-dev \
+            pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Cache cargo + target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch wasm grammars
+        run: ./scripts/fetch-grammars.sh
+
+      - name: Run markdown corpus gate
+        run: pnpm corpus

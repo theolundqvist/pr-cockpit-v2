@@ -1,0 +1,17 @@
+[2026-05-17T14:35:57.209Z] m2-mutation-engine: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
+[2026-05-17T14:37:35.363Z] m2-mutation-engine: respawned by self-planner (was error)
+[2026-05-17T15:03:53.343Z] m2-mutation-engine: SSE idle 306803ms, polled status=running; watchdog still waiting
+[2026-05-17T15:03:53.343Z] m2-mutation-engine: tool_call idle 306804ms; last=2026-05-17T14:58:46.539Z
+[2026-05-17T15:53:37.871Z] m2-mutation-engine: verification self-reported (unit-test-verified)
+[2026-05-17T16:32:30.432Z] m2-mutation-handlers: verification self-reported (unit-test-verified)
+[2026-05-17T17:08:56.891Z] m2-offline-and-queue: SSE idle 350606ms, polled status=running; watchdog still waiting
+[2026-05-17T17:08:56.892Z] m2-offline-and-queue: tool_call idle 350607ms; last=2026-05-17T17:03:06.285Z
+[2026-05-17T17:13:33.653Z] m2-offline-and-queue: verification self-reported (unit-test-verified)
+[2026-05-17T17:59:39.472Z] m2-ipc-and-frontend: SSE idle 301142ms, polled status=running; watchdog still waiting
+[2026-05-17T17:59:39.473Z] m2-ipc-and-frontend: tool_call idle 301143ms; last=2026-05-17T17:54:38.330Z
+[2026-05-17T18:10:27.011Z] m2-ipc-and-frontend: verification self-reported (live-ui-verified)
+[2026-05-17T18:31:33.699Z] m2-finalize: SSE idle 356692ms, polled status=running; watchdog still waiting
+[2026-05-17T18:31:33.700Z] m2-finalize: tool_call idle 356693ms; last=2026-05-17T18:25:37.007Z
+[2026-05-17T18:50:48.962Z] m2-finalize: verification self-reported (live-ui-verified)
+[2026-05-17T19:23:55.294Z] m2-verify: SSE idle 347767ms, polled status=running; watchdog still waiting
+[2026-05-17T19:23:55.295Z] m2-verify: tool_call idle 347768ms; last=2026-05-17T19:18:07.527Z

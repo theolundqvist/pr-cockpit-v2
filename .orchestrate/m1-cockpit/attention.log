@@ -1,0 +1,27 @@
+[2026-05-17T06:10:25.355Z] m1-bootstrap: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents.
+[2026-05-17T06:11:58.049Z] m1-bootstrap: respawned by self-planner (was error)
+[2026-05-17T06:32:26.031Z] m1-bootstrap: verification self-reported (unit-test-verified)
+[2026-05-17T06:46:51.107Z] m1-data-layer: verification self-reported (unit-test-verified)
+[2026-05-17T07:00:59.931Z] m1-auth-layer: verification self-reported (unit-test-verified)
+[2026-05-17T07:24:36.814Z] m1-api-sync: verification self-reported (unit-test-verified)
+[2026-05-17T07:34:15.586Z] m1-markdown-pipeline: verification self-reported (unit-test-verified)
+[2026-05-17T08:07:35.347Z] m1-ipc-types: verification self-reported (unit-test-verified)
+[2026-05-17T08:56:36.478Z] m1-frontend: SSE idle 328298ms, polled status=running; watchdog still waiting
+[2026-05-17T08:56:36.480Z] m1-frontend: tool_call idle 328300ms; last=2026-05-17T08:51:08.180Z
+[2026-05-17T09:02:43.410Z] m1-frontend: verification self-reported (live-ui-verified)
+[2026-05-17T09:18:44.326Z] m1-perf-corpus: SSE idle 343159ms, polled status=running; watchdog still waiting
+[2026-05-17T09:18:44.327Z] m1-perf-corpus: tool_call idle 343160ms; last=2026-05-17T09:13:01.167Z
+[2026-05-17T10:00:16.805Z] m1-perf-corpus: measurement_mismatch inbox first paint (synthetic) [parse-failed] regex did not match command stdout
+[2026-05-17T10:00:16.806Z] m1-perf-corpus: verification self-reported (unit-test-verified)
+[2026-05-17T10:11:21.295Z] m1-finalize: SSE idle 320229ms, polled status=running; watchdog still waiting
+[2026-05-17T10:11:21.296Z] m1-finalize: tool_call idle 320230ms; last=2026-05-17T10:06:01.066Z
+[2026-05-17T10:41:59.572Z] m1-finalize: SSE idle 342744ms, polled status=running; watchdog still waiting
+[2026-05-17T10:41:59.574Z] m1-finalize: tool_call idle 342746ms; last=2026-05-17T10:36:16.828Z
+[2026-05-17T10:46:26.168Z] m1-finalize: verification self-reported (live-ui-verified)
+[2026-05-17T11:28:53.642Z] m1-finalize: verification recorded (verifier-failed) by verifier m1-verify
+[2026-05-17T11:50:24.364Z] m1-fix-gates: SSE idle 317124ms, polled status=running; watchdog still waiting
+[2026-05-17T11:50:24.365Z] m1-fix-gates: tool_call idle 317125ms; last=2026-05-17T11:45:07.240Z
+[2026-05-17T11:56:30.549Z] m1-fix-gates: verification self-reported (unit-test-verified)
+[2026-05-17T12:15:36.325Z] m1-reverify: SSE idle 300996ms, polled status=running; watchdog still waiting
+[2026-05-17T12:15:36.326Z] m1-reverify: tool_call idle 300997ms; last=2026-05-17T12:10:35.329Z
+[2026-05-17T13:38:40.795Z] m1-bench-baselines: verification self-reported (unit-test-verified)

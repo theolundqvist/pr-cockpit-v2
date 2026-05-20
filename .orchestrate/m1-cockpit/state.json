@@ -1,0 +1,425 @@
+{
+  "rootSlug": "m1-cockpit",
+  "tasks": [
+    {
+      "name": "m1-bootstrap",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-bootstrap",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [],
+      "agentId": "bc-90651bc3-9186-4888-b1ca-d6a281c2db05",
+      "runId": "run-803d5558-9e15-42bb-8658-9137263aa264",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-bootstrap.md",
+      "startedAt": "2026-05-17T06:12:10.848Z",
+      "finishedAt": "2026-05-17T06:32:25.184Z",
+      "lastUpdate": "2026-05-17T06:32:26.031Z",
+      "note": "respawned by self-planner (was error; attempts=1)",
+      "attempts": 2,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-data-layer",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-data-layer",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-bootstrap"
+      ],
+      "agentId": "bc-5dab9604-e633-426b-b4dc-fb02d1a72a33",
+      "runId": "run-b45e873a-3355-4901-bbaf-ecc2c26cbe58",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-data-layer.md",
+      "startedAt": "2026-05-17T06:32:33.746Z",
+      "finishedAt": "2026-05-17T06:46:48.286Z",
+      "lastUpdate": "2026-05-17T06:46:51.107Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-auth-layer",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-auth-layer",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-data-layer"
+      ],
+      "agentId": "bc-92b5cfbb-9e3a-436b-b006-c275446d96f2",
+      "runId": "run-22edd351-d374-4d9e-b41d-439bf3eba791",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-auth-layer.md",
+      "startedAt": "2026-05-17T06:46:56.438Z",
+      "finishedAt": "2026-05-17T07:00:56.651Z",
+      "lastUpdate": "2026-05-17T07:00:59.930Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-api-sync",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-api-sync",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-auth-layer"
+      ],
+      "agentId": "bc-fd80cc54-a1be-4d62-9418-cf19deb0fb4a",
+      "runId": "run-c45242e9-978a-4148-9d25-e2c5c388388b",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-api-sync.md",
+      "startedAt": "2026-05-17T07:00:59.081Z",
+      "finishedAt": "2026-05-17T07:24:36.012Z",
+      "lastUpdate": "2026-05-17T07:24:36.814Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-markdown-pipeline",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-markdown-pipeline",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-api-sync"
+      ],
+      "agentId": "bc-857b8b29-aa1a-4f4d-a7be-6665ace02724",
+      "runId": "run-7fb9fabf-fb45-411a-8539-b00f7a91add0",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-markdown-pipeline.md",
+      "startedAt": "2026-05-17T07:24:41.714Z",
+      "finishedAt": "2026-05-17T07:34:12.789Z",
+      "lastUpdate": "2026-05-17T07:34:15.586Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-ipc-types",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-ipc-types",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-markdown-pipeline"
+      ],
+      "agentId": "bc-c554927f-0f3d-45ec-8f6a-dbebe0ed15b4",
+      "runId": "run-51fd63b9-e1e9-4575-9dd1-3ccc70f7746b",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-ipc-types.md",
+      "startedAt": "2026-05-17T07:34:14.701Z",
+      "finishedAt": "2026-05-17T08:07:34.448Z",
+      "lastUpdate": "2026-05-17T08:07:35.347Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-frontend",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-frontend",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-ipc-types"
+      ],
+      "agentId": "bc-1c38d5d3-3dd9-4145-8bcd-d3f9ef9d5004",
+      "runId": "run-a32ccee0-8854-4438-9468-41502c07f1a1",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-frontend.md",
+      "startedAt": "2026-05-17T08:07:37.634Z",
+      "finishedAt": "2026-05-17T09:02:42.559Z",
+      "lastUpdate": "2026-05-17T09:02:43.409Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "live-ui-verified"
+    },
+    {
+      "name": "m1-perf-corpus",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-perf-corpus",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-frontend"
+      ],
+      "agentId": "bc-f1a2a30c-1418-4ed2-b30b-432f1b7abd3e",
+      "runId": "run-a3e64bfd-137b-4bac-a854-4331e2b21c0f",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-perf-corpus.md",
+      "startedAt": "2026-05-17T09:02:43.413Z",
+      "finishedAt": "2026-05-17T09:59:43.614Z",
+      "lastUpdate": "2026-05-17T10:00:16.805Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-finalize",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-finalize",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-perf-corpus"
+      ],
+      "agentId": "bc-dfff8981-04fb-432a-9b96-af2aa620ac93",
+      "runId": "run-5e653239-63cb-4bb1-9419-44fdb88cfc32",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-finalize.md",
+      "startedAt": "2026-05-17T10:00:16.811Z",
+      "finishedAt": "2026-05-17T10:46:25.400Z",
+      "lastUpdate": "2026-05-17T11:28:53.642Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "verifier-failed"
+    },
+    {
+      "name": "m1-verify",
+      "type": "verifier",
+      "branch": "`cursor/verify-m1-finalize-6204` (verifier-only; pushed to origin with all execution logs and a one-shot lint reproducer under `verify/`)",
+      "startingRef": "orch/m1-cockpit/m1-finalize",
+      "dependsOn": [
+        "m1-finalize"
+      ],
+      "agentId": "bc-d0525f4c-97c5-4583-bf7a-ebda7c836204",
+      "runId": "run-b14696d3-c661-4a9d-83fa-ce5bed4b9484",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-verify.md",
+      "startedAt": "2026-05-17T10:46:27.374Z",
+      "finishedAt": "2026-05-17T11:28:52.819Z",
+      "lastUpdate": "2026-05-17T11:28:52.820Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m1-fix-gates",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-fix-gates",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-verify"
+      ],
+      "agentId": "bc-585e1af4-c02c-4f1c-982c-6df6dfbaeeef",
+      "runId": "run-06f3bee7-48c9-4d09-b368-8b88b82cdadf",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-fix-gates.md",
+      "startedAt": "2026-05-17T11:31:19.608Z",
+      "finishedAt": "2026-05-17T11:56:29.494Z",
+      "lastUpdate": "2026-05-17T11:56:30.548Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    },
+    {
+      "name": "m1-reverify",
+      "type": "verifier",
+      "branch": "`orch/m1-cockpit/m1-fix-gates` @ `6a553e8dab189848cb8c3dedb9c64966a8be7d5b` (verifier added `verify/` artifacts on top of worker SHA `c436ab81c59fff8fe0655fdb35171b5883e2b013`)",
+      "startingRef": "orch/m1-cockpit/m1-fix-gates",
+      "dependsOn": [
+        "m1-fix-gates"
+      ],
+      "agentId": "bc-5c357a89-61c7-4511-b6f1-4b587171b314",
+      "runId": "run-30e8597c-3df7-4126-bfe6-d826e450107e",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-reverify.md",
+      "startedAt": "2026-05-17T11:56:32.300Z",
+      "finishedAt": "2026-05-17T12:33:46.827Z",
+      "lastUpdate": "2026-05-17T12:33:46.827Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": null
+    },
+    {
+      "name": "m1-bench-baselines",
+      "type": "worker",
+      "branch": "orch/m1-cockpit/m1-bench-baselines",
+      "startingRef": "orch/pr-cockpit/m1-cockpit",
+      "dependsOn": [
+        "m1-reverify"
+      ],
+      "agentId": "bc-4e19627a-2b30-44bd-8301-9efbcc7daa2a",
+      "runId": "run-6abc31da-6d6c-4f07-b4ac-db4c1608638d",
+      "parentAgentId": "bc-27f365fc-7df2-465b-a2e0-69ca67d9873a",
+      "status": "handed-off",
+      "resultStatus": "finished",
+      "handoffPath": "handoffs/m1-bench-baselines.md",
+      "startedAt": "2026-05-17T12:35:37.307Z",
+      "finishedAt": "2026-05-17T13:38:39.962Z",
+      "lastUpdate": "2026-05-17T13:38:40.795Z",
+      "note": null,
+      "attempts": 1,
+      "slackTs": null,
+      "prNumber": null,
+      "failureMode": null,
+      "verification": "unit-test-verified"
+    }
+  ],
+  "attention": [
+    {
+      "at": "2026-05-17T06:10:25.355Z",
+      "message": "m1-bootstrap: spawn failed after 3 transient sub-attempts: l: [invalid_model] Model 'gpt-5.5' does not match a known variant. Call GET /v1/models to list valid id+params combinations. run `bun cli.ts models --check` to re-probe the catalog against /v1/agents."
+    },
+    {
+      "at": "2026-05-17T06:11:58.049Z",
+      "message": "m1-bootstrap: respawned by self-planner (was error)"
+    },
+    {
+      "at": "2026-05-17T06:32:26.031Z",
+      "message": "m1-bootstrap: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T06:46:51.107Z",
+      "message": "m1-data-layer: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T07:00:59.931Z",
+      "message": "m1-auth-layer: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T07:24:36.814Z",
+      "message": "m1-api-sync: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T07:34:15.586Z",
+      "message": "m1-markdown-pipeline: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T08:07:35.347Z",
+      "message": "m1-ipc-types: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T08:56:36.478Z",
+      "message": "m1-frontend: SSE idle 328298ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T08:56:36.480Z",
+      "message": "m1-frontend: tool_call idle 328300ms; last=2026-05-17T08:51:08.180Z"
+    },
+    {
+      "at": "2026-05-17T09:02:43.410Z",
+      "message": "m1-frontend: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T09:18:44.326Z",
+      "message": "m1-perf-corpus: SSE idle 343159ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T09:18:44.327Z",
+      "message": "m1-perf-corpus: tool_call idle 343160ms; last=2026-05-17T09:13:01.167Z"
+    },
+    {
+      "at": "2026-05-17T10:00:16.805Z",
+      "message": "m1-perf-corpus: measurement_mismatch inbox first paint (synthetic) [parse-failed] regex did not match command stdout"
+    },
+    {
+      "at": "2026-05-17T10:00:16.806Z",
+      "message": "m1-perf-corpus: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T10:11:21.295Z",
+      "message": "m1-finalize: SSE idle 320229ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T10:11:21.296Z",
+      "message": "m1-finalize: tool_call idle 320230ms; last=2026-05-17T10:06:01.066Z"
+    },
+    {
+      "at": "2026-05-17T10:41:59.572Z",
+      "message": "m1-finalize: SSE idle 342744ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T10:41:59.574Z",
+      "message": "m1-finalize: tool_call idle 342746ms; last=2026-05-17T10:36:16.828Z"
+    },
+    {
+      "at": "2026-05-17T10:46:26.168Z",
+      "message": "m1-finalize: verification self-reported (live-ui-verified)"
+    },
+    {
+      "at": "2026-05-17T11:28:53.642Z",
+      "message": "m1-finalize: verification recorded (verifier-failed) by verifier m1-verify"
+    },
+    {
+      "at": "2026-05-17T11:50:24.364Z",
+      "message": "m1-fix-gates: SSE idle 317124ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T11:50:24.365Z",
+      "message": "m1-fix-gates: tool_call idle 317125ms; last=2026-05-17T11:45:07.240Z"
+    },
+    {
+      "at": "2026-05-17T11:56:30.549Z",
+      "message": "m1-fix-gates: verification self-reported (unit-test-verified)"
+    },
+    {
+      "at": "2026-05-17T12:15:36.325Z",
+      "message": "m1-reverify: SSE idle 300996ms, polled status=running; watchdog still waiting"
+    },
+    {
+      "at": "2026-05-17T12:15:36.326Z",
+      "message": "m1-reverify: tool_call idle 300997ms; last=2026-05-17T12:10:35.329Z"
+    },
+    {
+      "at": "2026-05-17T13:38:40.795Z",
+      "message": "m1-bench-baselines: verification self-reported (unit-test-verified)"
+    }
+  ]
+}

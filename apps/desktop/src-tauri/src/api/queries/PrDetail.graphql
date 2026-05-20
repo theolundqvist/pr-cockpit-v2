@@ -1,0 +1,287 @@
+# revision: 2026-05-18.m4.v1
+query PrDetail(
+  $owner: String!
+  $repo: String!
+  $number: Int!
+  $timelineFirst: Int! = 50
+  $timelineAfter: String
+  $threadFirst: Int! = 100
+  $reviewFirst: Int! = 100
+) {
+  repository(owner: $owner, name: $repo) {
+    id
+    owner {
+      login
+    }
+    name
+    pullRequest(number: $number) {
+      id
+      number
+      title
+      body
+      state
+      isDraft
+      mergeable
+      mergeStateStatus
+      viewerCanMerge
+      viewerCanEnableAutoMerge
+      viewerCanDisableAutoMerge
+      viewerCanUpdateBranch
+      viewerCanDeleteHeadRef
+      autoMergeRequest {
+        mergeMethod
+        commitHeadline
+        commitBody
+        enabledAt
+        enabledBy {
+          login
+        }
+      }
+      mergeQueueEntry {
+        id
+        position
+        state
+        estimatedTimeToMerge
+      }
+      createdAt
+      updatedAt
+      closedAt
+      mergedAt
+      additions
+      deletions
+      changedFiles
+      comments {
+        totalCount
+      }
+      commits {
+        totalCount
+        nodes {
+          commit {
+            oid
+            checkSuites(first: 20) {
+              nodes {
+                id
+                app {
+                  name
+                }
+                status
+                conclusion
+                updatedAt
+                workflowRun {
+                  url
+                }
+                checkRuns(first: 20) {
+                  nodes {
+                    id
+                    databaseId
+                    name
+                    status
+                    conclusion
+                    updatedAt
+                    detailsUrl
+                    title
+                    summary
+                    startedAt
+                    completedAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      author {
+        __typename
+        ... on User {
+          id
+          login
+          name
+          avatarUrl
+          url
+        }
+      }
+      baseRefName
+      baseRefOid
+      headRefName
+      headRef {
+        id
+        name
+      }
+      headRefOid
+      repository {
+        mergeCommitAllowed
+        squashMergeAllowed
+        rebaseMergeAllowed
+        deleteBranchOnMerge
+        mergeQueue {
+          id
+        }
+        defaultBranchRef {
+          branchProtectionRule {
+            requiresApprovingReviews
+            requiredApprovingReviewCount
+            requiresStatusChecks
+            requiredStatusCheckContexts
+            requiresStrictStatusChecks
+            restrictsPushes
+            restrictsReviewDismissals
+          }
+        }
+      }
+      headRepository {
+        id
+        owner {
+          login
+        }
+        name
+      }
+      labels(first: 50) {
+        nodes {
+          id
+          name
+          color
+          description
+        }
+      }
+      assignees(first: 20) {
+        nodes {
+          id
+          login
+          name
+          avatarUrl
+          url
+        }
+      }
+      reviewRequests(first: 20) {
+        nodes {
+          requestedReviewer {
+            __typename
+            ... on User {
+              id
+              login
+              name
+              avatarUrl
+              url
+            }
+            ... on Team {
+              id
+              slug
+              name
+            }
+          }
+        }
+      }
+      reviewThreads(first: $threadFirst) {
+        nodes {
+          id
+          isOutdated
+          isResolved
+          resolvedBy {
+            id
+            login
+            name
+            avatarUrl
+            url
+          }
+          path
+          line
+          side
+          startLine
+          startSide
+          originalCommit {
+            oid
+          }
+          originalStartLine
+          originalLine
+          comments(first: 100) {
+            nodes {
+              id
+              body
+              createdAt
+              updatedAt
+              author {
+                login
+                ... on User {
+                  id
+                  name
+                  avatarUrl
+                  url
+                }
+              }
+            }
+          }
+        }
+      }
+      reviews(first: $reviewFirst) {
+        nodes {
+          id
+          state
+          body
+          createdAt
+          updatedAt
+          submittedAt
+          commit {
+            oid
+          }
+          author {
+            login
+            ... on User {
+              id
+              name
+              avatarUrl
+              url
+            }
+          }
+        }
+      }
+      timelineItems(
+        first: $timelineFirst
+        after: $timelineAfter
+        itemTypes: [ISSUE_COMMENT, PULL_REQUEST_REVIEW]
+      ) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        nodes {
+          __typename
+          ... on IssueComment {
+            id
+            body
+            createdAt
+            updatedAt
+            author {
+              login
+              ... on User {
+                id
+                name
+                avatarUrl
+                url
+              }
+            }
+          }
+          ... on PullRequestReview {
+            id
+            state
+            body
+            createdAt
+            updatedAt
+            submittedAt
+            commit {
+              oid
+            }
+            author {
+              login
+              ... on User {
+                id
+                name
+                avatarUrl
+                url
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
